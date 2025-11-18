@@ -1,0 +1,14 @@
+{
+  "name": "bus_booking_app",
+  "version": "1.0.0",
+  "description": "Final Project for the Advanced Web Development course",
+  "main": "index.js",
+  "scripts": {
+    "dev": "pnpm run --parallel dev",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Lam Gia Lac - Nguyen Thanh Nhan",
+  "license": "ISC",
+  "packageManager": "pnpm@10.22.0"
+}
