@@ -1,0 +1,33 @@
+"use client"
+
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useState } from "react";
+import { createTRPCClient, httpBatchLink } from '@trpc/client';
+import { AppRouterType } from "@backend/app.router";
+import { TRPCProvider } from "./trpc";
+
+interface MyQueryProviderProps {
+    children: React.ReactNode;
+};
+
+const QueryProvider = ({ children }: MyQueryProviderProps) => {
+    const [queryClient] = useState(() => new QueryClient());
+    const [trpcClient] = useState(() =>
+        createTRPCClient<AppRouterType>({
+            links: [
+                httpBatchLink({
+                    url: `http://localhost:8000/trpc`,
+                }),
+            ],
+        }),
+    );
+    return (
+        <QueryClientProvider client={queryClient}>
+            <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
+                {children}
+            </TRPCProvider>
+        </QueryClientProvider>
+    );
+}
+
+export default QueryProvider;

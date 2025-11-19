@@ -1,8 +1,32 @@
+"use client"
 import Image from "next/image";
-import { testImport } from '@lib/test-import';
+import { useEffect } from "react";
+import { useTRPC } from "../utils/trpc";
+import { useMutation } from "@tanstack/react-query";
 
 export default function Home() {
-  console.log(testImport);
+  const trpc = useTRPC();
+  const loginMutationOptions = trpc.users.login.mutationOptions();
+  const loginMutation = useMutation(loginMutationOptions);
+
+  useEffect(() => {
+    loginMutation.mutate({
+      email: 'ntnhan@gmail.com',
+      password: '123456789',
+      rememberMe: 'true',
+    });
+  }, []);
+
+  if (loginMutation.isPending) {
+    return <div>Making login request</div>;
+  }
+
+  if (loginMutation.isSuccess) {
+    return <div>
+      Response from server: {loginMutation.data}
+    </div>
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
       <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">

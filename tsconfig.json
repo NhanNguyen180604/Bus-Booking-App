@@ -14,12 +14,6 @@
             "@backend/*": [
                 "./apps/backend/src/*"
             ],
-            "@frontend/*": [
-                "./apps/frontend/*"
-            ],
-            "@lib/*": [
-                "./lib/*"
-            ]
         }
     }
 }
