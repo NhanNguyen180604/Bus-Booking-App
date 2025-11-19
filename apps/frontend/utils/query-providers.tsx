@@ -17,6 +17,13 @@ const QueryProvider = ({ children }: MyQueryProviderProps) => {
             links: [
                 httpBatchLink({
                     url: `http://localhost:8000/trpc`,
+                    // send cookies
+                    fetch(url, options) {
+                        return fetch(url, {
+                            ...options,
+                            credentials: 'include',
+                        })
+                    }
                 }),
             ],
         }),

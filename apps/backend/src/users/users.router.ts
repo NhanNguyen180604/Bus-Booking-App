@@ -1,6 +1,6 @@
 import { TrpcService } from "@backend/trpc/trpc.service";
-import { Injectable } from "@nestjs/common";
-import { UserLoginDto } from "./dtos/login.dto";
+import { Injectable, Logger } from "@nestjs/common";
+import { UserLoginDto } from "./users.dto";
 import { UsersService } from "./users.service";
 
 @Injectable()
@@ -11,6 +11,7 @@ export class UsersRouter {
     ) { }
 
     apply() {
+        Logger.log('Initialized paths /trpc/users', 'UsersRouter');
         return this.trpcService.router({
             login: this.trpcService
                 .publicProcedure()
