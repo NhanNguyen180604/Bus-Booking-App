@@ -6,7 +6,7 @@ import { useMutation } from "@tanstack/react-query";
 
 export default function Home() {
   const trpc = useTRPC();
-  const loginMutationOptions = trpc.users.login.mutationOptions();
+  const loginMutationOptions = trpc.users.postLoginLocal.mutationOptions();
   const loginMutation = useMutation(loginMutationOptions);
 
   useEffect(() => {

@@ -24,10 +24,10 @@ export class CookieConfig {
     public readonly secret!: string;
 
     @Allow()
-    public readonly access_token_max_age!: string;
+    public readonly access_token_max_age!: number;
 
     @Allow()
-    public readonly refresh_token_max_age!: string;
+    public readonly refresh_token_max_age!: number;
 };
 
 export class DatabaseConfig {

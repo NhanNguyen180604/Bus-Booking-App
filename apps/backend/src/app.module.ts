@@ -7,6 +7,11 @@ import { AppRouter } from './app.router';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { fileLoader, TypedConfigModule } from 'nest-typed-config';
 import { RootConfig } from './config/config';
+import { CustomJwtModule } from './jwt/custom-jwt.module';
+import { JwtMiddleware } from './middlewares/jwt.middleware';
+import { User } from './users/users.entity';
+import { TokenModule } from './token/token.module';
+import { RefreshToken } from './token/refresh-token.entity';
 
 @Module({
   imports: [
@@ -22,14 +27,20 @@ import { RootConfig } from './config/config';
       useFactory: (config: RootConfig) => ({
         type: 'postgres',
         url: config.database.url,
-        entities: [],
+        entities: [
+          User,
+          RefreshToken,
+        ],
         synchronize: true,
       }),
     }),
+    CustomJwtModule,
     TrpcModule,
-    UsersModule
+    UsersModule,
+    TokenModule
   ],
   controllers: [AppController],
-  providers: [AppService, AppRouter],
+  providers: [AppService, AppRouter, JwtMiddleware],
 })
-export class AppModule { }
+export class AppModule {
+}

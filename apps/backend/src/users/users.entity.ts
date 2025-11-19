@@ -1,14 +1,17 @@
-import { Column, CreateDateColumn, Entity, PrimaryColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
 import { UserRoleEnum } from "./user-role.enum";
 import { LoginProviderEnum } from "./login-providers.enum";
 
 @Entity()
 export class User {
-    @PrimaryColumn('uuid')
+    @PrimaryGeneratedColumn('uuid')
     id: string;
 
     @Column({ unique: true, nullable: true })
     email: string;
+
+    @Column({ unique: true, nullable: false })
+    phone: string;
 
     @Column({ nullable: true })
     password: string;  // null if provider is not local
