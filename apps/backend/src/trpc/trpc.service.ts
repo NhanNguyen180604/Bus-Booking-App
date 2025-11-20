@@ -25,7 +25,7 @@ export class TrpcService {
         return this.trpc.procedure;
     }
 
-    protectedProcedure(...allowedRoles: UserRoleEnum[]) {
+    roleGuardProcedure(...allowedRoles: UserRoleEnum[]) {
         const procedure = this.trpc.procedure.use(async (opts) => {
             const user = opts.ctx.user;
             if (!user) {

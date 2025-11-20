@@ -74,7 +74,7 @@ export class UsersRouter {
                     return 'Logout success';
                 }),
             getMe: this.trpcService
-                .protectedProcedure()
+                .roleGuardProcedure()
                 .query(async ({ ctx }) => {
                     const user = ctx.user!;
                     return {

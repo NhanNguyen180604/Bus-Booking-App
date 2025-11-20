@@ -5,6 +5,7 @@ import { Inject, Injectable, NestMiddleware } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { type Request, type Response, NextFunction } from "express";
 
+// global middleware to extract user from the request's cookies
 @Injectable()
 export class JwtMiddleware implements NestMiddleware {
     constructor(
@@ -37,6 +38,7 @@ export class JwtMiddleware implements NestMiddleware {
             if (!refreshTokenEntity) {
                 res.clearCookie('access_token');
                 res.clearCookie('refresh_token');
+                this.tokenService.deleteOneRefreshTokenByValue(tokenObj.refresh_token);
                 return next();
             }
 

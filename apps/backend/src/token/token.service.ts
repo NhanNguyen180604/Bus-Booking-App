@@ -26,7 +26,13 @@ export class TokenService {
     ) { }
 
     async findOneBy(field: "userId" | "value", value: string) {
-        return this.tokenRepo.findOneBy({ [field]: value });
+        // return this.tokenRepo.findOneBy({ 
+        //     [field]: value
+        // });
+        return this.tokenRepo.createQueryBuilder("token")
+            .where(`token.${field} = :value`, {value})
+            .andWhere("token.deleteDate > NOW()")
+            .getOne();
     }
 
     async createOneAccessToken(user: string | User) {

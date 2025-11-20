@@ -1,7 +1,6 @@
 import {
     Column,
     CreateDateColumn,
-    DeleteDateColumn,
     Entity,
     JoinColumn,
     ManyToOne,
@@ -24,6 +23,7 @@ export class RefreshToken {
     @CreateDateColumn({ type: 'timestamptz' })
     createdAt: Date;
 
-    @DeleteDateColumn({ type: 'timestamptz' })
+    // to be deleted date
+    @Column({ type: 'timestamptz' })
     deleteDate: Date;
 }
