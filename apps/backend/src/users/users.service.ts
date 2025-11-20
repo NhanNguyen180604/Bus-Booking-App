@@ -58,8 +58,8 @@ export class UsersService {
             });
         }
 
-        const salt = bcryptjs.genSaltSync();
-        const hashedPassword = bcryptjs.hashSync(dto.password, salt);
+        const salt = await bcryptjs.genSalt();
+        const hashedPassword = await bcryptjs.hash(dto.password, salt);
         let newUser = this.userRepo.create({
             ...dto,
             password: hashedPassword,
@@ -67,6 +67,10 @@ export class UsersService {
 
         newUser = await this.userRepo.save(newUser);
         return this.createTokens(newUser, dto.rememberMe);
+    }
+
+    logout(user: User) {
+        this.tokenService.deleteOneRefreshTokenByUser(user);
     }
 
     async createTokens(user: User, rememberMe: boolean) {

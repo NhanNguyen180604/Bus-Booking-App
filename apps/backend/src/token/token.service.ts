@@ -8,6 +8,7 @@ import { User } from '../users/users.entity';
 import { type Request } from 'express';
 import { RootConfig } from '../config/config';
 import { convertToMs } from '@backend/utils/convert-to-ms';
+import { AccessTokenPayload } from '@backend/types/token-payload';
 
 @Injectable()
 export class TokenService {
@@ -32,7 +33,7 @@ export class TokenService {
         if (typeof (user) === 'string') {
             user = (await this.usersService.findOneBy('id', user))!;
         }
-        const payload = { sub: user.id, email: user.email };
+        const payload: AccessTokenPayload = { sub: user.id, email: user.email };
         const access_token = this.accessJwtService.sign(payload);
         return access_token;
     }

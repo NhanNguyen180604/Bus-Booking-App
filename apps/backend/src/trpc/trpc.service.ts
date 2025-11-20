@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { initTRPC } from '@trpc/server';
+import { initTRPC, TRPCError } from '@trpc/server';
 import { TrpcContext } from './trpc.context';
+import { UserRoleEnum } from '@backend/users/user-role.enum';
 
 @Injectable()
 export class TrpcService {
@@ -9,8 +10,7 @@ export class TrpcService {
     router: typeof this.trpc.router;
     mergeRouter: typeof this.trpc.mergeRouters;
 
-    constructor(
-    ) {
+    constructor() {
         this.trpc = this.createTrpc();
         this.procedure = this.trpc.procedure;
         this.router = this.trpc.router;
@@ -25,9 +25,26 @@ export class TrpcService {
         return this.trpc.procedure;
     }
 
-    protectedProcedure(allowedRoles?: string[]) {
+    protectedProcedure(...allowedRoles: UserRoleEnum[]) {
         const procedure = this.trpc.procedure.use(async (opts) => {
-            // TODO: add authorization
+            const user = opts.ctx.user;
+            if (!user) {
+                throw new TRPCError({
+                    code: 'UNAUTHORIZED',
+                    message: 'No token',
+                });
+            }
+
+            if (allowedRoles.length === 0) {
+                return opts.next();
+            }
+
+            if (!allowedRoles.includes(user.role)) {
+                throw new TRPCError({
+                    code: 'FORBIDDEN',
+                    message: 'You are not allowed for this action',
+                });
+            }
             return opts.next();
         });
         return procedure;

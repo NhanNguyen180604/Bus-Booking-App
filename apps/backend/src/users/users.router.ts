@@ -61,6 +61,30 @@ export class UsersRouter {
                     }
                     return 'Registration success';
                 }),
+            postLogout: this.trpcService
+                .publicProcedure()
+                .mutation(async ({ ctx }) => {
+                    const user = ctx.user;
+                    if (user) {
+                        this.usersService.logout(user);
+                    }
+                    const res: Response = ctx.res;
+                    res.clearCookie('access_token', this.cookieOptions);
+                    res.clearCookie('refresh_token', this.cookieOptions);
+                    return 'Logout success';
+                }),
+            getMe: this.trpcService
+                .protectedProcedure()
+                .query(async ({ ctx }) => {
+                    const user = ctx.user!;
+                    return {
+                        id: user.id,
+                        email: user.email,
+                        name: user.name,
+                        phone: user.phone,
+                        provider: user.provider,
+                    }
+                }),
         });
     }
 }
