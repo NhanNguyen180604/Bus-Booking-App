@@ -2,7 +2,7 @@ import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { UserLoginDtoType, UserRegisterDtoType } from './users.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './users.entity';
-import { Repository } from 'typeorm';
+import { DeepPartial, FindOptionsWhere, Repository } from 'typeorm';
 import bcryptjs from 'bcryptjs';
 import { TRPCError } from '@trpc/server';
 import { TokenService } from '../token/token.service';
@@ -21,6 +21,15 @@ export class UsersService {
         return this.userRepo.findOneBy({
             [field]: value,
         });
+    }
+
+    findOneBy2(where: FindOptionsWhere<User> | FindOptionsWhere<User>[]) {
+        return this.userRepo.findOneBy(where);
+    }
+
+    async createOne(user: DeepPartial<User>){
+        user = this.userRepo.create(user);
+        return await this.userRepo.save(user) as User;
     }
 
     async loginLocal(dto: UserLoginDtoType, req: Request): Promise<{ access_token: string, refresh_token?: string }> {

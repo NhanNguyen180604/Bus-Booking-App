@@ -12,6 +12,7 @@ import { JwtMiddleware } from './middlewares/jwt.middleware';
 import { User } from './users/users.entity';
 import { TokenModule } from './token/token.module';
 import { RefreshToken } from './token/refresh-token.entity';
+import { Oauth2Module } from './google/oauth2.module';
 
 @Module({
   imports: [
@@ -37,7 +38,8 @@ import { RefreshToken } from './token/refresh-token.entity';
     CustomJwtModule,
     TrpcModule,
     UsersModule,
-    TokenModule
+    TokenModule,
+    Oauth2Module
   ],
   controllers: [AppController],
   providers: [AppService, AppRouter, JwtMiddleware],
