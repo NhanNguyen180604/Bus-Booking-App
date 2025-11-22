@@ -12,7 +12,7 @@ export default function Home() {
   useEffect(() => {
     loginMutation.mutate({
       email: 'ntnhan@gmail.com',
-      password: '123456789',
+      password: 'OhNo123456789!',
       rememberMe: 'true',
     });
   }, []);

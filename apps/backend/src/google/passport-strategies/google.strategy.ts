@@ -24,7 +24,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     async validate(access_token: string, refresh_token: string, profile: Profile, done: VerifyCallback) {
         const { id, name } = profile;
 
-        const foundUser = await this.usersService.findOneBy2({
+        const foundUser = await this.usersService.findOneBy({
             providerId: id,
             provider: LoginProviderEnum.GOOGLE,
         });
@@ -36,7 +36,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
         const newUser = await this.usersService.createOne({
             providerId: id,
             provider: LoginProviderEnum.GOOGLE,
-            name: name?.givenName + ' ' + name?.givenName,
+            name: name?.givenName + ' ' + name?.familyName,
         });
         return done(null, newUser);
     }
