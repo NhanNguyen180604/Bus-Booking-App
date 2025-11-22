@@ -1,14 +1,13 @@
-import { UsersService } from "@backend/users/users.service";
-import { Inject, Injectable, Logger } from "@nestjs/common";
+import { UsersService } from "../../users/users.service";
+import { Inject, Injectable } from "@nestjs/common";
 import { Profile, Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { PassportStrategy } from '@nestjs/passport';
-import { RootConfig } from "@backend/config/config";
-import { LoginProviderEnum } from "@backend/users/login-providers.enum";
+import { RootConfig } from "../../config/config";
+import { LoginProviderEnum } from "../../users/login-providers.enum";
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     constructor(
-        @Inject(UsersService)
         private readonly usersService: UsersService,
         @Inject(RootConfig)
         config: RootConfig,
@@ -29,7 +28,6 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
             provider: LoginProviderEnum.GOOGLE,
         });
         if (foundUser) {
-            Logger.log(foundUser);
             return done(null, foundUser);
         }
 

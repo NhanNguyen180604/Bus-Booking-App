@@ -12,7 +12,7 @@ import { JwtMiddleware } from './middlewares/jwt.middleware';
 import { User } from './users/users.entity';
 import { TokenModule } from './token/token.module';
 import { RefreshToken } from './token/refresh-token.entity';
-import { Oauth2Module } from './google/oauth2.module';
+import { Oauth2Module } from './oauth2/oauth2.module';
 
 // TODO: actually set as production mode
 const loader = process.env.NODE_ENV === 'production' ?

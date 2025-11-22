@@ -35,7 +35,7 @@ export class DatabaseConfig {
     public readonly url!: string;
 };
 
-export class GoogleOAuth2Config {
+export class ProviderOAuth2Config {
     @Allow()
     public client_id!: string;
 
@@ -47,9 +47,13 @@ export class GoogleOAuth2Config {
 }
 
 export class OAuth2Config {
-    @Type(() => GoogleOAuth2Config)
+    @Type(() => ProviderOAuth2Config)
     @ValidateNested()
-    public readonly google!: GoogleOAuth2Config;
+    public readonly google!: ProviderOAuth2Config;
+
+    @Type(() => ProviderOAuth2Config)
+    @ValidateNested()
+    public readonly facebook!: ProviderOAuth2Config;
 }
 
 export class RootConfig {

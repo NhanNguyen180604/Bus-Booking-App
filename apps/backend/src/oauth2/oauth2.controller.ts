@@ -1,9 +1,10 @@
-import { GoogleAuthGuard } from '@backend/guards/google-auth.guard';
 import { Controller, Get, Inject, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
 import type { CookieOptions, Request, Response } from 'express';
 import { Oauth2Service } from './oauth2.service';
 import { RootConfig } from '../config/config';
-import { UserRoleEnum } from '@backend/users/user-role.enum';
+import { UserRoleEnum } from '../users/user-role.enum';
+import { GoogleAuthGuard } from '../guards/google-auth.guard';
+import { FacebookAuthGuard } from '../guards/facebook-auth.guard';
 
 @Controller('oauth2')
 export class Oauth2Controller {
@@ -27,8 +28,22 @@ export class Oauth2Controller {
     @Get('google/callback')
     @UseGuards(GoogleAuthGuard)
     async googleAuthCallback(@Req() req: Request, @Res() res: Response) {
+        return this.handleOAuth2Callback(req, res);
+    }
+
+    @Get('facebook')
+    @UseGuards(FacebookAuthGuard)
+    facebookAuth() { }
+
+    @Get('facebook/callback')
+    @UseGuards(FacebookAuthGuard)
+    async facebookAuthCallback(@Req() req: Request, @Res() res: Response) {
+        return this.handleOAuth2Callback(req, res);
+    }
+
+    async handleOAuth2Callback(req: Request, res: Response) {
         if (!req.user) {
-            throw new UnauthorizedException('No Google user');
+            throw new UnauthorizedException('No Facebook user');
         }
         const { access_token, refresh_token } = await this.oauth2Service.oauth2Login(req.user);
         res.cookie('access_token', access_token, {
@@ -39,7 +54,7 @@ export class Oauth2Controller {
             ...this.cookieOptions,
             maxAge: this.config.cookie.refresh_token_max_age,
         });
-        if (req.user.role === UserRoleEnum.ADMIN){
+        if (req.user.role === UserRoleEnum.ADMIN) {
             return res.redirect(`${this.config.frontend_url}/admin`);
         }
         else return res.redirect(this.config.frontend_url);
