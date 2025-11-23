@@ -5,6 +5,7 @@ import { RootConfig } from '../config/config';
 import { UserRoleEnum } from '../users/user-role.enum';
 import { GoogleAuthGuard } from '../guards/google-auth.guard';
 import { FacebookAuthGuard } from '../guards/facebook-auth.guard';
+import { GitHubAuthGuard } from '../guards/github-auth.guard';
 
 @Controller('oauth2')
 export class Oauth2Controller {
@@ -38,6 +39,16 @@ export class Oauth2Controller {
     @Get('facebook/callback')
     @UseGuards(FacebookAuthGuard)
     async facebookAuthCallback(@Req() req: Request, @Res() res: Response) {
+        return this.handleOAuth2Callback(req, res);
+    }
+
+    @Get('github')
+    @UseGuards(GitHubAuthGuard)
+    githubAuth() { }
+
+    @Get('github/callback')
+    @UseGuards(GitHubAuthGuard)
+    async githubAuthCallback(@Req() req: Request, @Res() res: Response) {
         return this.handleOAuth2Callback(req, res);
     }
 

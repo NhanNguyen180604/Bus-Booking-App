@@ -54,6 +54,10 @@ export class OAuth2Config {
     @Type(() => ProviderOAuth2Config)
     @ValidateNested()
     public readonly facebook!: ProviderOAuth2Config;
+
+    @Type(() => ProviderOAuth2Config)
+    @ValidateNested()
+    public readonly github!: ProviderOAuth2Config;
 }
 
 export class RootConfig {
