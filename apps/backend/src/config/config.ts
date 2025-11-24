@@ -35,6 +35,31 @@ export class DatabaseConfig {
     public readonly url!: string;
 };
 
+export class ProviderOAuth2Config {
+    @Allow()
+    public client_id!: string;
+
+    @Allow()
+    public client_secret!: string;
+
+    @Allow()
+    public callback_url!: string;
+}
+
+export class OAuth2Config {
+    @Type(() => ProviderOAuth2Config)
+    @ValidateNested()
+    public readonly google!: ProviderOAuth2Config;
+
+    @Type(() => ProviderOAuth2Config)
+    @ValidateNested()
+    public readonly facebook!: ProviderOAuth2Config;
+
+    @Type(() => ProviderOAuth2Config)
+    @ValidateNested()
+    public readonly github!: ProviderOAuth2Config;
+}
+
 export class RootConfig {
     @Allow()
     public readonly port!: number;
@@ -53,4 +78,8 @@ export class RootConfig {
     @Type(() => DatabaseConfig)
     @Allow()
     public readonly database!: DatabaseConfig;
+
+    @Type(() => OAuth2Config)
+    @Allow()
+    public readonly oauth2!: OAuth2Config;
 };

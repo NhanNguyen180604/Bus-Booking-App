@@ -2,7 +2,7 @@ import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { UserLoginDtoType, UserRegisterDtoType } from './users.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './users.entity';
-import { Repository } from 'typeorm';
+import { DeepPartial, FindOptionsWhere, Repository } from 'typeorm';
 import bcryptjs from 'bcryptjs';
 import { TRPCError } from '@trpc/server';
 import { TokenService } from '../token/token.service';
@@ -17,14 +17,17 @@ export class UsersService {
         private readonly tokenService: TokenService,
     ) { }
 
-    findOneBy(field: "id" | "email" | "phone", value: number | string) {
-        return this.userRepo.findOneBy({
-            [field]: value,
-        });
+    findOneBy(where: FindOptionsWhere<User> | FindOptionsWhere<User>[]) {
+        return this.userRepo.findOneBy(where);
+    }
+
+    async createOne(user: DeepPartial<User>) {
+        user = this.userRepo.create(user);
+        return await this.userRepo.save(user) as User;
     }
 
     async loginLocal(dto: UserLoginDtoType, req: Request): Promise<{ access_token: string, refresh_token?: string }> {
-        const foundUser = await this.findOneBy('email', dto.email);
+        const foundUser = await this.findOneBy({ email: dto.email });
         if (!foundUser || !bcryptjs.compareSync(dto.password, foundUser.password)) {
             throw new TRPCError({
                 code: 'UNAUTHORIZED',
@@ -42,7 +45,7 @@ export class UsersService {
     }
 
     async registerLocal(dto: UserRegisterDtoType): Promise<{ access_token: string, refresh_token?: string }> {
-        const duplicateEmailUser = await this.findOneBy('email', dto.email);
+        const duplicateEmailUser = await this.findOneBy({ email: dto.email });
         if (duplicateEmailUser) {
             throw new TRPCError({
                 code: 'CONFLICT',
@@ -50,7 +53,7 @@ export class UsersService {
             });
         }
 
-        const duplicatePhoneUser = await this.findOneBy('phone', dto.phone);
+        const duplicatePhoneUser = await this.findOneBy({ phone: dto.phone });
         if (duplicatePhoneUser) {
             throw new TRPCError({
                 code: 'CONFLICT',
@@ -60,12 +63,11 @@ export class UsersService {
 
         const salt = await bcryptjs.genSalt();
         const hashedPassword = await bcryptjs.hash(dto.password, salt);
-        let newUser = this.userRepo.create({
+        let newUser = await this.createOne({
             ...dto,
             password: hashedPassword,
         });
 
-        newUser = await this.userRepo.save(newUser);
         return this.createTokens(newUser, dto.rememberMe);
     }
 

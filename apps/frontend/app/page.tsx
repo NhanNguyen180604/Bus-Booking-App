@@ -9,23 +9,23 @@ export default function Home() {
   const loginMutationOptions = trpc.users.postLoginLocal.mutationOptions();
   const loginMutation = useMutation(loginMutationOptions);
 
-  useEffect(() => {
-    loginMutation.mutate({
-      email: 'ntnhan@gmail.com',
-      password: '123456789',
-      rememberMe: 'true',
-    });
-  }, []);
+  // useEffect(() => {
+  //   loginMutation.mutate({
+  //     email: 'ntnhan@gmail.com',
+  //     password: 'OhNo123456789!',
+  //     rememberMe: 'true',
+  //   });
+  // }, []);
 
-  if (loginMutation.isPending) {
-    return <div>Making login request</div>;
-  }
+  // if (loginMutation.isPending) {
+  //   return <div>Making login request</div>;
+  // }
 
-  if (loginMutation.isSuccess) {
-    return <div>
-      Response from server: {loginMutation.data}
-    </div>
-  }
+  // if (loginMutation.isSuccess) {
+  //   return <div>
+  //     Response from server: {loginMutation.data}
+  //   </div>
+  // }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">

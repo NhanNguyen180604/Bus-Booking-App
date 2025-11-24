@@ -30,14 +30,14 @@ export class TokenService {
         //     [field]: value
         // });
         return this.tokenRepo.createQueryBuilder("token")
-            .where(`token.${field} = :value`, {value})
+            .where(`token.${field} = :value`, { value })
             .andWhere("token.deleteDate > NOW()")
             .getOne();
     }
 
     async createOneAccessToken(user: string | User) {
         if (typeof (user) === 'string') {
-            user = (await this.usersService.findOneBy('id', user))!;
+            user = (await this.usersService.findOneBy({ id: user }))!;
         }
         const payload: AccessTokenPayload = { sub: user.id, email: user.email };
         const access_token = this.accessJwtService.sign(payload);
@@ -46,7 +46,7 @@ export class TokenService {
 
     async createOneRefreshToken(user: string | User) {
         if (typeof (user) === 'string') {
-            user = (await this.usersService.findOneBy('id', user))!;
+            user = (await this.usersService.findOneBy({ id: user }))!;
         }
         const refresh_token = this.refreshJwtService.sign({ sub: user.id });
 
@@ -61,7 +61,7 @@ export class TokenService {
 
     async deleteOneRefreshTokenByUser(user: string | User) {
         if (typeof (user) === 'string') {
-            user = (await this.usersService.findOneBy('id', user))!;
+            user = (await this.usersService.findOneBy({ id: user }))!;
         }
         await this.tokenRepo.delete({ user });
     }
