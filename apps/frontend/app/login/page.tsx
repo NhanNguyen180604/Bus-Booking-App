@@ -1,19 +1,41 @@
 "use client";
 
-import { useState, FormEvent } from "react";
 import { useTRPC } from "../../utils/trpc";
 import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "../../components/ui/button";
+import { Card, CardHeader, CardBody, CardFooter } from "../../components/ui/card";
+import { FormField } from "../../components/ui/form-field";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+const loginSchema = z.object({
+  email: z.email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  rememberMe: z.boolean(),
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
   const trpc = useTRPC();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
-  const [error, setError] = useState("");
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setError,
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      rememberMe: false,
+    },
+  });
 
   const loginMutationOptions = trpc.users.postLoginLocal.mutationOptions();
   const loginMutation = useMutation({
@@ -22,114 +44,94 @@ export default function LoginPage() {
       router.push("/");
     },
     onError: (error: any) => {
-      setError(error.message || "Login failed. Please try again.");
+      setError("root", {
+        message: error.message || "Login failed. Please try again.",
+      });
     },
   });
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    setError("");
+  const onSubmit = (data: LoginFormData) => {
     loginMutation.mutate({
-      email,
-      password,
-      rememberMe: rememberMe.toString(),
+      email: data.email,
+      password: data.password,
+      rememberMe: data.rememberMe.toString(),
     });
   };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-zinc-900 px-4">
-      <div className="w-full max-w-md space-y-8 bg-white dark:bg-zinc-800 p-8 rounded-lg shadow-lg">
-        <div>
-          <h2 className="text-center text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
-            Sign in to your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-zinc-600 dark:text-zinc-400">
-            Or{" "}
-            <Link
-              href="/register"
-              className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
-            >
-              create a new account
-            </Link>
-          </p>
-        </div>
-
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-4">
-              <p className="text-sm text-red-800 dark:text-red-400">{error}</p>
-            </div>
-          )}
-
-          <div className="space-y-4">
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+      <div className="w-full max-w-md">
+        <Card variant="elevated">
+          <CardHeader>
+            <h2 className="text-center text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
+              Sign in to your account
+            </h2>
+            <p className="mt-2 text-center text-sm text-zinc-600 dark:text-zinc-400">
+              Or{" "}
+              <Link
+                href="/register"
+                className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
               >
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
+                create a new account
+              </Link>
+            </p>
+          </CardHeader>
+
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <CardBody className="space-y-4">
+              {errors.root && (
+                <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-4">
+                  <p className="text-sm text-red-800 dark:text-red-400">{errors.root.message}</p>
+                </div>
+              )}
+
+              <FormField
+                label="Email address"
                 type="email"
                 autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 px-3 py-2 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
                 placeholder="you@example.com"
+                error={errors.email?.message}
+                {...register("email")}
               />
-            </div>
 
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-              >
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
+              <FormField
+                label="Password"
                 type="password"
                 autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 px-3 py-2 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
                 placeholder="••••••••"
+                error={errors.password?.message}
+                {...register("password")}
               />
-            </div>
-          </div>
 
-          <div className="flex items-center">
-            <input
-              id="remember-me"
-              name="remember-me"
-              type="checkbox"
-              checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
-              className="h-4 w-4 rounded border-zinc-300 dark:border-zinc-600 text-blue-600 focus:ring-blue-500"
-            />
-            <label
-              htmlFor="remember-me"
-              className="ml-2 block text-sm text-zinc-700 dark:text-zinc-300"
-            >
-              Remember me
-            </label>
-          </div>
+              <div className="flex items-center">
+                <input
+                  id="remember-me"
+                  type="checkbox"
+                  {...register("rememberMe")}
+                  className="h-4 w-4 rounded border-zinc-300 dark:border-zinc-600 text-blue-600 focus:ring-blue-500"
+                />
+                <label
+                  htmlFor="remember-me"
+                  className="ml-2 block text-sm text-zinc-700 dark:text-zinc-300"
+                >
+                  Remember me
+                </label>
+              </div>
+            </CardBody>
 
-          <Button
-            type="submit"
-            disabled={loginMutation.isPending}
-            variant="primary"
-            size="md"
-            fullWidth
-          >
-            {loginMutation.isPending ? "Signing in..." : "Sign in"}
-          </Button>
-        </form>
+            <CardFooter>
+              <Button
+                type="submit"
+                disabled={loginMutation.isPending}
+                variant="primary"
+                size="md"
+                fullWidth
+              >
+                {loginMutation.isPending ? "Signing in..." : "Sign in"}
+              </Button>
+            </CardFooter>
+          </form>
+        </Card>
       </div>
     </div>
   );
