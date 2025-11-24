@@ -6,6 +6,7 @@ import { HeroSection } from "../components/home/hero-section";
 import { AuthActions } from "../components/home/auth-actions";
 import { useTRPC } from "../utils/trpc";
 import { useQuery } from "@tanstack/react-query";
+import Loading from "../components/ui/loading";
 
 export default function Home() {
   const trpc = useTRPC();
@@ -14,9 +15,20 @@ export default function Home() {
   const userQuery = useQuery({
     ...userQueryOptions,
     retry: false,
+    staleTime: 0, // Don't use stale data
+    refetchOnMount: true, // Always refetch on mount
   });
 
   const isLoggedIn = userQuery.isSuccess && userQuery.data;
+  const isLoading = userQuery.isLoading || userQuery.isFetching;
+
+  if (isLoading) {
+    return (
+      <AppShell hideNav>
+        <Loading />
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell hideNav>

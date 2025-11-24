@@ -10,14 +10,8 @@ import { FormField } from "../../components/ui/form-field";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-
-const loginSchema = z.object({
-  email: z.email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  rememberMe: z.boolean(),
-});
-
-type LoginFormData = z.infer<typeof loginSchema>;
+import { da } from "zod/v4/locales";
+import { type UserLoginDtoType, UserLoginDto } from "@backend/users/users.dto";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -28,8 +22,8 @@ export default function LoginPage() {
     handleSubmit,
     formState: { errors },
     setError,
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+  } = useForm<UserLoginDtoType>({
+    resolver: zodResolver(UserLoginDto),
     defaultValues: {
       email: "",
       password: "",
@@ -50,11 +44,11 @@ export default function LoginPage() {
     },
   });
 
-  const onSubmit = (data: LoginFormData) => {
+  const onSubmit = (data: UserLoginDtoType) => {
     loginMutation.mutate({
       email: data.email,
       password: data.password,
-      rememberMe: data.rememberMe.toString(),
+      rememberMe: data.rememberMe,
     });
   };
 

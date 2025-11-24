@@ -10,31 +10,7 @@ import { FormField } from "../../components/ui/form-field";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-
-const registerSchema = z
-  .object({
-    email: z.email({ message: "Invalid email address" }),
-    phone: z.string().min(8, "Phone must be at least 8 characters"),
-    password: z
-      .string()
-      .min(8, "Password must be at least 8 characters")
-      .regex(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/,
-        "Password should contain both lower and uppercase, be alpha-numeric and contain at least 1 symbol"
-      ),
-    confirmPassword: z.string().min(8, "Password must be at least 8 characters"),
-    name: z
-      .string()
-      .min(1, "Display name is required")
-      .max(30, "Display name should not be longer than 30 characters"),
-    rememberMe: z.boolean(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
-
-type RegisterFormData = z.infer<typeof registerSchema>;
+import { type UserRegisterDtoType, UserRegisterDto } from "@backend/users/users.dto";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -45,8 +21,8 @@ export default function RegisterPage() {
     handleSubmit,
     formState: { errors },
     setError,
-  } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
+  } = useForm<UserRegisterDtoType>({
+    resolver: zodResolver(UserRegisterDto),
     defaultValues: {
       email: "",
       phone: "",
@@ -80,14 +56,14 @@ export default function RegisterPage() {
     },
   });
 
-  const onSubmit = (data: RegisterFormData) => {
+  const onSubmit = (data: UserRegisterDtoType) => {
     registerMutation.mutate({
       email: data.email,
       phone: data.phone,
       password: data.password,
       confirmPassword: data.confirmPassword,
       name: data.name,
-      rememberMe: data.rememberMe.toString(),
+      rememberMe: data.rememberMe,
     });
   };
 
