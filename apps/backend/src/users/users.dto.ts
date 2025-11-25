@@ -4,7 +4,7 @@ import z from "zod";
 export const UserLoginDto = z.object({
     email: z.email(),
     password: z.string().min(8, 'Password must be at least 8 characters'),
-    rememberMe: z.string().transform((v) => v === 'true'),
+    rememberMe: z.boolean(),
 });
 export type UserLoginDtoType = z.infer<typeof UserLoginDto>;
 
@@ -25,7 +25,7 @@ export const UserRegisterDto = z.object({
         .string()
         .min(1, "Display name should not be empty")
         .max(30, "Display name should not be longer than 30 characters"),
-    rememberMe: z.string().transform((v) => v === 'true'),
+    rememberMe: z.boolean(),
 })
     .refine((data) => data.password === data.confirmPassword, {
         message: "Password does not match",
