@@ -1,9 +1,7 @@
-import { User } from "src/entities/user.entity";
+import { User as UserEntity } from "../users/users.entity";
 
 declare global {
     namespace Express {
-        interface Request {
-            user?: User;
-        }
+        interface User extends UserEntity { }
     }
 }
