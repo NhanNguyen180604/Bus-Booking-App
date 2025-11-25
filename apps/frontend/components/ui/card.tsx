@@ -3,15 +3,15 @@ import { forwardRef, HTMLAttributes } from "react";
 
 const cardStyles = tv({
   slots: {
-    base: "rounded-lg border bg-white dark:bg-zinc-800 shadow-sm overflow-hidden",
-    header: "px-6 py-4 border-b border-zinc-200 dark:border-zinc-700",
+    base: "rounded-lg border bg-secondary dark:bg-secondary shadow-sm overflow-hidden",
+    header: "px-6 py-4 border-border dark:border-border",
     body: "px-6 py-4",
-    footer: "px-6 py-4 border-t border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50",
+    footer: "px-6 py-4 border-border dark:border-border bg-secondary dark:bg-secondary",
   },
   variants: {
     variant: {
       default: {
-        base: "border-zinc-200 dark:border-zinc-700",
+        base: "border-border dark:border-border",
       },
       elevated: {
         base: "border-transparent shadow-md",

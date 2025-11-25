@@ -4,21 +4,21 @@ import { tv, type VariantProps } from "tailwind-variants";
 const formFieldStyles = tv({
   slots: {
     container: "space-y-2",
-    label: "block text-sm font-medium text-zinc-700 dark:text-zinc-300",
-    input: "block w-full rounded-md border px-3 py-2 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 transition-colors",
-    helperText: "text-sm text-zinc-500 dark:text-zinc-400",
-    errorText: "text-sm text-red-600 dark:text-red-400",
+    label: "block text-sm font-medium text-text dark:text-text",
+    input: "block w-full rounded-md border px-3 py-2 text-text dark:text-text placeholder-secondary-text dark:placeholder-secondary-text focus:outline-none focus:ring-2 transition-colors",
+    helperText: "text-sm text-secondary-text dark:text-secondary-text",
+    errorText: "text-sm text-danger dark:text-danger",
   },
   variants: {
     variant: {
       default: {
-        input: "border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 focus:border-blue-500 focus:ring-blue-500",
+        input: "border-border dark:border-border bg-primary dark:bg-primary focus:border-accent focus:ring-accent",
       },
       error: {
-        input: "border-red-500 dark:border-red-500 bg-white dark:bg-zinc-700 focus:border-red-500 focus:ring-red-500",
+        input: "border-danger dark:border-danger bg-primary dark:bg-primary focus:border-danger focus:ring-danger",
       },
       success: {
-        input: "border-green-500 dark:border-green-500 bg-white dark:bg-zinc-700 focus:border-green-500 focus:ring-green-500",
+        input: "border-success dark:border-success bg-primary dark:bg-primary focus:border-success focus:ring-success",
       },
     },
     size: {
@@ -76,12 +76,12 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
         {label && (
           <label htmlFor={fieldId} className={styles.label()}>
             {label}
-            {props.required && <span className="text-red-500 ml-1">*</span>}
+            {props.required && <span className="text-danger ml-1">*</span>}
           </label>
         )}
         <div className="relative">
           {startIcon && (
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text dark:text-secondary-text">
               {startIcon}
             </div>
           )}
@@ -94,7 +94,7 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
             {...props}
           />
           {endIcon && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary-text dark:text-secondary-text">
               {endIcon}
             </div>
           )}

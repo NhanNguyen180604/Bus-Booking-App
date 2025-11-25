@@ -13,7 +13,6 @@ const busSearchSchema = z.object({
   date: z.string().min(1, { message: "Please select a date" }),
   returnDate: z.string().optional(),
   passengers: z.number().min(1).max(10),
-  searchAccommodations: z.boolean().optional(),
 });
 
 type BusSearchFormData = z.infer<typeof busSearchSchema>;
@@ -33,7 +32,6 @@ export function BusSearchForm() {
       date: "",
       returnDate: "",
       passengers: 1,
-      searchAccommodations: false,
     },
   });
 
@@ -144,6 +142,7 @@ export function BusSearchForm() {
             {/* Search Button */}
             <div className="flex items-end">
               <Button
+                disabled
                 type="submit"
                 variant="primary"
                 size="lg"
@@ -167,22 +166,6 @@ export function BusSearchForm() {
                 Search
               </Button>
             </div>
-          </div>
-
-          {/* Search accommodations checkbox */}
-          <div className="flex items-center">
-            <input
-              id="search-accommodations"
-              type="checkbox"
-              {...register("searchAccommodations")}
-              className="h-4 w-4 rounded border-zinc-300 dark:border-zinc-600 text-blue-600 focus:ring-blue-500"
-            />
-            <label
-              htmlFor="search-accommodations"
-              className="ml-2 text-sm text-zinc-700 dark:text-zinc-300"
-            >
-              Search accommodations
-            </label>
           </div>
         </div>
       </form>

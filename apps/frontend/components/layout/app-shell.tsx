@@ -4,8 +4,9 @@ import { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTRPC } from "../../utils/trpc";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "../ui/button";
+import useUser from "../../hooks/useUser";
 
 export interface AppShellProps {
   children: ReactNode;
@@ -40,14 +41,8 @@ export function AppShell({
 
 function DefaultHeader() {
   const router = useRouter();
+  const userQuery = useUser();
   const trpc = useTRPC();
-
-  const userQueryOptions = trpc.users.getMe.queryOptions();
-  const userQuery = useQuery({
-    ...userQueryOptions,
-    retry: false,
-  });
-
   const logoutMutationOptions = trpc.users.postLogout.mutationOptions();
   const logoutMutation = useMutation({
     ...logoutMutationOptions,
@@ -89,13 +84,13 @@ function DefaultHeader() {
           ) : (
             <>
               <Link
-                href="/login"
+                href="users/login"
                 className="text-sm font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white transition-colors"
               >
                 Login
               </Link>
               <Link
-                href="/register"
+                href="users/register"
                 className="text-sm font-medium px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-500 transition-colors"
               >
                 Sign Up

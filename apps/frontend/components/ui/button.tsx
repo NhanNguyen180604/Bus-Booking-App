@@ -2,12 +2,15 @@ import { tv, type VariantProps } from "tailwind-variants";
 import { forwardRef, ButtonHTMLAttributes } from "react";
 
 const buttonStyles = tv({
-  base: "inline-flex items-center justify-center rounded-md font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed",
+  base: "inline-flex items-center justify-center rounded-md font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer",
   variants: {
     variant: {
-      primary: "bg-blue-600 text-white hover:bg-blue-500 focus:ring-blue-500",
-      secondary: "border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white hover:bg-zinc-50 dark:hover:bg-zinc-700 focus:ring-zinc-500",
-      ghost: "text-zinc-900 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 focus:ring-zinc-500",
+      primary: "bg-primary text-text hover:bg-primary/50 focus:ring-primary",
+      secondary: "border border-border dark:border-border bg-secondary dark:bg-secondary text-text dark:text-text hover:bg-secondary/50 dark:hover:bg-secondary/50 focus:ring-secondary",
+      success: "bg-success text-white hover:bg-success/50 focus:ring-success",
+      danger: "bg-danger text-white hover:bg-danger/50 focus:ring-danger",
+      warning: "bg-warning text-white hover:bg-warning/50 focus:ring-warning",
+      accent: "bg-accent text-white hover:bg-accent/50 focus:ring-accent",
     },
     size: {
       sm: "h-9 px-3 text-sm",

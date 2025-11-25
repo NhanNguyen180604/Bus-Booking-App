@@ -1,16 +1,14 @@
 "use client";
 
-import { useTRPC } from "../../utils/trpc";
+import { useTRPC } from "../../../utils/trpc";
 import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button } from "../../components/ui/button";
-import { Card, CardHeader, CardBody, CardFooter } from "../../components/ui/card";
-import { FormField } from "../../components/ui/form-field";
+import { Button } from "../../../components/ui/button";
+import { Card, CardHeader, CardBody, CardFooter } from "../../../components/ui/card";
+import { FormField } from "../../../components/ui/form-field";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { da } from "zod/v4/locales";
 import { type UserLoginDtoType, UserLoginDto } from "@backend/users/users.dto";
 
 export default function LoginPage() {
@@ -53,18 +51,18 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-zinc-900 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-background dark:bg-background px-4">
       <div className="w-full max-w-md">
         <Card variant="elevated">
           <CardHeader>
-            <h2 className="text-center text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
+            <h2 className="text-center text-3xl font-bold tracking-tight text-text dark:text-text">
               Sign in to your account
             </h2>
-            <p className="mt-2 text-center text-sm text-zinc-600 dark:text-zinc-400">
+            <p className="mt-2 text-center text-sm text-secondary-text dark:text-secondary-text">
               Or{" "}
               <Link
-                href="/register"
-                className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
+                href="register"
+                className="font-medium text-accent hover:text-accent/50 dark:text-accent"
               >
                 create a new account
               </Link>
@@ -74,8 +72,8 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit(onSubmit)}>
             <CardBody className="space-y-4">
               {errors.root && (
-                <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-4">
-                  <p className="text-sm text-red-800 dark:text-red-400">{errors.root.message}</p>
+                <div className="rounded-md bg-danger dark:bg-danger p-4">
+                  <p className="text-sm text-danger dark:text-danger">{errors.root.message}</p>
                 </div>
               )}
 
@@ -102,11 +100,11 @@ export default function LoginPage() {
                   id="remember-me"
                   type="checkbox"
                   {...register("rememberMe")}
-                  className="h-4 w-4 rounded border-zinc-300 dark:border-zinc-600 text-blue-600 focus:ring-blue-500"
+                  className="h-4 w-4 rounded border-border dark:border-border text-accent focus:ring-accent focus:ring-offset-2"
                 />
                 <label
                   htmlFor="remember-me"
-                  className="ml-2 block text-sm text-zinc-700 dark:text-zinc-300"
+                  className="ml-2 block text-sm text-secondary-text dark:text-secondary-text"
                 >
                   Remember me
                 </label>
@@ -117,7 +115,7 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 disabled={loginMutation.isPending}
-                variant="primary"
+                variant="accent"
                 size="md"
                 fullWidth
               >
