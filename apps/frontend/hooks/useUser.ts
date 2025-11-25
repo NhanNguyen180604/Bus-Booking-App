@@ -9,7 +9,7 @@ export default function useUser(){
         ...userQueryOptions,
         retry: false,
         staleTime: 60 * 60 * 1000,
-        refetchOnMount: true,
+        refetchOnMount: false,
     });
 
     return userQuery;

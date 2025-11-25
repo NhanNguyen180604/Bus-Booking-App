@@ -28,7 +28,7 @@ export function AppShell({
   hideFooter = false,
 }: AppShellProps) {
   return (
-    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-900">
+    <div className="min-h-screen flex flex-col bg-background">
       {!hideHeader && (header || <DefaultHeader />)}
       <div className="flex flex-1">
         {!hideNav && (nav || <DefaultNav />)}
@@ -43,12 +43,12 @@ function DefaultHeader() {
   const router = useRouter();
   const userQuery = useUser();
   const trpc = useTRPC();
+  const pathname = usePathname();
   const logoutMutationOptions = trpc.users.postLogout.mutationOptions();
   const logoutMutation = useMutation({
     ...logoutMutationOptions,
     onSuccess: () => {
-      userQuery.refetch();
-      router.push("/");
+      window.location.href = "/";
     },
   });
 
@@ -57,23 +57,53 @@ function DefaultHeader() {
   };
 
   const isLoggedIn = userQuery.isSuccess && userQuery.data;
+  const navItems = [
+    { href: "/", label: "Home", },
+    { href: "/trips", label: "Trips", },
+    { href: "/routes", label: "Routes", },
+    { href: "/ticket", label: "View Ticket", },
+    { href: "/about", label: "About", },
+  ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
-      <div className="flex h-16 items-center px-6">
-        <Link href="/" className="flex items-center space-x-2">
-          <span className="text-xl font-bold text-zinc-900 dark:text-white">
-            BusBus
-          </span>
-        </Link>
-        <nav className="ml-auto flex items-center space-x-4">
+    <header className="sticky top-0 z-50 w-full border-b border-border dark:border-border bg-secondary">
+      <div className="flex h-16 items-center px-6 justify-between">
+        {/* Left: Logo */}
+        <div className="flex-1">
+          <Link href="/" className="flex items-center space-x-2">
+            <span className="text-xl font-bold text-text dark:text-text hover:cursor-pointer">
+              BusBus
+            </span>
+          </Link>
+        </div>
+
+        {/* Center: Nav */}
+        <nav className="flex items-center space-x-2">
+            {navItems.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex-col text-text items-center space-x-3 px-4 py-3 rounded-lg transition-colors hover:bg-primary hover:text-accent ${
+                    isActive && "underline"
+                  }`}
+                >
+                  <span className={`${isActive && "font-bold"}`}>{item.label}</span>
+                </Link>
+              );
+            })}
+        </nav>
+
+        {/* Right: Auth buttons */}
+        <nav className="flex flex-1 items-center justify-end space-x-2">
           {isLoggedIn ? (
             <>
-              <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                Welcome, <span className="font-semibold text-zinc-900 dark:text-white">{userQuery.data.name}</span>
+              <span className="text-sm font-medium text-secondary-text dark:text-secondary-text">
+                Welcome, <span className="font-semibold text-text dark:text-text">{userQuery.data.name}</span>
               </span>
               <Button
-                variant="secondary"
+                variant="primary"
                 size="sm"
                 onClick={handleLogout}
                 disabled={logoutMutation.isPending}
@@ -84,16 +114,22 @@ function DefaultHeader() {
           ) : (
             <>
               <Link
-                href="users/login"
-                className="text-sm font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white transition-colors"
+                href="/users/login"
               >
-                Login
+                <Button
+                  variant="primary"
+                  size="sm">
+                  Login
+                </Button>
               </Link>
               <Link
-                href="users/register"
-                className="text-sm font-medium px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-500 transition-colors"
+                href="/users/register"
               >
-                Sign Up
+                <Button
+                  variant="accent"
+                  size="sm">
+                  Sign Up
+                </Button>
               </Link>
             </>
           )}
@@ -114,7 +150,7 @@ function DefaultNav() {
   ];
 
   return (
-    <nav className="w-64 border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
+    <nav className="w-64 border-r border-border dark:border-border bg-background dark:bg-background p-4">
       <div className="space-y-1">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
@@ -124,8 +160,8 @@ function DefaultNav() {
               href={item.href}
               className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
                 isActive
-                  ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-                  : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  ? "bg-primary dark:bg-primary text-accent dark:text-accent"
+                  : "text-text dark:text-text hover:bg-secondary dark:hover:bg-secondary"
               }`}
             >
               <span className="text-lg">{item.icon}</span>
@@ -140,28 +176,28 @@ function DefaultNav() {
 
 function DefaultFooter() {
   return (
-    <footer className="border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+    <footer className="border-t border-border dark:border-border bg-secondary">
       <div className="px-6 py-4">
         <div className="flex flex-col md:flex-row justify-between items-center space-y-2 md:space-y-0">
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            © {new Date().getFullYear()} Bus Booking App. All rights reserved.
+          <p className="text-sm text-secondary-text dark:text-secondary-text">
+            © {new Date().getFullYear()} BusBus app. All rights reserved.
           </p>
           <div className="flex space-x-6">
             <Link
               href="/privacy"
-              className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
+              className="text-sm text-secondary-text hover:text-text dark:text-secondary-text dark:hover:text-text transition-colors"
             >
               Privacy Policy
             </Link>
             <Link
               href="/terms"
-              className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
+              className="text-sm text-secondary-text hover:text-text dark:text-secondary-text dark:hover:text-text transition-colors"
             >
               Terms of Service
             </Link>
             <Link
               href="/contact"
-              className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
+              className="text-sm text-secondary-text hover:text-text dark:text-secondary-text dark:hover:text-text transition-colors"
             >
               Contact
             </Link>

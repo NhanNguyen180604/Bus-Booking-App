@@ -11,6 +11,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { type UserRegisterDtoType, UserRegisterDto } from "@backend/users/users.dto";
+import { AppShell } from "../../../components/layout/app-shell";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -68,31 +69,23 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background dark:bg-background px-4 py-12">
-      <div className="w-full max-w-md">
-        <Card variant="elevated">
-          <CardHeader>
-            <h2 className="text-center text-3xl font-bold tracking-tight text-text dark:text-text">
-              Create your account
-            </h2>
-            <p className="mt-2 text-center text-sm text-secondary-text dark:text-secondary-text">
-              Already have an account?{" "}
-              <Link
-                href="login"
-                className="font-medium text-accent hover:text-accent/50 dark:text-accent"
-              >
-                Sign in
-              </Link>
-            </p>
-          </CardHeader>
+    <AppShell hideNav>
+      <div className="flex h-full items-center justify-center bg-background dark:bg-background">
+        <div className="w-full max-w-lg">
+          <Card variant="elevated">
+            <CardHeader>
+              <h2 className="text-center text-3xl font-bold tracking-tight text-text dark:text-text">
+                Register
+              </h2>
+            </CardHeader>
 
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <CardBody className="space-y-4">
-              {errors.root && (
-                <div className="rounded-md bg-danger/10 dark:bg-danger/20 p-4">
-                  <p className="text-sm text-danger dark:text-danger">{errors.root.message}</p>
-                </div>
-              )}
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <CardBody className="space-y-4">
+                {errors.root && (
+                  <div className="rounded-md bg-danger/10 dark:bg-danger/20 p-4">
+                    <p className="text-sm text-danger dark:text-danger">{errors.root.message}</p>
+                  </div>
+                )}
 
               <FormField
                 label="Display Name"
@@ -168,12 +161,22 @@ export default function RegisterPage() {
                 size="md"
                 fullWidth
               >
-                {registerMutation.isPending ? "Creating account..." : "Create account"}
+                {registerMutation.isPending ? "Creating account..." : "Register"}
               </Button>
+              <p className="mt-2 text-center text-sm text-secondary-text dark:text-secondary-text">
+                Already have an account?{" "}
+                <Link
+                  href="/users/login"
+                  className="font-medium text-accent hover:text-accent/50 dark:text-accent"
+                >
+                  Login
+                </Link>
+              </p>
             </CardFooter>
           </form>
         </Card>
       </div>
     </div>
+    </AppShell>
   );
 }

@@ -69,7 +69,7 @@ export function BusSearchForm() {
               <button
                 type="button"
                 onClick={handleSwap}
-                className="self-end mb-0 p-3 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
+                className="self-end mb-0 p-3 text-text hover:text-text dark:text-text dark:hover:text-text transition-colors"
                 aria-label="Swap origin and destination"
               >
                 <svg
@@ -122,14 +122,14 @@ export function BusSearchForm() {
 
             {/* Passengers */}
             <div className="flex-1 lg:max-w-xs">
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+              <label className="block text-sm font-medium text-text dark:text-text mb-1">
                 Passengers
               </label>
               <select
               //Change later
                 disabled
                 {...register("passengers", { valueAsNumber: true })}
-                className="w-full rounded-md border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 py-3 text-zinc-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-md border border-border dark:border-border bg-primary py-3 text-text dark:text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
               >
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
                   <option key={num} value={num}>
@@ -144,7 +144,7 @@ export function BusSearchForm() {
               <Button
                 disabled
                 type="submit"
-                variant="primary"
+                variant="accent"
                 size="lg"
                 className="w-full lg:w-auto px-8"
               >
