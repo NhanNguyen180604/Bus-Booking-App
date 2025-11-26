@@ -12,7 +12,7 @@ import { FacebookOAuthButton } from "../../../components/auth/facebook-oauth-but
 import { GitHubOAuthButton } from "../../../components/auth/github-oauth-button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { type UserLoginDtoType, UserLoginDto } from "@backend/users/users.dto";
+import { type UserLoginDtoType, UserLoginDto } from "@repo/shared";
 import { AppShell } from "../../../components/layout/app-shell";
 
 export default function LoginPage() {
@@ -68,7 +68,7 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit(onSubmit)}>
               <CardBody className="space-y-4">
                 {errors.root && (
-                  <div className="rounded-md bg-danger dark:bg-danger p-4">
+                  <div className="rounded-md p-4">
                     <p className="text-sm text-danger dark:text-danger">{errors.root.message}</p>
                   </div>
                 )}

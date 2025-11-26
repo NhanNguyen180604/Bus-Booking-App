@@ -4,7 +4,9 @@
   "description": "Final Project for the Advanced Web Development course",
   "main": "index.js",
   "scripts": {
+    "build": "pnpm run --parallel build",
     "dev": "pnpm run --parallel dev",
+    "dev:shared": "pnpm run --filter shared dev",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

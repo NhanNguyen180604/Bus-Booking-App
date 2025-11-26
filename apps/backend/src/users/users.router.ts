@@ -1,6 +1,6 @@
 import { TrpcService } from "../trpc/trpc.service";
 import { Inject, Injectable, Logger } from "@nestjs/common";
-import { UserLoginDto, UserRegisterDto } from "./users.dto";
+import { UserLoginDto, UserRegisterDto } from "@repo/shared";
 import { UsersService } from "./users.service";
 import { RootConfig } from "../config/config";
 import { CookieOptions, Request, Response } from "express";
