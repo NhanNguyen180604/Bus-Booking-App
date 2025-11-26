@@ -7,8 +7,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../users/users.entity';
 import { type Request } from 'express';
 import { RootConfig } from '../config/config';
-import { convertToMs } from '@backend/utils/convert-to-ms';
-import { AccessTokenPayload } from '@backend/types/token-payload';
+import { convertToMs } from '../utils/convert-to-ms';
+import { AccessTokenPayload } from '../types/token-payload';
 
 @Injectable()
 export class TokenService {

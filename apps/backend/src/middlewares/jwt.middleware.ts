@@ -1,6 +1,6 @@
-import { TokenService } from "@backend/token/token.service";
-import { AccessTokenPayload, RefreshTokenPayload } from "@backend/types/token-payload";
-import { UsersService } from "@backend/users/users.service";
+import { TokenService } from "../token/token.service";
+import { AccessTokenPayload, RefreshTokenPayload } from "../types/token-payload";
+import { UsersService } from "../users/users.service";
 import { Inject, Injectable, NestMiddleware } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { type Request, type Response, NextFunction } from "express";

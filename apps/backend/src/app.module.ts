@@ -15,13 +15,18 @@ import { RefreshToken } from './token/refresh-token.entity';
 import { Oauth2Module } from './oauth2/oauth2.module';
 
 // TODO: actually set as production mode
-const loader = process.env.NODE_ENV === 'production' ?
-  dotenvLoader({
-    separator: '__',
-    envFilePath: '.env',
-  }) : fileLoader({
-    basename: '.env.development',
-  });
+// const loader = process.env.NODE_ENV === 'production' ?
+//   dotenvLoader({
+//     separator: '__',
+//     envFilePath: '.env',
+//   }) : fileLoader({
+//     basename: '.env.development',
+//   });
+
+const loader = dotenvLoader({
+  separator: '__',
+  envFilePath: '.env',
+});
 
 @Module({
   imports: [

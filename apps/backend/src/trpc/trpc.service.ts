@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { initTRPC, TRPCError } from '@trpc/server';
 import { TrpcContext } from './trpc.context';
-import { UserRoleEnum } from '@backend/users/user-role.enum';
+import { UserRoleEnum } from '../users/user-role.enum';
 
 @Injectable()
 export class TrpcService {

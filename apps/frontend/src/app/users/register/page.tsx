@@ -1,5 +1,4 @@
-"use client";
-
+"use client";;
 import { useTRPC } from "../../../utils/trpc";
 import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
@@ -9,8 +8,7 @@ import { Card, CardHeader, CardBody, CardFooter } from "../../../components/ui/c
 import { FormField } from "../../../components/ui/form-field";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { type UserRegisterDtoType, UserRegisterDto } from "@backend/users/users.dto";
+import { type UserRegisterDtoType, UserRegisterDto } from "@repo/shared";
 import { AppShell } from "../../../components/layout/app-shell";
 
 export default function RegisterPage() {
@@ -82,7 +80,7 @@ export default function RegisterPage() {
             <form onSubmit={handleSubmit(onSubmit)}>
               <CardBody className="space-y-4">
                 {errors.root && (
-                  <div className="rounded-md bg-danger/10 dark:bg-danger/20 p-4">
+                  <div className="rounded-md p-4">
                     <p className="text-sm text-danger dark:text-danger">{errors.root.message}</p>
                   </div>
                 )}

@@ -1,5 +1,5 @@
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
-import { UserLoginDtoType, UserRegisterDtoType } from './users.dto';
+import { UserLoginDtoType, UserRegisterDtoType } from '@repo/shared';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './users.entity';
 import { DeepPartial, FindOptionsWhere, Repository } from 'typeorm';
