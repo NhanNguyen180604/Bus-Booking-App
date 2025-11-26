@@ -8,7 +8,7 @@ interface GitHubOAuthButtonProps {
 
 export const GitHubOAuthButton = ({ text = "GitHub" }: GitHubOAuthButtonProps) => {
   const handleGitHubLogin = () => {
-    window.location.href = "http://localhost:8000/oauth2/github";
+    window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL}/oauth2/github`;
   };
 
   return (

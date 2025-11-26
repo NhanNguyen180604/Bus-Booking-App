@@ -8,7 +8,7 @@ interface FacebookOAuthButtonProps {
 
 export const FacebookOAuthButton = ({ text = "Facebook" }: FacebookOAuthButtonProps) => {
   const handleFacebookLogin = () => {
-    window.location.href = "http://localhost:8000/oauth2/facebook";
+    window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL}/oauth2/facebook`;
   };
 
   return (

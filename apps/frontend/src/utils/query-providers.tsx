@@ -16,7 +16,7 @@ const QueryProvider = ({ children }: MyQueryProviderProps) => {
         createTRPCClient<AppRouterType>({
             links: [
                 httpBatchLink({
-                    url: `http://localhost:8000/trpc`,
+                    url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/trpc`,
                     // send cookies
                     fetch(url, options) {
                         return fetch(url, {
