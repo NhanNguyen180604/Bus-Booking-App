@@ -1,6 +1,6 @@
 import { JwtService } from "@nestjs/jwt";
 import { RootConfig } from "../config/config";
-import { convertToMs } from "@backend/utils/convert-to-ms";
+import { convertToMs } from "../utils/convert-to-ms";
 
 export const RefreshJwtProvider = {
     provide: 'REFRESH_JWT',

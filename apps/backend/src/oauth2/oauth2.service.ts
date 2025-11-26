@@ -1,4 +1,4 @@
-import { TokenService } from '@backend/token/token.service';
+import { TokenService } from '../token/token.service';
 import { User } from '../users/users.entity';
 import { Injectable } from '@nestjs/common';
 

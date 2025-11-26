@@ -1,5 +1,5 @@
 'use client';
-import useUser from "apps/frontend/hooks/useUser";
+import useUser from "apps/frontend/src/hooks/useUser";
 
 export function HeroSection() {
   const { data, isLoading } = useUser();

@@ -4,13 +4,16 @@
   "description": "Final Project for the Advanced Web Development course",
   "main": "index.js",
   "scripts": {
-    "build": "pnpm run --parallel build",
-    "dev": "pnpm run --parallel dev",
+    "build": "turbo run build",
+    "dev": "turbo run dev",
     "dev:shared": "pnpm run --filter shared dev",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "Lam Gia Lac - Nguyen Thanh Nhan",
   "license": "ISC",
-  "packageManager": "pnpm@10.22.0"
+  "packageManager": "pnpm@10.23.0",
+  "devDependencies": {
+    "turbo": "^2.6.1"
+  }
 }
