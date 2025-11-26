@@ -23,3 +23,4 @@ async function bootstrap() {
   await app.listen(port, () => console.log(`Server listening on port ${port}`));
 }
 bootstrap();
+export default bootstrap;
