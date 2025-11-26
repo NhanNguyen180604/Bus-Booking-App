@@ -22,5 +22,5 @@ async function bootstrap() {
   const port = config.port;
   await app.listen(port, () => console.log(`Server listening on port ${port}`));
 }
-bootstrap();
+// bootstrap();
 export default bootstrap;
