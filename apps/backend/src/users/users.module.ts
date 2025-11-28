@@ -3,7 +3,7 @@ import { UsersService } from './users.service';
 import { TrpcModule } from '../trpc/trpc.module';
 import { UsersRouter } from './users.router';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './users.entity';
+import { User } from '../entities/users.entity';
 import { TokenModule } from '../token/token.module';
 
 @Module({

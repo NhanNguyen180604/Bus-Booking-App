@@ -1,6 +1,17 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
-import { UserRoleEnum } from "./user-role.enum";
-import { LoginProviderEnum } from "./login-providers.enum";
+
+export enum UserRoleEnum {
+    USER = 'USER',
+    ADMIN = 'ADMIN',
+    DRIVER = 'DRIVER',
+};
+
+export enum LoginProviderEnum {
+    LOCAL = 'LOCAL',
+    GOOGLE = 'GOOGLE',
+    FACEBOOK = 'FACEBOOK',
+    GITHUB = 'GITHUB',
+};
 
 @Entity()
 export class User {

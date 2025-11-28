@@ -2,7 +2,7 @@ import { Controller, Get, Inject, Req, Res, UnauthorizedException, UseGuards } f
 import type { CookieOptions, Request, Response } from 'express';
 import { Oauth2Service } from './oauth2.service';
 import { RootConfig } from '../config/config';
-import { UserRoleEnum } from '../users/user-role.enum';
+import { UserRoleEnum } from '../entities/users.entity';
 import { GoogleAuthGuard } from '../guards/google-auth.guard';
 import { FacebookAuthGuard } from '../guards/facebook-auth.guard';
 import { GitHubAuthGuard } from '../guards/github-auth.guard';
