@@ -8,11 +8,11 @@ export class Trip {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @ManyToOne(() => Route)
+    @ManyToOne(() => Route, { nullable: true, onDelete: "SET NULL" })
     @JoinColumn({ name: 'route_id' })
     route: Route;
 
-    @ManyToOne(() => Bus)
+    @ManyToOne(() => Bus, { nullable: true, onDelete: "SET NULL" })
     @JoinColumn({ name: 'bus_id' })
     bus: Bus;
 

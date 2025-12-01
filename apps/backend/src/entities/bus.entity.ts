@@ -1,4 +1,4 @@
-import { Check, Column, Entity, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Check, Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { User } from "./users.entity";
 import { BusType } from "./bus-type.entity";
 
@@ -10,17 +10,16 @@ export class Bus {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @OneToOne(() => User)
+    @OneToOne(() => User, { nullable: true, onDelete: "SET NULL" })
+    @JoinColumn()
     driver: User;
 
-    @Column()
+    @Column({ unique: true })
     plateNumber: string;
 
-    @ManyToOne(() => BusType)
+    @ManyToOne(() => BusType, { onDelete: "CASCADE" })
+    @JoinColumn()
     type: BusType;
-
-    @Column()
-    seatCapacity: number;
 
     // seat layout
     @Column()

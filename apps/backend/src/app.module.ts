@@ -25,6 +25,11 @@ import { PaymentMethod } from './entities/payment-method.entity';
 import { Payment } from './entities/payment.entity';
 import { NotificationTemplate } from './entities/notification-template.entity';
 import { Notification } from './entities/notification.entity';
+import { StationsModule } from './stations/stations.module';
+import { RoutesModule } from './routes/routes.module';
+import { TripsModule } from './trips/trips.module';
+import { BusesModule } from './buses/buses.module';
+import { BusTypesModule } from './bus-types/bus-types.module';
 
 // TODO: actually set as production mode
 // const loader = process.env.NODE_ENV === 'production' ?
@@ -67,10 +72,14 @@ const loader = dotenvLoader({
     TrpcModule,
     UsersModule,
     TokenModule,
-    Oauth2Module
+    Oauth2Module,
+    StationsModule,
+    RoutesModule,
+    TripsModule,
+    BusesModule,
+    BusTypesModule,
   ],
   controllers: [AppController],
   providers: [AppService, AppRouter, JwtMiddleware],
 })
-export class AppModule {
-}
+export class AppModule { }
