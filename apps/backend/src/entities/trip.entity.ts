@@ -1,7 +1,6 @@
 import { BeforeInsert, BeforeUpdate, Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Route } from "./route.entity";
 import { Bus } from "./bus.entity";
-import { User } from "./users.entity";
 
 @Entity()
 export class Trip {
@@ -15,10 +14,6 @@ export class Trip {
     @ManyToOne(() => Bus, { nullable: true, onDelete: "SET NULL" })
     @JoinColumn({ name: 'bus_id' })
     bus: Bus;
-
-    @ManyToOne(() => User)
-    @JoinColumn({ name: 'driver_id' })
-    driver: User;
 
     @Column({ type: 'timestamptz' })
     departureTime: Date;

@@ -3,3 +3,4 @@ export * from './stations.schema';
 export * from './routes.schema';
 export * from './buses.schema';
 export * from './bus-types.schema';
+export * from './trips.schema';
