@@ -4,7 +4,7 @@ import { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTRPC } from "../../utils/trpc";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Button } from "../ui/button";
 import useUser from "../../hooks/useUser";
 
@@ -16,6 +16,7 @@ export interface AppShellProps {
   hideHeader?: boolean;
   hideNav?: boolean;
   hideFooter?: boolean;
+  isAdmin?: boolean;
 }
 
 export function AppShell({
@@ -26,21 +27,25 @@ export function AppShell({
   hideHeader = false,
   hideNav = false,
   hideFooter = false,
+  isAdmin = false,
 }: AppShellProps) {
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      {!hideHeader && (header || <DefaultHeader />)}
-      <div className="flex flex-1">
+      {!hideHeader && (header || <DefaultHeader isAdmin={isAdmin} />)}
+      <div className="flex flex-1 p-4">
         {!hideNav && (nav || <DefaultNav />)}
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 px-16">{children}</main>
       </div>
       {!hideFooter && (footer || <DefaultFooter />)}
     </div>
   );
 }
 
-function DefaultHeader() {
-  const router = useRouter();
+export interface DefaultHeaderProps {
+  isAdmin?: boolean;
+}
+
+function DefaultHeader({ isAdmin = false }: DefaultHeaderProps) {
   const userQuery = useUser();
   const trpc = useTRPC();
   const pathname = usePathname();
@@ -78,59 +83,66 @@ function DefaultHeader() {
         </div>
 
         {/* Center: Nav */}
-        <nav className="flex items-center space-x-2">
+        {!isAdmin && (
+          <nav className="flex items-center space-x-2">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex-col text-text items-center space-x-3 px-4 py-3 rounded-lg transition-colors hover:bg-primary hover:text-accent ${
-                    isActive && "underline"
-                  }`}
+                  className={`flex-col text-text items-center space-x-3 px-4 py-3 rounded-lg transition-colors hover:bg-primary hover:text-accent ${isActive && "underline"
+                    }`}
                 >
                   <span className={`${isActive && "font-bold"}`}>{item.label}</span>
                 </Link>
               );
             })}
-        </nav>
+          </nav>
+        )}
 
         {/* Right: Auth buttons */}
         <nav className="flex flex-1 items-center justify-end space-x-2">
-          {isLoggedIn ? (
-            <>
-              <span className="text-sm font-medium text-secondary-text dark:text-secondary-text">
-                Welcome, <span className="font-semibold text-text dark:text-text">{userQuery.data.name}</span>
-              </span>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={handleLogout}
-                disabled={logoutMutation.isPending}
-              >
-                {logoutMutation.isPending ? "Logging out..." : "Logout"}
-              </Button>
-            </>
+          {userQuery.isPending ? (
+            <span className="text-sm font-medium text-secondary-text dark:text-secondary-text">Loading...</span>
           ) : (
             <>
-              <Link
-                href="/users/login"
-              >
-                <Button
-                  variant="primary"
-                  size="sm">
-                  Login
-                </Button>
-              </Link>
-              <Link
-                href="/users/register"
-              >
-                <Button
-                  variant="accent"
-                  size="sm">
-                  Sign Up
-                </Button>
-              </Link>
+              {isLoggedIn ? (
+                <>
+                  <span className="text-sm font-medium text-secondary-text dark:text-secondary-text">
+                    Welcome, <span className="font-semibold text-text dark:text-text">{userQuery.data.name}</span>
+                  </span>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={handleLogout}
+                    disabled={logoutMutation.isPending}
+                  >
+                    {logoutMutation.isPending ? "Logging out..." : "Logout"}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/users/login"
+                  >
+                    <Button
+                      variant="primary"
+                      size="sm">
+                      Login
+                    </Button>
+                  </Link>
+                  <Link
+                    href="/users/register"
+                  >
+                    <Button
+                      variant="accent"
+                      size="sm">
+                      Sign Up
+                    </Button>
+                  </Link>
+                </>
+              )}
             </>
           )}
         </nav>
@@ -158,11 +170,10 @@ function DefaultNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                isActive
-                  ? "bg-primary dark:bg-primary text-accent dark:text-accent"
-                  : "text-text dark:text-text hover:bg-secondary dark:hover:bg-secondary"
-              }`}
+              className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${isActive
+                ? "bg-primary dark:bg-primary text-accent dark:text-accent"
+                : "text-text dark:text-text hover:bg-secondary dark:hover:bg-secondary"
+                }`}
             >
               <span className="text-lg">{item.icon}</span>
               <span className="font-medium">{item.label}</span>

@@ -6,3 +6,4 @@ export const PaginationDto = z.object({
 });
 
 export const sortOptions = z.enum(["asc", "desc"]).optional();
+export type SortOptionsType = z.infer<typeof sortOptions>;

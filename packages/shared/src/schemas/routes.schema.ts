@@ -1,4 +1,5 @@
 import z from "zod";
+import { PaginationDto, sortOptions } from "./common";
 
 export const RouteCreateOneDto = z.object({
     originId: z.uuid({ error: "Origin must be an UUID string" }),
@@ -41,3 +42,11 @@ export const RouteFindOneByIdDto = z.object({
     id: z.uuid({ error: "ID must be an UUID string" }),
 });
 export type RouteFindOneByIdDtoType = z.infer<typeof RouteFindOneByIdDto>;
+
+export const RouteSearchDto = z.object({
+    sortOriginName: sortOptions,
+    sortDestinationName: sortOptions,
+    originNameQuery: z.string().nonempty({ error: "Origin Query must not be empty" }).optional(),
+    destinationNameQuery: z.string().nonempty({ error: "Destination Query must not be empty" }).optional(),
+}).extend(PaginationDto.shape);
+export type RouteSearchDtoType = z.infer<typeof RouteSearchDto>;

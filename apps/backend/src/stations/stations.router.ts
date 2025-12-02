@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { TrpcService } from "../trpc/trpc.service";
 import { StationsService } from "./stations.service";
 import { UserRoleEnum } from "../entities/users.entity";
-import { StationCreateDto, StationDeleteDto, StationFindOneDto, StationUpdateOneDto } from "@repo/shared";
+import { StationCreateDto, StationDeleteDto, StationFindOneDto, StationSearchDto, StationUpdateOneDto } from "@repo/shared";
 
 @Injectable()
 export class StationsRouter {
@@ -37,6 +37,12 @@ export class StationsRouter {
                 .input(StationUpdateOneDto)
                 .mutation(({ input }) => {
                     return this.stationsService.updateOne(input);
+                }),
+            search: this.trpcService
+                .publicProcedure()
+                .input(StationSearchDto)
+                .query(({ input }) => {
+                    return this.stationsService.search(input);
                 }),
         });
     }

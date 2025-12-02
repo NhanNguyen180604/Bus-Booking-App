@@ -83,6 +83,7 @@ export class UsersRouter {
                         name: user.name,
                         phone: user.phone,
                         provider: user.provider,
+                        role: user.role.toString(),
                     }
                 }),
         });

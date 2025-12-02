@@ -104,12 +104,14 @@ export class BusTypesService {
             take: dto.perPage,
         });
 
+        const totalPage = Math.ceil(count / dto.perPage);
+
         return {
             data: busTypes,
-            page: dto.page,
+            page: Math.min(dto.page, totalPage),
             perPage: Math.min(dto.perPage, count),
             total: count,
-            totalPage: Math.ceil(count / dto.perPage),
+            totalPage,
         }
     }
 }
