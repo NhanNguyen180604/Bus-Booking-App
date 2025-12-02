@@ -8,6 +8,7 @@ import { StationsRouter } from "./stations/stations.router";
 import { RoutesRouter } from "./routes/routes.router";
 import { BusesRouter } from "./buses/buses.router";
 import { BusTypesRouter } from "./bus-types/bus-types.router";
+import { inferRouterOutputs } from "@trpc/server";
 import { TripsRouter } from "./trips/trips.router";
 
 @Injectable()
@@ -50,3 +51,4 @@ export class AppRouter {
 }
 
 export type AppRouterType = ReturnType<AppRouter['apply']>;
+export type RouterOutputsType = inferRouterOutputs<AppRouterType>;

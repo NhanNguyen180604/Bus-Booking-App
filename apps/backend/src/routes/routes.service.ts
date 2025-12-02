@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { RouteCreateOneDtoType, RouteDeleteOneDtoType, RouteUpdateOneDtoType } from '@repo/shared';
+import { RouteCreateOneDtoType, RouteDeleteOneDtoType, RouteSearchDtoType, RouteUpdateOneDtoType } from '@repo/shared';
 import { TRPCError } from '@trpc/server';
 import { Route } from '../entities/route.entity';
 import { Station } from '../entities/station.entity';
 import { StationsService } from '../stations/stations.service';
-import { FindOneOptions, Repository } from 'typeorm';
+import { FindOneOptions, FindOptionsOrder, FindOptionsWhere, ILike, Repository } from 'typeorm';
 
 @Injectable()
 export class RoutesService {
@@ -99,6 +99,47 @@ export class RoutesService {
             route.estimatedMinutes = dto.estimatedMinutes;
         }
         return await this.routeRepo.save(route);
+    }
+
+    async search(dto: RouteSearchDtoType) {
+        const qb = this.routeRepo
+            .createQueryBuilder("route")
+            .leftJoinAndSelect("route.origin", "origin")
+            .leftJoinAndSelect("route.destination", "destination")
+            .skip((dto.page - 1) * dto.perPage)
+            .take(dto.perPage);
+
+        if (dto.originNameQuery) {
+            qb.andWhere("origin.name ILIKE :origin", {
+                origin: `%${dto.originNameQuery}%`,
+            });
+        }
+
+        if (dto.destinationNameQuery) {
+            qb.andWhere("destination.name ILIKE :destination", {
+                destination: `%${dto.destinationNameQuery}%`,
+            });
+        }
+
+        if (dto.sortOriginName) {
+            qb.addOrderBy("origin.name", dto.sortOriginName === "asc" ? "ASC" : "DESC");
+        }
+
+        if (dto.sortDestinationName) {
+            qb.addOrderBy("destination.name", dto.sortDestinationName === "asc" ? "ASC" : "DESC");
+        }
+
+        const [routes, count] = await qb.getManyAndCount();
+
+        const totalPage = Math.ceil(count / dto.perPage);
+
+        return {
+            data: routes,
+            page: Math.min(dto.page, totalPage),
+            perPage: Math.min(dto.perPage, count),
+            total: count,
+            totalPage,
+        };
     }
 
     async deleteOne(dto: RouteDeleteOneDtoType) {

@@ -1,3 +1,4 @@
+export * from './common';
 export * from './users.schema';
 export * from './stations.schema';
 export * from './routes.schema';

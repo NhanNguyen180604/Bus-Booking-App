@@ -11,7 +11,7 @@ const cardStyles = tv({
   variants: {
     variant: {
       default: {
-        base: "border-border dark:border-border",
+        base: "border-border dark:border-border drop-shadow-drop-shadow-near drop-shadow-md",
       },
       elevated: {
         base: "border-transparent shadow-md",

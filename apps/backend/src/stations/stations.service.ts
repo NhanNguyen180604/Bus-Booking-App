@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { StationCreateDtoType, StationDeleteDtoType, StationFindOneDtoType, StationUpdateOneDtoType } from '@repo/shared';
+import { StationCreateDtoType, StationDeleteDtoType, StationFindOneDtoType, StationSearchDtoType, StationUpdateOneDtoType } from '@repo/shared';
 import { TRPCError } from '@trpc/server';
 import { Station } from '../entities/station.entity';
-import { FindOptionsWhere, Repository } from 'typeorm';
+import { FindOptionsWhere, ILike, Repository } from 'typeorm';
 
 @Injectable()
 export class StationsService {
@@ -66,6 +66,30 @@ export class StationsService {
             criteria = { name: dto.name };
         }
         return this.findOneBy(criteria);
+    }
+
+    async search(dto: StationSearchDtoType) {
+        let where: FindOptionsWhere<Station> = {};
+        if (dto.nameQuery) {
+            where = { name: ILike(`%${dto.nameQuery}%`) };
+        }
+
+        const [stations, count] = await this.stationRepo.findAndCount({
+            where,
+            order: { name: "asc" },
+            skip: (dto.page - 1) * dto.perPage,
+            take: dto.perPage,
+        });
+
+        const totalPage = Math.ceil(count / dto.perPage);
+
+        return {
+            data: stations,
+            page: Math.min(dto.page, totalPage),
+            perPage: Math.min(dto.perPage, count),
+            total: count,
+            totalPage,
+        }
     }
 
     findOneBy(where: FindOptionsWhere<Station> | FindOptionsWhere<Station>[]) {

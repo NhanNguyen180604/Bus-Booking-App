@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { TrpcService } from "../trpc/trpc.service";
 import { RoutesService } from "./routes.service";
 import { UserRoleEnum } from "../entities/users.entity";
-import { RouteCreateOneDto, RouteDeleteOneDto, RouteFindOneByIdDto, RouteUpdateOneDto } from "@repo/shared";
+import { RouteCreateOneDto, RouteDeleteOneDto, RouteFindOneByIdDto, RouteSearchDto, RouteUpdateOneDto } from "@repo/shared";
 
 @Injectable()
 export class RoutesRouter {
@@ -38,9 +38,12 @@ export class RoutesRouter {
                 .query(({ input }) => {
                     return this.routesService.findOneHelper({ where: { id: input.id } });
                 }),
-                // TODO
-            // search: this.trpcService
-            //     .publicProcedure(),
+            search: this.trpcService
+                .publicProcedure()
+                .input(RouteSearchDto)
+                .query(({input})=>{
+                    return this.routesService.search(input);
+                }),
         });
     }
 }
