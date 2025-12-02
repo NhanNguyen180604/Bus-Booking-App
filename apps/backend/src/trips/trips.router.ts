@@ -36,7 +36,10 @@ export class TripsRouter {
                 .publicProcedure()
                 .input(TripFindOneByIdDto)
                 .query(({ input }) => {
-                    return this.tripsService.findOneHelper({ where: { id: input.id } });
+                    return this.tripsService.findOneHelper({ 
+                        where: { id: input.id },
+                        relations: { route: { origin: true, destination: true }, bus: { type: true } }
+                    });
                 }),
             search: this.trpcService
                 .publicProcedure()

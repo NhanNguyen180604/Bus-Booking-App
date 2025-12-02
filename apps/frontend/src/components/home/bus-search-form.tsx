@@ -1,68 +1,106 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { FormField } from "../ui/form-field";
+import { Autocomplete } from "../ui/autocomplete";
+import { useTRPC } from "../../utils/trpc";
+import { useQuery } from "@tanstack/react-query";
+import { type TripFindManyDtoType } from "@repo/shared";
 
-const busSearchSchema = z.object({
-  origin: z.string().min(1, { message: "Please enter an origin" }),
-  destination: z.string().min(1, { message: "Please enter a destination" }),
-  date: z.string().min(1, { message: "Please select a date" }),
-  returnDate: z.string().optional(),
-  passengers: z.number().min(1).max(10),
-});
+interface BusSearchFormProps {
+  onSearch: (params: Omit<TripFindManyDtoType, 'page' | 'perPage'>) => void;
+  isLoading: boolean;
+}
 
-type BusSearchFormData = z.infer<typeof busSearchSchema>;
+const BusSearchFormSchema = z.object({
+  origin: z.uuid().optional(),
+  destination: z.uuid().optional(),
+  departureTime: z.string().optional(),
+}).refine(
+  (data) => data.origin && data.destination,
+  {
+    message: "Both origin and destination are required",
+  }
+).refine(
+  (data) => data.origin !== data.destination,
+  {
+    message: "Origin and destination must be different",
+    path: ["destination"],
+  }
+);
 
-export function BusSearchForm() {
+type BusSearchFormType = {
+  origin?: string;
+  destination?: string;
+  departureTime?: string;
+};
+
+export function BusSearchForm({ onSearch, isLoading }: BusSearchFormProps) {
+  const trpc = useTRPC();
+  const stationsQuery = useQuery(trpc.stations.findAll.queryOptions());
+
   const {
     register,
     handleSubmit,
     setValue,
     watch,
+    control,
+    getValues,
     formState: { errors },
-  } = useForm<BusSearchFormData>({
-    resolver: zodResolver(busSearchSchema),
-    defaultValues: {
-      origin: "",
-      destination: "",
-      date: "",
-      returnDate: "",
-      passengers: 1,
-    },
+  } = useForm<BusSearchFormType>({
+    resolver: zodResolver(BusSearchFormSchema),
   });
 
   const origin = watch("origin");
   const destination = watch("destination");
 
-  const onSubmit = (data: BusSearchFormData) => {
-    console.log(data);
+  const onSubmit = (data: BusSearchFormType) => {
+    onSearch({
+      origin: data.origin,
+      destination: data.destination,
+      departureTime: data.departureTime ? new Date(data.departureTime) : undefined,
+    });
   };
 
   const handleSwap = () => {
-    const temp = origin;
-    setValue("origin", destination);
-    setValue("destination", temp);
+    const currentOrigin = getValues("origin");
+    const currentDestination = getValues("destination");
+    setValue("origin", currentDestination, { shouldValidate: true });
+    setValue("destination", currentOrigin, { shouldValidate: true });
   };
 
+  const stations = stationsQuery.data || [];
+
   return (
-    <Card className="w-full">
+    <Card className="w-full overflow-visible">
       <form onSubmit={handleSubmit(onSubmit)} className="p-6">
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 overflow-visible">
           {/* Main search inputs */}
           <div className="flex flex-col lg:flex-row gap-4">
             {/* Origin and Destination */}
-            <div className="flex flex-3 gap-2">
+            <div className="flex flex-3 gap-2 relative z-10">
               <div className="flex-1">
-                <FormField
-                  label="Origin"
-                  type="text"
-                  placeholder="Leaving from..."
-                  error={errors.origin?.message}
-                  {...register("origin")}
+                <Controller
+                  name="origin"
+                  control={control}
+                  render={({ field }) => (
+                    <Autocomplete
+                      label="Origin"
+                      options={stations.map((station) => ({
+                        id: station.id,
+                        label: station.name,
+                      }))}
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder="Select origin..."
+                      disabled={stationsQuery.isLoading}
+                      error={errors.origin?.message}
+                    />
+                  )}
                 />
               </div>
 
@@ -90,12 +128,23 @@ export function BusSearchForm() {
               </button>
 
               <div className="flex-1">
-                <FormField
-                  label="Destination"
-                  type="text"
-                  placeholder="Going to..."
-                  error={errors.destination?.message}
-                  {...register("destination")}
+                <Controller
+                  name="destination"
+                  control={control}
+                  render={({ field }) => (
+                    <Autocomplete
+                      label="Destination"
+                      options={stations.map((station) => ({
+                        id: station.id,
+                        label: station.name,
+                      }))}
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder="Select destination..."
+                      disabled={stationsQuery.isLoading}
+                      error={errors.destination?.message}
+                    />
+                  )}
                 />
               </div>
             </div>
@@ -105,18 +154,9 @@ export function BusSearchForm() {
               <FormField
                 label="Date"
                 type="date"
-                error={errors.date?.message}
-                {...register("date")}
-              />
-            </div>
-
-            {/* Return Date */}
-            <div className="flex-1 lg:max-w-xs">
-              <FormField
-                label="Return Date"
-                type="date"
-                error={errors.returnDate?.message}
-                {...register("returnDate")}
+                defaultValue={new Date().toISOString().split('T')[0]}
+                error={errors.departureTime?.message}
+                {...register("departureTime")}
               />
             </div>
 
@@ -128,7 +168,7 @@ export function BusSearchForm() {
               <select
               //Change later
                 disabled
-                {...register("passengers", { valueAsNumber: true })}
+                // {...register("passengers", { valueAsNumber: true })}
                 className="w-full rounded-md border border-border dark:border-border bg-primary py-3 text-text dark:text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
               >
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
@@ -142,28 +182,37 @@ export function BusSearchForm() {
             {/* Search Button */}
             <div className="flex items-end">
               <Button
-                disabled
                 type="submit"
                 variant="accent"
                 size="lg"
                 className="w-full lg:w-auto px-8"
+                disabled={isLoading}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="mr-2"
-                >
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="m21 21-4.35-4.35" />
-                </svg>
-                Search
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Searching...
+                  </>
+                ) : (
+                  <>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="mr-2"
+                    >
+                      <circle cx="11" cy="11" r="8" />
+                      <path d="m21 21-4.35-4.35" />
+                    </svg>
+                    Search
+                  </>
+                )}
               </Button>
             </div>
           </div>

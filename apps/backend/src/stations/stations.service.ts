@@ -71,4 +71,10 @@ export class StationsService {
     findOneBy(where: FindOptionsWhere<Station> | FindOptionsWhere<Station>[]) {
         return this.stationRepo.findOneBy(where);
     }
+
+    async findAll() {
+        return await this.stationRepo.find({
+            order: { name: 'ASC' },
+        });
+    }
 }

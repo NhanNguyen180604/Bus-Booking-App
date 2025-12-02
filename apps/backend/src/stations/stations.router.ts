@@ -38,6 +38,11 @@ export class StationsRouter {
                 .mutation(({ input }) => {
                     return this.stationsService.updateOne(input);
                 }),
+            findAll: this.trpcService
+                .publicProcedure()
+                .query(() => {
+                    return this.stationsService.findAll();
+                }),
         });
     }
 }
