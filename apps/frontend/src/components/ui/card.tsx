@@ -3,7 +3,7 @@ import { forwardRef, HTMLAttributes } from "react";
 
 const cardStyles = tv({
   slots: {
-    base: "rounded-lg border bg-secondary dark:bg-secondary shadow-sm overflow-hidden",
+    base: "rounded-lg border bg-secondary dark:bg-secondary shadow-sm",
     header: "px-6 py-4 border-border dark:border-border",
     body: "px-6 py-4",
     footer: "px-6 py-4 border-border dark:border-border bg-secondary dark:bg-secondary",

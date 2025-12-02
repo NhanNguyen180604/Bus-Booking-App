@@ -13,6 +13,6 @@ import { StationsModule } from 'src/stations/stations.module';
         StationsModule,
     ],
     providers: [RoutesRouter, RoutesService],
-    exports: [RoutesRouter],
+    exports: [RoutesRouter, RoutesService],
 })
 export class RoutesModule {}
