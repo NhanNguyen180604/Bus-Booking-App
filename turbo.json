@@ -32,7 +32,7 @@
     },
     "dev": {
       "persistent": true,
-      "cache": false
+      "cache": true
     }
   }
 }

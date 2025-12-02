@@ -1,4 +1,4 @@
-import { User } from '../users/users.entity';
+import { User } from '../entities/users.entity';
 import type { CreateExpressContextOptions } from '@trpc/server/adapters/express';
 import type { Request, Response } from 'express';
 

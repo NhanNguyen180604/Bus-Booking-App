@@ -6,7 +6,7 @@ import {
     ManyToOne,
     PrimaryGeneratedColumn,
 } from "typeorm";
-import { User } from "../users/users.entity";
+import { User } from "./users.entity";
 
 @Entity()
 export class RefreshToken {

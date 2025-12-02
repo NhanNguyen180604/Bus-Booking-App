@@ -1,7 +1,7 @@
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { UserLoginDtoType, UserRegisterDtoType } from '@repo/shared';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './users.entity';
+import { User } from '../entities/users.entity';
 import { DeepPartial, FindOptionsWhere, Repository } from 'typeorm';
 import bcryptjs from 'bcryptjs';
 import { TRPCError } from '@trpc/server';

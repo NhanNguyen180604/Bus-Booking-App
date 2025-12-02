@@ -1,5 +1,5 @@
 import { RootConfig } from "../../config/config";
-import { LoginProviderEnum } from "../../users/login-providers.enum";
+import { LoginProviderEnum } from "../../entities/users.entity";
 import { UsersService } from "../../users/users.service";
 import { Inject, Injectable } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";

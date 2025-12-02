@@ -1,5 +1,5 @@
 import { TokenService } from '../token/token.service';
-import { User } from '../users/users.entity';
+import { User } from '../entities/users.entity';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
