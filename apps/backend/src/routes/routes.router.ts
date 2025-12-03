@@ -36,12 +36,12 @@ export class RoutesRouter {
                 .publicProcedure()
                 .input(RouteFindOneByIdDto)
                 .query(({ input }) => {
-                    return this.routesService.findOneHelper({ where: { id: input.id } });
+                    return this.routesService.findOneByid(input);
                 }),
             search: this.trpcService
                 .publicProcedure()
                 .input(RouteSearchDto)
-                .query(({input})=>{
+                .query(({ input }) => {
                     return this.routesService.search(input);
                 }),
         });

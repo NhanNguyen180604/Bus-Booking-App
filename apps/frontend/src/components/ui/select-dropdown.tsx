@@ -2,6 +2,8 @@ import Select, { type Props as ReactSelectProps, ClassNamesConfig } from "react-
 
 interface SelectDropdownProps extends ReactSelectProps {
     label?: string;
+    labelClassNames?: string;
+    errorMessage?: string;
 }
 
 export interface OptionType<T> {
@@ -39,19 +41,20 @@ const classNamesStyles: ClassNamesConfig = {
     noOptionsMessage: () => `text-text dark:text-text py-2`,
 };
 
-export const SelectDropdown = ({ label, ...props }: SelectDropdownProps) => {
+export const SelectDropdown = ({ label, labelClassNames = "", errorMessage = "", ...props }: SelectDropdownProps) => {
     return (
         <>
-            {label ? (
-                <div>
-                    <label className="text-text dark:text-text font-bold" htmlFor={props.id}>
+            <div>
+                {label && (
+                    <label className={`text-text dark:text-text font-bold ${labelClassNames}`} htmlFor={props.id}>
                         {label} {props.required && <span className="text-danger dark:text-danger">*</span>}
                     </label>
-                    <Select {...props} className="mt-2" classNames={classNamesStyles} unstyled />
-                </div>
-            ) : (
-                <Select {...props} classNames={classNamesStyles} unstyled />
-            )}
+                )}
+                <Select {...props} className="mt-2" classNames={classNamesStyles} unstyled />
+                {errorMessage && errorMessage.trim() !== "" && (
+                    <div className="text-danger dark:text-danger mt-2 mb-2">{errorMessage}</div>
+                )}
+            </div>
         </>
     );
 };

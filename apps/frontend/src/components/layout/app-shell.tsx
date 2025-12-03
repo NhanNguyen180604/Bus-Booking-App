@@ -1,8 +1,8 @@
-"use client";
+"use client"
 
 import { ReactNode } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useTRPC } from "../../utils/trpc";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "../ui/button";
@@ -74,9 +74,9 @@ function DefaultHeader({ isAdmin = false }: DefaultHeaderProps) {
     <header className="sticky top-0 z-50 w-full border-b border-border dark:border-border bg-secondary">
       <div className="flex h-16 items-center px-6 justify-between">
         {/* Left: Logo */}
-        <div className="flex-1">
-          <Link href="/" className="flex items-center space-x-2">
-            <span className="text-xl font-bold text-text dark:text-text hover:cursor-pointer">
+        <div className="flex-1 flex">
+          <Link href="/" className="space-x-2 py-4 pr-2">
+            <span className="text-xl font-bold text-text dark:text-text hover:cursor-pointer hover:text-accent dark:hover:text-accent transition-colors">
               BusBus
             </span>
           </Link>

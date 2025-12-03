@@ -1,6 +1,6 @@
 "use client";;
 import { Button } from "@/src/components/ui/button";
-import { Card, CardHeader } from "@/src/components/ui/card";
+import { Card, CardBody, CardHeader } from "@/src/components/ui/card";
 import Checkbox from "@/src/components/ui/checkbox";
 import { SelectDropdown } from "@/src/components/ui/select-dropdown";
 import { useTRPC } from "@/src/utils/trpc";
@@ -25,7 +25,7 @@ export default function AdminManageTripPage() {
             <form>
                 <Card className="flex flex-col mb-8">
                     <CardHeader className="text-text dark:text-text text-[20px] font-bold">FILTER</CardHeader>
-                    <div className="flex px-6 border-b border-border dark:border-border pb-4">
+                    <CardBody className="flex px-6 border-b border-border dark:border-border pb-4">
                         <div className="flex flex-col gap-2 flex-1">
                             <span className="text-text dark:text-text font-bold text-[1rem]">Bus Type</span>
                             {busTypesQuery.isPending ? (
@@ -60,7 +60,7 @@ export default function AdminManageTripPage() {
                                 <label htmlFor="filter-midnight-departure-time" className="text-secondary-text dark:text-secondary-text">00:00-06:00</label>
                             </div>
                         </div>
-                    </div>
+                    </CardBody>
                     <CardHeader className="text-text dark:text-text text-[20px] font-bold">SORT</CardHeader>
                     <div className="flex px-6 border-b border-border dark:border-border pb-4 gap-8">
                         <div className="flex-1">
