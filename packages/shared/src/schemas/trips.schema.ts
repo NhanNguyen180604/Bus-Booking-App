@@ -63,7 +63,7 @@ export const TripFindManyDto = z.object({
         }
         return val;
     }, z.date({ error: "Departure time must be a valid datetime" })).optional(),
-    bus: z.array(z.uuid()).optional(),
+    busType: z.array(z.uuid()).optional(),
     minPrice: z.number().int().optional(),
     maxPrice: z.number().int().optional(),
     sortPrice: z.enum(['ASC', 'DESC']).optional(),

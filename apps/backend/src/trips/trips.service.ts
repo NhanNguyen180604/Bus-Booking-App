@@ -3,8 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { TripCreateOneDtoType, TripDeleteOneDtoType, TripFindManyDtoType, TripUpdateOneDtoType } from '@repo/shared';
 import { TRPCError } from '@trpc/server';
 import { Trip } from '../entities/trip.entity';
-import { Between, FindManyOptions, FindOneOptions, FindOptionsOrder, FindOptionsWhere, ILike, In, Repository } from 'typeorm';
-import { Route } from 'src/entities/route.entity';
+import { Between, FindOneOptions, FindOptionsOrder, FindOptionsWhere, In, Repository } from 'typeorm';
 import { RoutesService } from 'src/routes/routes.service';
 import { BusesService } from 'src/buses/buses.service';
 
@@ -138,10 +137,10 @@ export class TripsService {
                 basePrice: Between(dto.minPrice, dto.maxPrice),
             }
         }
-        if (dto.bus && dto.bus.length > 0) {
+        if (dto.busType && dto.busType.length > 0) {
             where = {
                 ...where,
-                bus: { id: In(dto.bus) },
+                bus: { type: { id: In(dto.busType) } },
             }
         }
         if (dto.sortPrice) {

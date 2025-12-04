@@ -158,7 +158,7 @@ export function SearchResults({
                       <div className="flex items-center gap-6 mb-3">
                         {/* Departure */}
                         <div className="text-center min-w-20">
-                          <div className="text-3xl font-bold text-text">
+                          <div className="text-3xl font-semibold text-text">
                             {formatTime(trip.departureTime)}
                           </div>
                           <div className="text-sm text-secondary-text mt-1">
@@ -202,7 +202,7 @@ export function SearchResults({
 
                         {/* Arrival */}
                         <div className="text-center min-w-20">
-                          <div className="text-3xl font-bold text-text">
+                          <div className="text-3xl font-semibold text-text">
                             {formatTime(trip.arrivalTime)}
                           </div>
                           <div className="text-sm text-secondary-text mt-1">
@@ -243,11 +243,11 @@ export function SearchResults({
                     {/* Right: Price and Action */}
                     <div className="flex flex-col items-end justify-between min-w-40">
                       <div className="text-right mb-4">
-                        <div className="text-sm font-bold text-text uppercase tracking-wide mb-1">
+                        <div className="text-sm font-semibold text-text uppercase tracking-wide mb-1">
                           Price
                         </div>
-                        <div className="text-3xl font-bold text-accent">
-                          ${totalPrice.toFixed(2)}
+                        <div className="text-3xl font-semibold text-accent">
+                          ${totalPrice}
                         </div>
                         <div className="text-xs text-secondary-text mt-0.5">
                           per seat
