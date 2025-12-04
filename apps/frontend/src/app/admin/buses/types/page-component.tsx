@@ -74,7 +74,6 @@ export default function AdminManageBusTypePage() {
     const onDeleteModalClose = () => {
         setShowDeleteModal(false);
         setDeletingBusType(null);
-        setShowDeleteModal(false);
         setDeleteBusTypeError(undefined);
     };
 
@@ -173,10 +172,6 @@ export default function AdminManageBusTypePage() {
                                     {
                                         header: "Name",
                                         render: busType => busType.name,
-                                    },
-                                    {
-                                        header: "Destination",
-                                        render: busType => busType.priceMultiplier,
                                     },
                                     {
                                         header: "Actions",

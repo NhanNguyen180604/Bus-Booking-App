@@ -120,7 +120,6 @@ export default function AdminManageBusPage() {
     const onDeleteModalClose = () => {
         setShowDeleteModal(false);
         setDeletingBus(null);
-        setShowDeleteModal(false);
         setDeleteBusError(undefined);
     };
 
@@ -235,6 +234,7 @@ export default function AdminManageBusPage() {
                         onClick={(e) => {
                             e.preventDefault();
                             setBusSearchQueryObj(busSearchQueryInput);
+                            busSearchQuery.refetch();
                         }}
                     >
                         <svg

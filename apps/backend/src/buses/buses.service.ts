@@ -167,6 +167,10 @@ export class BusesService {
             .skip((dto.page - 1) * dto.perPage)
             .take(dto.perPage);
 
+        if (dto.driverNotNull){
+            qb.andWhere("bus.driver IS NOT NULL");
+        }
+
         if (dto.driverId) {
             qb.andWhere("driver.id = :driverId", { driverId: dto.driverId });
         }

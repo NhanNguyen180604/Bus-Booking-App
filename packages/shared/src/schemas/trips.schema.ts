@@ -1,16 +1,16 @@
 import z from "zod";
-import { PaginationDto } from "./common";
+import { DepartureTimeRange, PaginationDto, sortOptions } from "./common";
 
 export const TripCreateOneDto = z.object({
     routeId: z.uuid({ error: "Origin must be an UUID string" }),
     busId: z.uuid({ error: "Destination must be an UUID string" }),
-    departureTime: z.preprocess((val) => {
+    departureTime: z.preprocess((val: Date | any) => {
         if (typeof val === "string") {
             return new Date(val);
         }
         return val;
     }, z.date({ error: "Departure time must be a valid datetime" })),
-    arrivalTime: z.preprocess((val) => {
+    arrivalTime: z.preprocess((val: Date | any) => {
         if (typeof val === "string") {
             return new Date(val);
         }
@@ -66,8 +66,8 @@ export const TripFindManyDto = z.object({
     bus: z.array(z.uuid()).optional(),
     minPrice: z.number().int().optional(),
     maxPrice: z.number().int().optional(),
-    sortPrice: z.enum(['ASC', 'DESC']).optional(),
-    sortDepartureTime: z.enum(['ASC', 'DESC']).optional(),
+    sortPrice: sortOptions,
+    sortDepartureTime: sortOptions,
 })
     .extend(PaginationDto.shape)
     .refine(
@@ -83,3 +83,15 @@ export const TripFindManyDto = z.object({
         }
     )
 export type TripFindManyDtoType = z.infer<typeof TripFindManyDto>;
+
+export const TripAdminSearchDto = z.object({
+    originId: z.uuid().optional(),
+    destinationId: z.uuid().optional(),
+    busTypeIds: z.array(z.uuid({ error: "Each bus type ID must be an UUID string" })).optional(),
+    minPrice: z.number().int().optional(),
+    maxPrice: z.number().int().optional(),
+    depatureTimeRange: z.array(DepartureTimeRange).optional(),
+    sortPrice: sortOptions,
+    sortDepartureTime: sortOptions,
+}).extend(PaginationDto.shape);
+export type TripAdminSearchDtoType = z.infer<typeof TripAdminSearchDto>;

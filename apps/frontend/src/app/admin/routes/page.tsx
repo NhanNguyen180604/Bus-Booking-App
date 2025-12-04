@@ -77,7 +77,6 @@ export default function AdminManageRoutePage() {
     const onDeleteModalClose = () => {
         setShowDeleteModal(false);
         setDeletingRoute(null);
-        setShowDeleteModal(false);
         setDeleteRouteError(undefined);
     };
 

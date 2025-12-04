@@ -37,6 +37,7 @@ export const BusGetOneByIdDto = z.object({
 export type BusGetOneByIdDtoType = z.infer<typeof BusGetOneByIdDto>;
 
 export const BusSearchDto = z.object({
+    driverNotNull: z.boolean().optional(),
     driverId: z.uuid({ error: "Driver ID must be an UUID string" }).optional(),
     driverNameSort: sortOptions,
     plateNumberQuery: z.string().nonempty({ error: "Plate Number must not be an empty string" }).optional(),
