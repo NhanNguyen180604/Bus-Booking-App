@@ -16,7 +16,7 @@ export interface AppShellProps {
   hideHeader?: boolean;
   hideNav?: boolean;
   hideFooter?: boolean;
-  isAdmin?: boolean;
+  isAdminPage?: boolean;
 }
 
 export function AppShell({
@@ -27,11 +27,11 @@ export function AppShell({
   hideHeader = false,
   hideNav = false,
   hideFooter = false,
-  isAdmin = false,
+  isAdminPage = false,
 }: AppShellProps) {
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      {!hideHeader && (header || <DefaultHeader isAdmin={isAdmin} />)}
+      {!hideHeader && (header || <DefaultHeader isAdminPage={isAdminPage} />)}
       <div className="flex flex-1 p-4">
         {!hideNav && (nav || <DefaultNav />)}
         <main className="flex-1 px-16">{children}</main>
@@ -42,10 +42,10 @@ export function AppShell({
 }
 
 export interface DefaultHeaderProps {
-  isAdmin?: boolean;
+  isAdminPage?: boolean;
 }
 
-function DefaultHeader({ isAdmin = false }: DefaultHeaderProps) {
+function DefaultHeader({ isAdminPage = false }: DefaultHeaderProps) {
   const userQuery = useUser();
   const trpc = useTRPC();
   const pathname = usePathname();
@@ -62,6 +62,8 @@ function DefaultHeader({ isAdmin = false }: DefaultHeaderProps) {
   };
 
   const isLoggedIn = userQuery.isSuccess && userQuery.data;
+  const isAdmin = isLoggedIn && userQuery.data.role === "ADMIN";
+
   const navItems = [
     { href: "/", label: "Home", },
     { href: "/trips", label: "Trips", },
@@ -74,16 +76,25 @@ function DefaultHeader({ isAdmin = false }: DefaultHeaderProps) {
     <header className="sticky top-0 z-50 w-full border-b border-border dark:border-border bg-secondary">
       <div className="flex h-16 items-center px-6 justify-between">
         {/* Left: Logo */}
-        <div className="flex-1 flex">
+        <div className="flex-1 flex gap-4 items-center">
           <Link href="/" className="space-x-2 py-4 pr-2">
             <span className="text-xl font-bold text-text dark:text-text hover:cursor-pointer hover:text-accent dark:hover:text-accent transition-colors">
               BusBus
             </span>
           </Link>
+          {isAdmin && (
+            <Link href='/admin/trips' 
+            className="
+              bg-accent dark:bg-accent text-light-text-button dark:text-light-text-button w-fit h-fit px-4 py-2
+              rounded-md hover:bg-accent/50 transition-colors font-bold
+            ">
+              Admin Page
+            </Link>
+          )}
         </div>
 
         {/* Center: Nav */}
-        {!isAdmin && (
+        {!isAdminPage && (
           <nav className="flex items-center space-x-2">
             {navItems.map((item) => {
               const isActive = pathname === item.href;

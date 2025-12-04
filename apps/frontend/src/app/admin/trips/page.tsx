@@ -1,7 +1,9 @@
-"use client";;
+"use client"
+
 import { Button } from "@/src/components/ui/button";
 import { Card, CardBody, CardFooter, CardHeader } from "@/src/components/ui/card";
 import Checkbox from "@/src/components/ui/checkbox";
+import { FormField } from "@/src/components/ui/form-field";
 import Modal from "@/src/components/ui/modal";
 import Pagination from "@/src/components/ui/pagination";
 import { OptionType, SelectDropdown } from "@/src/components/ui/select-dropdown";
@@ -12,6 +14,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RouterOutputsType } from "backend";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import RangeSlider from 'react-range-slider-input';
+import 'react-range-slider-input/dist/style.css';
+import "./slider.css";
 
 type Station = RouterOutputsType['stations']['search']['data'][number];
 type Trip = RouterOutputsType['trips']['adminSearch']['data'][number];
@@ -58,6 +63,8 @@ export default function AdminManageTripPage() {
     const [tripSearchQueryInput, setTripSearchQueryInput] = useState<TripAdminSearchDtoType>({
         page: tripPage,
         perPage,
+        minPrice: 0,
+        maxPrice: 1000000,
     });
     // the actual state used in query
     const [tripSearchQueryObj, setTripSearchQueryObj] = useState<TripAdminSearchDtoType>(tripSearchQueryInput);
@@ -75,6 +82,9 @@ export default function AdminManageTripPage() {
             }
         }
     }, [tripSearchQuery.isFetching]);
+
+    const [minPriceInput, setMinPriceInput] = useState(tripSearchQueryInput.minPrice ?? 0);
+    const [maxPriceInput, setMaxPriceInput] = useState(tripSearchQueryInput.maxPrice ?? 0);
 
 
     // deleting trip
@@ -181,6 +191,73 @@ export default function AdminManageTripPage() {
                                     </label>
                                 </div>
                             ))}
+                        </div>
+
+                        <div className="flex flex-col gap-2 flex-1">
+                            <span className="text-text dark:text-text font-bold text-[1rem]">Departure Time</span>
+                            <RangeSlider
+                                className="mt-2 mb-4"
+                                id="price-range-input"
+                                min={0}
+                                max={1000000}
+                                step={1000}
+                                value={[tripSearchQueryInput.minPrice ?? 0, tripSearchQueryInput.maxPrice ?? 1000000]}
+                                onInput={(e) => {
+                                    const number1 = e[0];
+                                    const number2 = e[1];
+                                    setTripSearchQueryInput({
+                                        ...tripSearchQueryInput,
+                                        minPrice: Math.min(number1, number2),
+                                        maxPrice: Math.max(number1, number2),
+                                    });
+                                    setMinPriceInput(Math.min(number1, number2));
+                                    setMaxPriceInput(Math.max(number1, number2));
+                                }}
+                            />
+                            <div className="flex gap-3">
+                                <FormField
+                                    value={minPriceInput}
+                                    onChange={(e) => {
+                                        const val = Number(e.target.value);
+                                        if (isNaN(val))
+                                            return;
+                                        setMinPriceInput(val);
+                                    }}
+                                    onBlur={() => {
+                                        let maxPrice = tripSearchQueryInput.maxPrice ?? 0;
+                                        const newMinPrice = Math.max(Math.min(minPriceInput, maxPrice), 0);
+                                        const newMaxPrice = Math.min(Math.max(minPriceInput, maxPrice), 1000000);
+                                        setTripSearchQueryInput({
+                                            ...tripSearchQueryInput,
+                                            minPrice: newMinPrice,
+                                            maxPrice: newMaxPrice,
+                                        });
+                                        setMinPriceInput(newMinPrice);
+                                        newMaxPrice !== maxPriceInput && setMaxPriceInput(newMaxPrice);
+                                    }}
+                                />
+                                <FormField
+                                    value={maxPriceInput}
+                                    onChange={(e) => {
+                                        const val = Number(e.target.value);
+                                        if (isNaN(val))
+                                            return;
+                                        setMaxPriceInput(val);
+                                    }}
+                                    onBlur={() => {
+                                        let minPrice = tripSearchQueryInput.minPrice ?? 0;
+                                        const newMinPrice = Math.max(Math.min(maxPriceInput, minPrice), 0);
+                                        const newMaxPrice = Math.min(Math.max(maxPriceInput, minPrice), 1000000);
+                                        setTripSearchQueryInput({
+                                            ...tripSearchQueryInput,
+                                            minPrice: newMinPrice,
+                                            maxPrice: newMaxPrice,
+                                        });
+                                        newMinPrice !== minPriceInput && setMinPriceInput(newMinPrice);
+                                        setMaxPriceInput(newMaxPrice);
+                                    }}
+                                />
+                            </div>
                         </div>
                     </CardBody>
 

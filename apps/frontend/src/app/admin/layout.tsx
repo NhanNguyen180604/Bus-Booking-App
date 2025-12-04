@@ -16,7 +16,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
 
     return (
-        <AppShell hideFooter isAdmin nav={<AdminNavBar />}>
+        <AppShell hideFooter isAdminPage nav={<AdminNavBar />}>
             {children}
         </AppShell>
     );
