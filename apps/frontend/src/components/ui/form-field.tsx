@@ -4,7 +4,7 @@ import { tv, type VariantProps } from "tailwind-variants";
 const formFieldStyles = tv({
   slots: {
     container: "space-y-2",
-    label: "block text-sm font-medium text-text dark:text-text",
+    label: "block text-base font-bold text-text dark:text-text",
     input: "block w-full rounded-md border px-3 py-2 text-text dark:text-text placeholder-secondary-text dark:placeholder-secondary-text focus:outline-none focus:ring-2 transition-colors",
     helperText: "text-sm text-secondary-text dark:text-secondary-text",
     errorText: "text-sm text-danger dark:text-danger",
@@ -41,7 +41,7 @@ const formFieldStyles = tv({
 
 export interface FormFieldProps
   extends Omit<InputHTMLAttributes<HTMLInputElement>, "size">,
-    VariantProps<typeof formFieldStyles> {
+  VariantProps<typeof formFieldStyles> {
   label?: string;
   helperText?: string;
   error?: string;

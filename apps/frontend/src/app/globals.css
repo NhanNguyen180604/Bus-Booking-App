@@ -45,21 +45,21 @@
 
 @theme {
   /* Theme colors - Light mode */
-    --color-primary: hsla(223, 20%, 95%, 1);
-    --color-secondary: hsla(223, 20%, 80%, 1);
-    --color-accent: hsla(223, 66%, 45%, 1);
-    --color-border: hsla(223, 20%, 85%, 1);
-    --color-background: hsla(222, 20%, 75%, 1);
-    --color-text: hsla(0, 0%, 5%, 1);
-    --color-secondary-text: hsla(0, 0%, 30%, 1);
-    --color-danger: hsla(359, 85%, 60%, 1);
-    --color-warning: hsla(52, 88%, 50%, 1);
-    --color-success: hsla(131, 72%, 60%, 1);
-    --color-drop-shadow-near: hsla(223, 20%, 70%, 1);
-    --color-drop-shadow-far: hsla(223, 20%, 65%, 1);
-    --color-light-text-button: hsla(0, 0%, 95%, 1);
-    --color-sun-yellow: hsla(52, 83%, 68%, 1);
-    --color-moon-light: hsla(210, 47%, 35%, 1);
+  --color-primary: hsla(223, 20%, 95%, 1);
+  --color-secondary: hsla(223, 20%, 80%, 1);
+  --color-accent: hsla(223, 66%, 45%, 1);
+  --color-border: hsla(223, 20%, 85%, 1);
+  --color-background: hsla(222, 20%, 75%, 1);
+  --color-text: hsla(0, 0%, 5%, 1);
+  --color-secondary-text: hsla(0, 0%, 30%, 1);
+  --color-danger: hsla(359, 85%, 60%, 1);
+  --color-warning: hsla(52, 88%, 50%, 1);
+  --color-success: hsla(131, 72%, 60%, 1);
+  --color-drop-shadow-near: hsla(223, 20%, 70%, 1);
+  --color-drop-shadow-far: hsla(223, 20%, 65%, 1);
+  --color-light-text-button: hsla(0, 0%, 95%, 1);
+  --color-sun-yellow: hsla(52, 83%, 68%, 1);
+  --color-moon-light: hsla(210, 47%, 35%, 1);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -69,21 +69,21 @@
 
   @theme {
     /* Theme colors - dark mode*/
-  --color-primary: hsla(223, 20%, 25%, 1);
-  --color-secondary: hsla(223, 20%, 15%, 1);
-  --color-accent: hsla(223, 66%, 55%, 1);
-  --color-border: hsla(223, 20%, 20%, 1);
-  --color-background: hsla(223, 20%, 10%, 1);
-  --color-text: hsla(0, 0%, 95%, 1);
-  --color-secondary-text: hsla(0, 0%, 70%, 1);
-  --color-danger: hsla(359, 66%, 45%, 1);
-  --color-warning: hsla(52, 78%, 35%, 1);
-  --color-success: hsla(131, 62%, 30%, 1);
-  --color-drop-shadow-near: hsla(0, 0%, 0%, 1);
-  --color-drop-shadow-far: hsla(223, 20%, 5%, 1);
-  --color-light-text-button: hsla(0, 0%, 95%, 1);
-  --color-sun-yellow: hsla(52, 83%, 68%, 1);
-  --color-moon-light: hsla(210, 47%, 35%, 1);
+    --color-primary: hsla(223, 20%, 25%, 1);
+    --color-secondary: hsla(223, 20%, 15%, 1);
+    --color-accent: hsla(223, 66%, 55%, 1);
+    --color-border: hsla(223, 20%, 20%, 1);
+    --color-background: hsla(223, 20%, 10%, 1);
+    --color-text: hsla(0, 0%, 95%, 1);
+    --color-secondary-text: hsla(0, 0%, 70%, 1);
+    --color-danger: hsla(359, 66%, 45%, 1);
+    --color-warning: hsla(52, 78%, 35%, 1);
+    --color-success: hsla(131, 62%, 30%, 1);
+    --color-drop-shadow-near: hsla(0, 0%, 0%, 1);
+    --color-drop-shadow-far: hsla(223, 20%, 5%, 1);
+    --color-light-text-button: hsla(0, 0%, 95%, 1);
+    --color-sun-yellow: hsla(52, 83%, 68%, 1);
+    --color-moon-light: hsla(210, 47%, 35%, 1);
   }
 }
 

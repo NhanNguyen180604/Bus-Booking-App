@@ -1,0 +1,38 @@
+/* I hope we will find a range slider library that works with tailwind */
+#price-range-input {
+    background: hsla(223, 20%, 25%, 1);
+}
+
+#price-range-input .range-slider__range {
+    background: hsla(223, 66%, 55%, 1);
+    transition: height .3s;
+}
+
+#price-range-input .range-slider__thumb {
+    background: hsla(223, 66%, 55%, 1);
+    transition: transform .3s;
+}
+
+#price-range-input .range-slider__thumb[data-active] {
+    transform: translate(-50%, -50%) scale(1.25);
+}
+
+#price-range-input .range-slider__range[data-active] {
+    height: 1rem;
+}
+
+@media (prefers-color-scheme: dark) {
+    #price-range-input {
+        background: hsla(223, 20%, 95%, 1);
+    }
+
+    #price-range-input .range-slider__range {
+        background: hsla(223, 66%, 55%, 1);
+        transition: height .3s;
+    }
+
+    #price-range-input .range-slider__thumb {
+        background: hsla(223, 66%, 55%, 1);
+        transition: transform .3s;
+    }
+}

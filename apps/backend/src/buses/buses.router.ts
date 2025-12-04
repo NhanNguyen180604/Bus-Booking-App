@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { TrpcService } from "../trpc/trpc.service";
 import { BusesService } from "./buses.service";
 import { UserRoleEnum } from "../entities/users.entity";
-import { BusAddSeatsDto, BusCreateOneDto, BusGetSeatsByBusIdDto, } from "@repo/shared";
+import { BusAddSeatsDto, BusCreateOneDto, BusDeleteOneDto, BusGetOneByIdDto, BusGetSeatsByBusIdDto, BusSearchDto, } from "@repo/shared";
 
 @Injectable()
 export class BusesRouter {
@@ -20,6 +20,18 @@ export class BusesRouter {
                 .mutation(({ input }) => {
                     return this.busesService.createOne(input);
                 }),
+            getOneById: this.trpcService
+                .publicProcedure()
+                .input(BusGetOneByIdDto)
+                .query(({ input }) => {
+                    return this.busesService.getOneBusById(input);
+                }),
+            deleteOne: this.trpcService
+                .roleGuardProcedure(UserRoleEnum.ADMIN)
+                .input(BusDeleteOneDto)
+                .mutation(({ input }) => {
+                    return this.busesService.deleteOne(input);
+                }),
             addSeats: this.trpcService
                 .roleGuardProcedure(UserRoleEnum.ADMIN)
                 .input(BusAddSeatsDto)
@@ -31,6 +43,12 @@ export class BusesRouter {
                 .input(BusGetSeatsByBusIdDto)
                 .query(({ input }) => {
                     return this.busesService.getSeatsByBus(input);
+                }),
+            searchBus: this.trpcService
+                .publicProcedure()
+                .input(BusSearchDto)
+                .query(({ input }) => {
+                    return this.busesService.searchBus(input);
                 }),
         });
     }

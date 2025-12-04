@@ -1,4 +1,5 @@
 import z from "zod";
+import { PaginationDto, sortOptions } from "./common";
 
 // local login
 export const UserLoginDto = z.object({
@@ -32,3 +33,14 @@ export const UserRegisterDto = z.object({
         path: ["confirmPassword"],
     });
 export type UserRegisterDtoType = z.infer<typeof UserRegisterDto>;
+
+export const UserSearchDto = z.object({
+    role: z.enum(["USER", "DRIVER"]).optional(),
+    nameQuery: z.string().nonempty({ error: "Name must not be an empty string" }).optional(),
+    nameSort: sortOptions,
+    phoneQuery: z.string().nonempty({ error: "Phone must not be an empty string" }).optional(),
+    phoneSort: sortOptions,
+    emailQuery: z.email().optional(),
+    emailSort: sortOptions,
+}).extend(PaginationDto.shape);
+export type UserSearchDtoType = z.infer<typeof UserSearchDto>;

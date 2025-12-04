@@ -9,21 +9,32 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState, useEffect } from "react";
 import { type RouterOutputsType } from 'backend'
 import { useForm, Controller } from "react-hook-form";
-import { RouteCreateOneDto, RouteCreateOneDtoType } from "@repo/shared";
+import { RouteUpdateOneDto, RouteUpdateOneDtoType } from "@repo/shared";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 
 // bro what the hell
 type Station = RouterOutputsType["stations"]["search"]['data'][number];
 
-export default function AdminCreateNewRoutePage() {
+export default function AdminEditRoutePage() {
+    const params = useParams<{ id: string }>();
     const trpc = useTRPC();
     const router = useRouter();
     const queryClient = useQueryClient();
 
-    const perPage = 20;
+    const routeQueryOpts = trpc.routes.findOneById.queryOptions({
+        id: params.id,
+    });
+    const routeQuery = useQuery({
+        ...routeQueryOpts,
+        staleTime: 60 * 60 * 1000,
+    });
+    const [originStation, setOriginStation] = useState<Station>();
+    const [destinationStation, setDestinationStation] = useState<Station>();
 
     // fetching stations for dropdown
+    const perPage = 20;
+
     const stationTotalPageNumber = useRef(1);
     const [stationPage, setStationPage] = useState(1);
     const [stations, setStations] = useState<Station[]>([]);
@@ -48,20 +59,35 @@ export default function AdminCreateNewRoutePage() {
     const {
         register,
         handleSubmit,
+        reset,
         control,
         formState: { errors: formErrors, isValid },
         setError,
-    } = useForm<RouteCreateOneDtoType>({
-        resolver: zodResolver(RouteCreateOneDto),
+    } = useForm<RouteUpdateOneDtoType>({
+        resolver: zodResolver(RouteUpdateOneDto),
         mode: "all",
     });
 
-    const createRouteMutationOpts = trpc.routes.createOne.mutationOptions();
-    const createRouteMutation = useMutation({
-        ...createRouteMutationOpts,
+    useEffect(() => {
+        if (routeQuery.isSuccess && routeQuery.data) {
+            const data = routeQuery.data;
+            setOriginStation(data.origin);
+            setDestinationStation(data.destination);
+            reset({
+                id: params.id,
+                originId: data.origin.id,
+                destinationId: data.destination.id,
+                distanceKm: data.distanceKm,
+                estimatedMinutes: data.estimatedMinutes,
+            });
+        }
+    }, [routeQuery.isSuccess]);
+
+    const updateRouteMutationOpts = trpc.routes.updateOne.mutationOptions();
+    const updateRouteMutation = useMutation({
+        ...updateRouteMutationOpts,
         onError(error: any) {
             if (error.data?.zodError) {
-                // Handle Zod validation errors from backend
                 const zodErrors = error.data.zodError.fieldErrors;
                 zodErrors.forEach((fieldError: any) => {
                     setError(fieldError.path[0] as any, {
@@ -70,7 +96,7 @@ export default function AdminCreateNewRoutePage() {
                 });
             } else {
                 setError("root", {
-                    message: error.message || "Create new route failed. Please try again.",
+                    message: error.message || "Updating route failed Please try again.",
                 });
             }
         },
@@ -81,13 +107,13 @@ export default function AdminCreateNewRoutePage() {
         },
     });
 
-    const onSubmit = (data: RouteCreateOneDtoType) => {
-        createRouteMutation.mutate(data);
+    const onSubmit = (data: RouteUpdateOneDtoType) => {
+        updateRouteMutation.mutate(data);
     }
 
     return (
         <div className="flex flex-col">
-            <h1 className="text-[2rem] text-text dark:text-text font-bold mb-8">Create New Route</h1>
+            <h1 className="text-[2rem] text-text dark:text-text font-bold mb-8">Edit Route</h1>
             <Button variant="accent" className="self-start mb-8" onClick={() => router.push('/admin/routes')}>Return</Button>
 
             <form onSubmit={handleSubmit(onSubmit)}>
@@ -105,8 +131,10 @@ export default function AdminCreateNewRoutePage() {
                             render={({ field: { onChange } }) => (
                                 <SelectDropdown label="Origin" isClearable required
                                     options={stations.map(station => ({ value: station.id, label: station.name }))}
+                                    value={originStation && { value: originStation.id, label: originStation.name }}
                                     onChange={(newValue, _) => {
                                         const newVal: OptionType<string> = newValue as OptionType<string>;
+                                        setOriginStation(newVal ? { id: newVal.value, name: newVal.label } : undefined);
                                         onChange(newVal ? newVal.value : "");
                                     }}
                                     errorMessage={formErrors.originId?.message}
@@ -125,8 +153,10 @@ export default function AdminCreateNewRoutePage() {
                             render={({ field: { onChange } }) => (
                                 <SelectDropdown label="Destination" isClearable required
                                     options={stations.map(station => ({ value: station.id, label: station.name }))}
+                                    value={destinationStation && { value: destinationStation.id, label: destinationStation.name }}
                                     onChange={(newValue, _) => {
                                         const newVal: OptionType<string> = newValue as OptionType<string>;
+                                        setDestinationStation(newVal ? { id: newVal.value, name: newVal.label } : undefined);
                                         onChange(newVal ? newVal.value : "");
                                     }}
                                     errorMessage={formErrors.destinationId?.message}
@@ -162,14 +192,14 @@ export default function AdminCreateNewRoutePage() {
                             variant="accent"
                             size="md"
                             fullWidth
-                            disabled={!isValid || createRouteMutation.isPending || createRouteMutation.isSuccess}
+                            disabled={!isValid || updateRouteMutation.isPending || updateRouteMutation.isSuccess}
                         >
-                            {createRouteMutation.isPending ? "Creating..." : "Create"}
+                            {updateRouteMutation.isPending ? "Updating..." : "Update"}
                         </Button>
 
-                        {createRouteMutation.isSuccess && (
+                        {updateRouteMutation.isSuccess && (
                             <>
-                                <div className="col-span-2 text-success dark:text-success font-bold text-center text-xl mt-4">Create Route Successfully!</div>
+                                <div className="col-span-2 text-success dark:text-success font-bold text-center text-xl mt-4">Update Route Successfully!</div>
                                 <div className="col-span-2 text-success dark:text-success font-bold text-center text-xl mt-4">Returning to Routes Page</div>
                             </>
                         )}

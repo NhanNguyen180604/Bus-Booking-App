@@ -39,7 +39,7 @@ function AdminNavTab({ name, iconPath, url }: AdminNavTabProps) {
     return (
         <Link href={url}
             className={`flex gap-4 px-9 py-2 rounded-md text-[16px] hover:bg-primary
-                        ${selected ? "bg-primary dark:bg-primary text-accent dark:text-accent font-bold pointer-events-none" : "text-text dark:text-text"}`}
+                        ${selected ? "bg-primary dark:bg-primary text-accent dark:text-accent font-bold" : "text-text dark:text-text"}`}
         >
             <Image src={iconPath} alt={`${name} icon`} width={24} height={24} />
             {name}

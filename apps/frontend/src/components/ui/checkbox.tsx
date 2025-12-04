@@ -20,7 +20,7 @@ export default function Checkbox({ title, ...props }: CheckboxProps) {
                     rounded-md
                 "
                 />
-                <svg className="absolute inset-0 w-6 h-6 opacity-0 peer-checked:opacity-100 transition-opacity text-background"
+                <svg className="pointer-events-none absolute inset-0 w-6 h-6 opacity-0 peer-checked:opacity-100 transition-opacity text-background"
                     xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px"
                     fill="currentColor">
                     <path d="M400-304 240-464l56-56 104 104 264-264 56 56-320 320Z" />
