@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 export default function AdminManageTripPage() {
     const router = useRouter();
     const trpc = useTRPC();
-    const busTypesQueryOpts = trpc.busTypes.find.queryOptions({ perPage: 999 });
+    const busTypesQueryOpts = trpc.busTypes.search.queryOptions({ perPage: 999 });
     const busTypesQuery = useQuery({
         ...busTypesQueryOpts,
         staleTime: 5 * 60 * 1000,

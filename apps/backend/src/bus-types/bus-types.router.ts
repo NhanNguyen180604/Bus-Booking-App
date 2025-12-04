@@ -1,7 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { TrpcService } from "../trpc/trpc.service";
 import { UserRoleEnum } from "../entities/users.entity";
-import { BusTypeCreateOneDto, BusTypeDeleteOneDto, BusTypeFindDto, BusTypeUpdateOneDto } from "@repo/shared";
+import { BusTypeCreateOneDto, BusTypeDeleteOneDto, BusTypeFindDto, BusTypeGetOneByIdDto, BusTypeUpdateOneDto } from "@repo/shared";
 import { BusTypesService } from "./bus-types.service";
 
 @Injectable()
@@ -32,11 +32,17 @@ export class BusTypesRouter {
                 .mutation(({ input }) => {
                     return this.busTypesService.deleteOne(input);
                 }),
-            find: this.trpcService
+            getOneById: this.trpcService
+                .publicProcedure()
+                .input(BusTypeGetOneByIdDto)
+                .query(({input})=>{
+                    return this.busTypesService.getOneById(input);
+                }),
+            search: this.trpcService
                 .publicProcedure()
                 .input(BusTypeFindDto)
                 .query(({ input }) => {
-                    return this.busTypesService.find(input);
+                    return this.busTypesService.search(input);
                 }),
         });
     }

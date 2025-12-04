@@ -96,7 +96,7 @@ export default function AdminEditRoutePage() {
                 });
             } else {
                 setError("root", {
-                    message: error.message || "Registration failed. Please try again.",
+                    message: error.message || "Updating route failed Please try again.",
                 });
             }
         },
@@ -172,7 +172,6 @@ export default function AdminEditRoutePage() {
                         />
                         <FormField
                             label="Distance (km)"
-                            type="number"
                             placeholder="100"
                             required
                             {...register("distanceKm", { valueAsNumber: true })}
@@ -180,7 +179,6 @@ export default function AdminEditRoutePage() {
                         />
                         <FormField
                             label="Estimated Minutes"
-                            type="number"
                             placeholder="100"
                             required
                             {...register("estimatedMinutes", { valueAsNumber: true })}

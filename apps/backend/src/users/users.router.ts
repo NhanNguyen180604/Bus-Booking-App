@@ -1,6 +1,6 @@
 import { TrpcService } from "../trpc/trpc.service";
 import { Inject, Injectable, Logger } from "@nestjs/common";
-import { UserLoginDto, UserRegisterDto } from "@repo/shared";
+import { UserLoginDto, UserRegisterDto, UserSearchDto } from "@repo/shared";
 import { UsersService } from "./users.service";
 import { RootConfig } from "../config/config";
 import { CookieOptions, Request, Response } from "express";
@@ -85,6 +85,12 @@ export class UsersRouter {
                         provider: user.provider,
                         role: user.role.toString(),
                     }
+                }),
+            search: this.trpcService
+                .roleGuardProcedure()
+                .input(UserSearchDto)
+                .query(({ input }) => {
+                    return this.usersService.search(input);
                 }),
         });
     }

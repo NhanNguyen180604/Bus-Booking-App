@@ -70,7 +70,7 @@ export default function AdminCreateNewRoutePage() {
                 });
             } else {
                 setError("root", {
-                    message: error.message || "Registration failed. Please try again.",
+                    message: error.message || "Create new route failed. Please try again.",
                 });
             }
         },
@@ -142,7 +142,6 @@ export default function AdminCreateNewRoutePage() {
                         />
                         <FormField
                             label="Distance (km)"
-                            type="number"
                             placeholder="100"
                             required
                             {...register("distanceKm", { valueAsNumber: true })}
@@ -150,7 +149,6 @@ export default function AdminCreateNewRoutePage() {
                         />
                         <FormField
                             label="Estimated Minutes"
-                            type="number"
                             placeholder="100"
                             required
                             {...register("estimatedMinutes", { valueAsNumber: true })}
