@@ -8,7 +8,7 @@ import { AuthActions } from "../components/home/auth-actions";
 import { SearchResults } from "../components/home/search-results";
 import { useTRPC } from "../utils/trpc";
 import { useQuery, skipToken } from "@tanstack/react-query";
-import { type TripFindManyDtoType, TripFindManyDto } from "@repo/shared";
+import { type TripFindManyDtoType } from "@repo/shared";
 
 export default function Home() {
   const trpc = useTRPC();
@@ -39,16 +39,7 @@ export default function Home() {
         {searchParams && (
           <SearchResults
             results={
-              searchQuery.data
-                ? {
-                    ...searchQuery.data,
-                    trips: searchQuery.data.trips.map((trip) => ({
-                      ...trip,
-                      departureTime: new Date(trip.departureTime),
-                      arrivalTime: new Date(trip.arrivalTime),
-                    })),
-                  }
-                : null
+              searchQuery.data ? searchQuery.data : null
             }
             isLoading={searchQuery.isFetching}
             onPageChange={handlePageChange}

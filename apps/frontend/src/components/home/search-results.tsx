@@ -4,32 +4,9 @@ import { Card, CardBody } from "../ui/card";
 import { Button } from "../ui/button";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { type RouterOutputsType } from "backend";
 
-interface Trip {
-  id: string;
-  departureTime: Date;
-  arrivalTime: Date;
-  basePrice: number;
-  route: {
-    id: string;
-    origin: { id: string; name: string };
-    destination: { id: string; name: string };
-    distanceKm: number;
-    estimatedMinutes: number;
-  };
-  bus: {
-    id: string;
-    plateNumber: string;
-    rows: number;
-    cols: number;
-    floors: number;
-    type: {
-      id: string;
-      name: string;
-      priceMultiplier: number;
-    };
-  };
-}
+type Trip = RouterOutputsType["trips"]["search"]["trips"][number];
 
 interface SearchResultsProps {
   results: {
@@ -95,7 +72,7 @@ export function SearchResults({
     );
   }
 
-  const formatTime = (date: Date) => {
+  const getTime = (date: string) => {
     return new Date(date).toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
@@ -103,7 +80,7 @@ export function SearchResults({
     });
   };
 
-  const formatDate = (date: Date) => {
+  const getDate = (date: string) => {
     return new Date(date).toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
@@ -111,7 +88,7 @@ export function SearchResults({
     });
   };
 
-  const calculateDuration = (start: Date, end: Date) => {
+  const calculateDuration = (start: string, end: string) => {
     const diff = new Date(end).getTime() - new Date(start).getTime();
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
@@ -159,7 +136,7 @@ export function SearchResults({
                         {/* Departure */}
                         <div className="text-center min-w-20">
                           <div className="text-3xl font-semibold text-text">
-                            {formatTime(trip.departureTime)}
+                            {getTime(trip.departureTime)}
                           </div>
                           <div className="text-sm text-secondary-text mt-1">
                             {trip.route.origin.name}
@@ -203,7 +180,7 @@ export function SearchResults({
                         {/* Arrival */}
                         <div className="text-center min-w-20">
                           <div className="text-3xl font-semibold text-text">
-                            {formatTime(trip.arrivalTime)}
+                            {getTime(trip.arrivalTime)}
                           </div>
                           <div className="text-sm text-secondary-text mt-1">
                             {trip.route.destination.name}
@@ -271,13 +248,13 @@ export function SearchResults({
                         <div>
                           <div className="text-secondary-text mb-1">Departure Date</div>
                           <div className="font-medium text-text">
-                            {formatDate(trip.departureTime)}
+                            {getDate(trip.departureTime)}
                           </div>
                         </div>
                         <div>
                           <div className="text-secondary-text mb-1">Estimated Arrival</div>
                           <div className="font-medium text-text">
-                            {formatDate(trip.arrivalTime)}
+                            {getDate(trip.arrivalTime)}
                           </div>
                         </div>
                         <div>

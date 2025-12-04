@@ -9,43 +9,14 @@ import { FormField } from "../ui/form-field";
 import { SelectDropdown, type OptionType } from "../ui/select-dropdown";
 import { useTRPC } from "../../utils/trpc";
 import { useQuery } from "@tanstack/react-query";
-import { type TripFindManyDtoType } from "@repo/shared";
+import { TripFindManyDto, type TripFindManyDtoType } from "@repo/shared";
 
 interface BusSearchFormProps {
   onSearch: (params: Omit<TripFindManyDtoType, 'page' | 'perPage'>) => void;
   isLoading: boolean;
 }
 
-const BusSearchFormSchema = z.object({
-  origin: z.uuid().optional(),
-  destination: z.uuid().optional(),
-  departureTime: z.string().optional(),
-})
-.refine(
-  (data) => data.origin,
-  {
-    message: "Origin is required",
-    path: ["origin"],
-  }
-)
-.refine(
-  (data) => data.destination,
-  {
-    message: "Destination is required",
-    path: ["destination"],
-  }
-)
-.refine(
-  (data) => data.origin !== data.destination,
-  {
-    message: "Origin and destination must be different",
-    path: ["destination"],
-  }
-);
-
-type BusSearchFormType = {
-  origin?: string;
-  destination?: string;
+type BusSearchFormType = Omit<TripFindManyDtoType, 'departureTime' | 'page' | 'perPage'> & {
   departureTime?: string;
 };
 
@@ -57,16 +28,14 @@ export function BusSearchForm({ onSearch, isLoading }: BusSearchFormProps) {
     register,
     handleSubmit,
     setValue,
-    watch,
     control,
     getValues,
     formState: { errors },
   } = useForm<BusSearchFormType>({
-    resolver: zodResolver(BusSearchFormSchema),
+    resolver: zodResolver(TripFindManyDto.omit({ page: true, perPage: true, departureTime: true }).extend({
+      departureTime: z.string().optional(),
+    })),
   });
-
-  const origin = watch("origin");
-  const destination = watch("destination");
 
   const onSubmit = (data: BusSearchFormType) => {
     onSearch({
