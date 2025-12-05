@@ -131,7 +131,7 @@ export class TripsService {
                 ),
             }
         }
-        if (dto.minPrice && dto.maxPrice) {
+        if (dto.minPrice !== undefined && dto.maxPrice !== undefined) {
             where = {
                 ...where,
                 basePrice: Between(dto.minPrice, dto.maxPrice),

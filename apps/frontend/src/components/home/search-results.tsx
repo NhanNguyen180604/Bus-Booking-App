@@ -6,16 +6,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { type RouterOutputsType } from "backend";
 
-type Trip = RouterOutputsType["trips"]["search"]["trips"][number];
+type FindTripResults = RouterOutputsType["trips"]["search"];
+type Bus = FindTripResults["trips"][0]["bus"];
 
 interface SearchResultsProps {
-  results: {
-    trips: Trip[];
-    page: number;
-    perPage: number;
-    total: number;
-    totalPage: number;
-  } | null;
+  results: FindTripResults | null;
   isLoading: boolean;
   onPageChange: (page: number) => void;
 }
@@ -95,7 +90,7 @@ export function SearchResults({
     return `${hours}h ${minutes}m`;
   };
 
-  const calculateSeats = (bus: Trip["bus"]) => {
+  const calculateSeats = (bus: Bus) => {
     return bus.rows * bus.cols * bus.floors;
   };
 

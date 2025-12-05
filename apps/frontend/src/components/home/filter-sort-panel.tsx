@@ -3,53 +3,41 @@
 import { Card, CardBody } from "../ui/card";
 import { Button } from "../ui/button";
 import { useState, useEffect } from "react";
-import { type RouterOutputsType } from "backend";
+import { TripFindManyDtoType } from "@repo/shared";
+import { useQuery } from "@tanstack/react-query";
+import { useTRPC } from "@/src/utils/trpc";
 
-type BusType = RouterOutputsType["busTypes"]["find"]["data"][number];
+type FilterSortOptionsType = Omit<TripFindManyDtoType, 'page' | 'perPage'>;
 
 interface FilterSortPanelProps {
-  busTypes: BusType[];
-  selectedBusTypes: string[];
-  minPrice?: number;
-  maxPrice?: number;
-  sortPrice?: "ASC" | "DESC";
-  sortDepartureTime?: "ASC" | "DESC";
+  options: FilterSortOptionsType;
   onFilterChange: (filters: {
-    busTypes: string[];
-    minPrice?: number;
-    maxPrice?: number;
-    sortPrice?: "ASC" | "DESC";
-    sortDepartureTime?: "ASC" | "DESC";
+    options: FilterSortOptionsType;
   }) => void;
   onReset: () => void;
 }
 
 export function FilterSortPanel({
-  busTypes,
-  selectedBusTypes,
-  minPrice,
-  maxPrice,
-  sortPrice,
-  sortDepartureTime,
+  options,
   onFilterChange,
   onReset,
 }: FilterSortPanelProps) {
-  const [localBusTypes, setLocalBusTypes] = useState<string[]>(selectedBusTypes);
-  const [localMinPrice, setLocalMinPrice] = useState<number>(minPrice || 0);
-  const [localMaxPrice, setLocalMaxPrice] = useState<number>(maxPrice || 500);
-  const [localSortPrice, setLocalSortPrice] = useState<"ASC" | "DESC" | undefined>(sortPrice);
-  const [localSortDepartureTime, setLocalSortDepartureTime] = useState<"ASC" | "DESC" | undefined>(sortDepartureTime);
-
   const PRICE_MIN = 0;
-  const PRICE_MAX = 500;
+  const PRICE_MAX = 2000;
+
+  const [localBusTypes, setLocalBusTypes] = useState<string[]>(options.busType || []);
+  const [localMinPrice, setLocalMinPrice] = useState<number>(options.minPrice || 0);
+  const [localMaxPrice, setLocalMaxPrice] = useState<number>(options.maxPrice || PRICE_MAX);
+  const [localSortPrice, setLocalSortPrice] = useState<"ASC" | "DESC" | undefined>(options.sortPrice);
+  const [localSortDepartureTime, setLocalSortDepartureTime] = useState<"ASC" | "DESC" | undefined>(options.sortDepartureTime);
 
   useEffect(() => {
-    setLocalBusTypes(selectedBusTypes);
-    setLocalMinPrice(minPrice || 0);
-    setLocalMaxPrice(maxPrice || 500);
-    setLocalSortPrice(sortPrice);
-    setLocalSortDepartureTime(sortDepartureTime);
-  }, [selectedBusTypes, minPrice, maxPrice, sortPrice, sortDepartureTime]);
+    setLocalBusTypes(options.busType || []);
+    setLocalMinPrice(options.minPrice || 0);
+    setLocalMaxPrice(options.maxPrice || PRICE_MAX);
+    setLocalSortPrice(options.sortPrice);
+    setLocalSortDepartureTime(options.sortDepartureTime);
+  }, [options]);
 
   const handleBusTypeToggle = (busTypeId: string) => {
     const newBusTypes = localBusTypes.includes(busTypeId)
@@ -58,20 +46,46 @@ export function FilterSortPanel({
     setLocalBusTypes(newBusTypes);
   };
 
+  const handleDepartureTimeSort = () => {
+    if (localSortDepartureTime === undefined) {
+      setLocalSortDepartureTime("ASC");
+      setLocalSortPrice(undefined);
+    } else if (localSortDepartureTime === "ASC") {
+      setLocalSortDepartureTime("DESC");
+      setLocalSortPrice(undefined);
+    } else {
+      setLocalSortDepartureTime(undefined);
+    }
+  };
+
+  const handlePriceSort = () => {
+    if (localSortPrice === undefined) {
+      setLocalSortPrice("ASC");
+      setLocalSortDepartureTime(undefined);
+    } else if (localSortPrice === "ASC") {
+      setLocalSortPrice("DESC");
+      setLocalSortDepartureTime(undefined);
+    } else {
+      setLocalSortPrice(undefined);
+    }
+  };
+
   const handleApply = () => {
     onFilterChange({
-      busTypes: localBusTypes,
-      minPrice: localMinPrice > 0 ? localMinPrice : undefined,
-      maxPrice: localMaxPrice < PRICE_MAX ? localMaxPrice : undefined,
-      sortPrice: localSortPrice,
-      sortDepartureTime: localSortDepartureTime,
+      options:{
+        busType: localBusTypes,
+        minPrice: localMinPrice,
+        maxPrice: localMaxPrice,
+        sortPrice: localSortPrice,
+        sortDepartureTime: localSortDepartureTime,
+      }   
     });
   };
 
   const handleReset = () => {
     setLocalBusTypes([]);
     setLocalMinPrice(0);
-    setLocalMaxPrice(500);
+    setLocalMaxPrice(PRICE_MAX);
     setLocalSortPrice(undefined);
     setLocalSortDepartureTime(undefined);
     onReset();
@@ -83,6 +97,15 @@ export function FilterSortPanel({
     localMaxPrice < PRICE_MAX ||
     localSortPrice !== undefined ||
     localSortDepartureTime !== undefined;
+
+  
+  const trpc = useTRPC();
+  const busTypesQuery = useQuery(
+    trpc.busTypes.find.queryOptions({
+      page: 1,
+      perPage: 100,
+    })
+  );
 
   return (
     <Card className="w-full h-fit sticky top-4">
@@ -106,7 +129,7 @@ export function FilterSortPanel({
           <div>
             <h4 className="text-sm font-medium text-text mb-3">Bus Type</h4>
             <div className="space-y-2">
-              {busTypes.map((busType) => (
+              {busTypesQuery.data?.data.map((busType) => (
                 <label
                   key={busType.id}
                   className="flex items-center gap-2 cursor-pointer hover:bg-secondary-hover p-2 rounded-md transition-colors"
@@ -182,123 +205,121 @@ export function FilterSortPanel({
           {/* Sort Options */}
           <div>
             <h4 className="text-sm font-medium text-text mb-3">Sort By</h4>
-            <div className="space-y-3">
+            <div className="space-y-3 flex gap-6">
               {/* Sort by Departure Time */}
               <div>
-                <label className="text-xs text-secondary-text mb-2 block">Departure Time</label>
-                <div className="flex gap-2">
-                  <Button
-                    variant={localSortDepartureTime === "ASC" ? "accent" : "secondary"}
-                    size="sm"
-                    fullWidth
-                    onClick={() => setLocalSortDepartureTime(localSortDepartureTime === "ASC" ? undefined : "ASC")}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="mr-1"
-                    >
-                      <path d="m3 8 4-4 4 4" />
-                      <path d="M7 4v16" />
-                      <path d="M11 12h10" />
-                      <path d="M11 16h7" />
-                      <path d="M11 20h4" />
-                    </svg>
-                    Earliest
-                  </Button>
-                  <Button
-                    variant={localSortDepartureTime === "DESC" ? "accent" : "secondary"}
-                    size="sm"
-                    fullWidth
-                    onClick={() => setLocalSortDepartureTime(localSortDepartureTime === "DESC" ? undefined : "DESC")}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="mr-1"
-                    >
-                      <path d="m3 16 4 4 4-4" />
-                      <path d="M7 20V4" />
-                      <path d="M11 4h10" />
-                      <path d="M11 8h7" />
-                      <path d="M11 12h4" />
-                    </svg>
-                    Latest
-                  </Button>
-                </div>
+                <label className="text-sm text-text mb-2 block">Departure Time</label>
+                <Button
+                  variant={localSortDepartureTime !== undefined ? "accent" : "secondary"}
+                  size="sm"
+                  onClick={handleDepartureTimeSort}
+                >
+                  {localSortDepartureTime === "ASC" ? (
+                    <>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="mr-1"
+                      >
+                        <path d="m3 8 4-4 4 4" />
+                        <path d="M7 4v16" />
+                        <path d="M11 12h10" />
+                        <path d="M11 16h7" />
+                        <path d="M11 20h4" />
+                      </svg>
+                      Earliest First
+                    </>
+                  ) : localSortDepartureTime === "DESC" ? (
+                    <>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="mr-1"
+                      >
+                        <path d="m3 16 4 4 4-4" />
+                        <path d="M7 20V4" />
+                        <path d="M11 4h10" />
+                        <path d="M11 8h7" />
+                        <path d="M11 12h4" />
+                      </svg>
+                      Latest First
+                    </>
+                  ) : (
+                    "No sort"
+                  )}
+                </Button>
               </div>
 
               {/* Sort by Price */}
               <div>
-                <label className="text-xs text-secondary-text mb-2 block">Price</label>
-                <div className="flex gap-2">
-                  <Button
-                    variant={localSortPrice === "ASC" ? "accent" : "secondary"}
-                    size="sm"
-                    fullWidth
-                    onClick={() => setLocalSortPrice(localSortPrice === "ASC" ? undefined : "ASC")}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="mr-1"
-                    >
-                      <path d="m3 8 4-4 4 4" />
-                      <path d="M7 4v16" />
-                      <path d="M11 12h10" />
-                      <path d="M11 16h7" />
-                      <path d="M11 20h4" />
-                    </svg>
-                    Low to High
-                  </Button>
-                  <Button
-                    variant={localSortPrice === "DESC" ? "accent" : "secondary"}
-                    size="sm"
-                    fullWidth
-                    onClick={() => setLocalSortPrice(localSortPrice === "DESC" ? undefined : "DESC")}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="mr-1"
-                    >
-                      <path d="m3 16 4 4 4-4" />
-                      <path d="M7 20V4" />
-                      <path d="M11 4h10" />
-                      <path d="M11 8h7" />
-                      <path d="M11 12h4" />
-                    </svg>
-                    High to Low
-                  </Button>
-                </div>
+                <label className="text-sm text-text mb-2 block">Price</label>
+                <Button
+                  variant={localSortPrice !== undefined ? "accent" : "secondary"}
+                  size="sm"
+                  onClick={handlePriceSort}
+                >
+                  {localSortPrice === "ASC" ? (
+                    <>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="mr-1"
+                      >
+                        <path d="m3 8 4-4 4 4" />
+                        <path d="M7 4v16" />
+                        <path d="M11 12h10" />
+                        <path d="M11 16h7" />
+                        <path d="M11 20h4" />
+                      </svg>
+                      Low to High
+                    </>
+                  ) : localSortPrice === "DESC" ? (
+                    <>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="mr-1"
+                      >
+                        <path d="m3 16 4 4 4-4" />
+                        <path d="M7 20V4" />
+                        <path d="M11 4h10" />
+                        <path d="M11 8h7" />
+                        <path d="M11 12h4" />
+                      </svg>
+                      High to Low
+                    </>
+                  ) : (
+                    "No sort"
+                  )}
+                </Button>
               </div>
             </div>
           </div>
