@@ -41,7 +41,7 @@ const formFieldStyles = tv({
 
 export interface FormFieldProps
   extends Omit<InputHTMLAttributes<HTMLInputElement>, "size">,
-    VariantProps<typeof formFieldStyles> {
+  VariantProps<typeof formFieldStyles> {
   label?: string;
   helperText?: string;
   error?: string;

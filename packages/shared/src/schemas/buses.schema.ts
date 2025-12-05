@@ -1,4 +1,5 @@
 import z from "zod";
+import { PaginationDto, sortOptions } from "./common";
 
 export const BusCreateOneDto = z.object({
     driverId: z.uuid({ error: "Driver ID must be an UUID string" }).optional(),
@@ -29,3 +30,23 @@ export const BusGetSeatsByBusIdDto = z.object({
     id: z.uuid({ error: "Bus ID must be an UUID string" }),
 });
 export type BusGetSeatsByBusIdDtoType = z.infer<typeof BusGetSeatsByBusIdDto>;
+
+export const BusGetOneByIdDto = z.object({
+    id: z.uuid({ error: "ID must be an UUID string" }),
+});
+export type BusGetOneByIdDtoType = z.infer<typeof BusGetOneByIdDto>;
+
+export const BusSearchDto = z.object({
+    driverNotNull: z.boolean().optional(),
+    driverId: z.uuid({ error: "Driver ID must be an UUID string" }).optional(),
+    driverNameSort: sortOptions,
+    plateNumberQuery: z.string().nonempty({ error: "Plate Number must not be an empty string" }).optional(),
+    plateNumberSort: sortOptions,
+    typeId: z.uuid({ error: "Bus Type ID must be an UUID string" }).optional(),
+}).extend(PaginationDto.shape);
+export type BusSearchDtoType = z.infer<typeof BusSearchDto>;
+
+export const BusDeleteOneDto = z.object({
+    id: z.uuid({ error: "ID must be an UUID string" }),
+});
+export type BusDeleteOneDtoType = z.infer<typeof BusDeleteOneDto>;

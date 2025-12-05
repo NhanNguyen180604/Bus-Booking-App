@@ -39,7 +39,7 @@ export function Table<T>({
                 {data.map(item => (
                     <tr key={rowKey(item)}>
                         {columns.map((col, i) => (
-                            <td key={i} className={col.className ?? "py-2 text-center text-text dark:text-text"}>
+                            <td key={i} className={`${col.className ?? "py-2 text-center text-text dark:text-text"} border-b border-border`}>
                                 {col.render(item)}
                             </td>
                         ))}

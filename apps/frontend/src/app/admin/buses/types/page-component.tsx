@@ -13,102 +13,92 @@ import { FormField } from "@/src/components/ui/form-field";
 import { type RouterOutputsType } from 'backend';
 import Modal from "@/src/components/ui/modal";
 
-type Route = RouterOutputsType['routes']['findOneById'];
+type BusType = RouterOutputsType['busTypes']['getOneById'];
 
-export default function AdminManageRoutePage() {
+export default function AdminManageBusTypePage() {
     const router = useRouter();
     const trpc = useTRPC();
     const queryClient = useQueryClient();
 
     // zodResolver for react hook form doesn't work for some reasons
     // it keeps saying mistmatching
-    const [sortOriginName, setSortOriginName] = useState<SortOptionsType>(undefined);
-    const [sortDestinationName, setSortDestinationName] = useState<SortOptionsType>(undefined);
+    const [sortBusTypeName, setSortBusTypeName] = useState<SortOptionsType>(undefined);
+    const [sortBusTypePriceMulti, setSortBusTypePriceMulti] = useState<SortOptionsType>(undefined);
 
-    // searching route
+    // searching bus type
     // clunky as hell
-    const [originInput, setOriginInput] = useState("");
-    const [destinationInput, setDestinationInput] = useState("");
-    const [originQuery, setOriginQuery] = useState<string | undefined>(undefined);
-    const [destinationQuery, setDestinationQuery] = useState<string | undefined>(undefined);
+    const [busTypeNameQueryInput, setBusTypeNameQueryInput] = useState("");
+    const [busTypeNameQuery, setBusTypeNameQuery] = useState<string | undefined>(undefined);
 
     const perPage = 20;
-    const [page, setPage] = useState(1);
-    const [totalPage, setTotalPage] = useState(1);
-    const searchRoutesOpts = trpc.routes.search.queryOptions({
-        page,
+    const [busTypePage, setBusTypePage] = useState(1);
+    const [busTypeTotalPage, setBusTypeTotalPage] = useState(1);
+    const searchBusTypeOpts = trpc.busTypes.search.queryOptions({
+        page: busTypePage,
         perPage,
-        sortOriginName,
-        sortDestinationName,
-        originNameQuery: originQuery,
-        destinationNameQuery: destinationQuery,
+        sortName: sortBusTypeName,
+        sortPriceMultiplier: sortBusTypePriceMulti,
+        nameQuery: busTypeNameQuery,
     });
-    const searchRoutesQuery = useQuery({
-        ...searchRoutesOpts,
+    const searchBusTypeQuery = useQuery({
+        ...searchBusTypeOpts,
         staleTime: 60 * 60 * 1000,
     });
 
     useEffect(() => {
-        if (searchRoutesQuery.isSuccess) {
-            if (searchRoutesQuery.data.totalPage !== totalPage) {
-                setTotalPage(searchRoutesQuery.data.totalPage);
-                setPage(1);
+        if (searchBusTypeQuery.isSuccess) {
+            if (searchBusTypeQuery.data.totalPage !== busTypeTotalPage) {
+                setBusTypeTotalPage(searchBusTypeQuery.data.totalPage);
+                setBusTypePage(1);
             }
         }
-    }, [searchRoutesQuery.isFetching]);
+    }, [searchBusTypeQuery.isFetching]);
 
-    // deleting route
+    // deleting bus type
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [deletingRoute, setDeletingRoute] = useState<Route>(null);
-    const [deleteRouteError, setDeleteRouteError] = useState<string>();
-    const deleteRouteOpts = trpc.routes.deleteOne.mutationOptions();
-    const deleteRouteMutation = useMutation({
-        ...deleteRouteOpts,
+    const [deletingBusType, setDeletingBusType] = useState<BusType | null>(null);
+    const [deleteBusTypeError, setDeleteBusTypeError] = useState<string>();
+    const deleteBusTypeOpts = trpc.busTypes.deleteOne.mutationOptions();
+    const deleteBusTypeMutation = useMutation({
+        ...deleteBusTypeOpts,
         onError(error) {
-            setDeleteRouteError(error.message);
+            setDeleteBusTypeError(error.message);
         },
         onSuccess(_, variables) {
             onDeleteModalClose();
-            queryClient.removeQueries({ queryKey: trpc.routes.findOneById.queryKey({ id: variables.id }) });
-            queryClient.invalidateQueries({ queryKey: trpc.routes.search.queryKey() });
+            queryClient.removeQueries({ queryKey: trpc.busTypes.getOneById.queryKey({ id: variables.id }) });
+            queryClient.invalidateQueries({ queryKey: trpc.busTypes.search.queryKey() });
         },
     });
 
     const onDeleteModalClose = () => {
         setShowDeleteModal(false);
-        setDeletingRoute(null);
-        setDeleteRouteError(undefined);
+        setDeletingBusType(null);
+        setDeleteBusTypeError(undefined);
     };
 
     return (
         <div className="flex flex-col">
-            <h1 className="text-[2rem] text-text dark:text-text font-bold mb-8">Manage Routes</h1>
-            <Button variant="accent" className="self-start mb-8" onClick={() => router.push('/admin/routes/new')}>CREATE NEW ROUTE</Button>
+            <h1 className="text-[2rem] text-text dark:text-text font-bold mb-8">Manage Bus Types</h1>
+            <div className="flex gap-4">
+                <Button variant="accent" className="self-start mb-8" onClick={() => router.push('/admin/buses/types/new')}>CREATE NEW BUS TYPE</Button>
+            </div>
 
             {/* Sort and Filter */}
             <form>
                 <Card className="flex flex-col mb-8">
-                    <CardHeader className="text-text dark:text-text text-[20px] font-bold">QUERY</CardHeader>
+                    <CardHeader className="text-text dark:text-text text-[20px] font-bold">QUERY AND SORT BUS TYPES</CardHeader>
+
                     <CardBody className="flex px-6 border-b border-border dark:border-border pb-4 gap-8">
                         <div className="flex-1">
-                            <FormField label="Origin Name Query"
-                                placeholder="Ho Chi Minh"
-                                value={originInput}
-                                onChange={(e) => setOriginInput(e.target.value)}
+                            <FormField label="Bus Type Name Query"
+                                placeholder="Sleeper"
+                                value={busTypeNameQueryInput}
+                                onChange={(e) => setBusTypeNameQueryInput(e.target.value)}
                             />
                         </div>
                         <div className="flex-1">
-                            <FormField label="Destination Name Query"
-                                placeholder="Da Lat"
-                                value={destinationInput}
-                                onChange={(e) => setDestinationInput(e.target.value)}
-                            />
-                        </div>
-                    </CardBody>
-                    <CardHeader className="text-text dark:text-text text-[20px] font-bold">SORT</CardHeader>
-                    <CardBody className="flex px-6 border-b border-border dark:border-border pb-4 gap-8">
-                        <div className="flex-1">
-                            <SelectDropdown label="Origin Name" id="sort-origin-name" name="sort-origin-name" isClearable
+                            <SelectDropdown label="Sort Bus Type Name" id="sort-bus-type-name" name="sort-bus-type-name" isClearable
                                 menuPortalTarget={document.body}
                                 menuPosition="fixed"
                                 options={[
@@ -117,12 +107,12 @@ export default function AdminManageRoutePage() {
                                 ]}
                                 onChange={(newValue, _) => {
                                     const newVal: OptionType<string> = newValue as OptionType<string>;
-                                    setSortOriginName(newVal ? newVal.value as SortOptionsType : undefined);
+                                    setSortBusTypeName(newVal ? newVal.value as SortOptionsType : undefined);
                                 }}
                             />
                         </div>
                         <div className="flex-1">
-                            <SelectDropdown label="Destination Name" id="sort-destination-name" name="sort-destination-name" isClearable
+                            <SelectDropdown label="Sort Bus Type Price Multiplier" id="sort-bus-type-price-multi" name="sort-bus-type-price-multi" isClearable
                                 menuPortalTarget={document.body}
                                 menuPosition="fixed"
                                 options={[
@@ -131,11 +121,12 @@ export default function AdminManageRoutePage() {
                                 ]}
                                 onChange={(newValue, _) => {
                                     const newVal: OptionType<string> = newValue as OptionType<string>;
-                                    setSortDestinationName(newVal ? newVal.value as SortOptionsType : undefined);
+                                    setSortBusTypePriceMulti(newVal ? newVal.value as SortOptionsType : undefined);
                                 }}
                             />
                         </div>
                     </CardBody>
+
                     <Button
                         type="submit"
                         variant="accent"
@@ -143,8 +134,8 @@ export default function AdminManageRoutePage() {
                         className="m-6"
                         onClick={(e) => {
                             e.preventDefault();
-                            setOriginQuery(originInput || undefined);
-                            setDestinationQuery(destinationInput || undefined);
+                            setBusTypeNameQuery(busTypeNameQueryInput || undefined);
+                            searchBusTypeQuery.refetch();
                         }}
                     >
                         <svg
@@ -162,47 +153,41 @@ export default function AdminManageRoutePage() {
                             <circle cx="11" cy="11" r="8" />
                             <path d="m21 21-4.35-4.35" />
                         </svg>
-                        Search Routes
+                        Search Bus Types
                     </Button>
                 </Card>
             </form>
 
             {/* table here baby */}
-            {searchRoutesQuery.isFetching ? (
+            {searchBusTypeQuery.isFetching ? (
                 <div className="text-text dark:text-text flex justify-center font-bold">Loading...</div>
             ) : (
                 <>
-                    {searchRoutesQuery.isSuccess && searchRoutesQuery.data ? (
+                    {searchBusTypeQuery.isSuccess && searchBusTypeQuery.data ? (
                         <Card className="flex overflow-hidden">
                             <Table
-                                data={searchRoutesQuery.data.data}
-                                rowKey={(route) => `route-${route.id}`}
+                                data={searchBusTypeQuery.data.data}
+                                rowKey={(busType) => `bus-type-${busType.id}`}
                                 columns={[
                                     {
-                                        header: "Origin",
-                                        render: route => route.origin.name,
-                                    },
-                                    {
-                                        header: "Destination",
-                                        render: route => route.destination.name,
-                                    },
-                                    {
-                                        header: "Distance",
-                                        render: route => route.distanceKm,
-                                    },
-                                    {
-                                        header: "Estimated Minutes",
-                                        render: route => route.estimatedMinutes,
+                                        header: "Name",
+                                        render: busType => busType.name,
                                     },
                                     {
                                         header: "Actions",
-                                        render: route => (
+                                        render: busType => (
                                             <>
-                                                <Button className="flex-1" variant="accent" onClick={() => { router.push(`/admin/routes/edit/${route.id}`) }}>Edit</Button>
-                                                <Button className="flex-1" variant="danger"
-                                                    onClick={(e) => {
+                                                <Button className="flex-1 max-w-32"
+                                                    variant="accent"
+                                                    onClick={() => { router.push(`/admin/buses/types/edit/${busType.id}`) }}
+                                                >
+                                                    Edit
+                                                </Button>
+                                                <Button className="flex-1 max-w-32"
+                                                    variant="danger"
+                                                    onClick={(_) => {
                                                         setShowDeleteModal(true);
-                                                        setDeletingRoute(route);
+                                                        setDeletingBusType(busType);
                                                     }}
                                                 >
                                                     Delete
@@ -223,10 +208,10 @@ export default function AdminManageRoutePage() {
                     )}
                 </>
             )}
-            {!searchRoutesQuery.isError && (
+            {!searchBusTypeQuery.isError && (
                 <div className="mt-8 flex justify-center">
-                    <Pagination currentPage={page} totalPage={totalPage} loadPageFn={(newPage) => {
-                        setPage(newPage);
+                    <Pagination currentPage={busTypePage} totalPage={busTypeTotalPage} loadPageFn={(newPage) => {
+                        setBusTypePage(newPage);
                     }} />
                 </div>
             )}
@@ -235,29 +220,27 @@ export default function AdminManageRoutePage() {
                 <Card onClick={(e) => e.stopPropagation()} className="max-w-lg min-w-lg">
                     <CardHeader>
                         <h1 className="text-text dark:text-text font-bold text-xl">
-                            Are you sure you want to delete this route?
+                            Are you sure you want to delete this bus type?
                         </h1>
-                        {deleteRouteError && (
-                            <div className="text-danger dark:text-danger font-bold mt-4">{deleteRouteError}</div>
+                        {deleteBusTypeError && (
+                            <div className="text-danger dark:text-danger font-bold mt-4">{deleteBusTypeError}</div>
                         )}
                     </CardHeader>
                     <CardBody className="text-text dark:text-text">
-                        <div>ID: {deletingRoute?.id}</div>
-                        <div>Origin: {deletingRoute?.origin.name}</div>
-                        <div>Destination: {deletingRoute?.destination.name}</div>
-                        <div>Distance (km): {deletingRoute?.distanceKm}</div>
-                        <div>Estimated minutes: {deletingRoute?.estimatedMinutes}</div>
+                        <div>ID: {deletingBusType?.id}</div>
+                        <div>Name: {deletingBusType?.name}</div>
+                        <div>Price Multiplier: {deletingBusType?.priceMultiplier}</div>
                     </CardBody>
                     <CardFooter className="flex justify-between gap-6">
                         <Button variant="danger"
                             className="flex-1"
-                            disabled={deleteRouteMutation.isPending}
+                            disabled={deleteBusTypeMutation.isPending}
                             onClick={() => {
-                                if (deletingRoute) {
-                                    deleteRouteMutation.mutate({ id: deletingRoute.id });
+                                if (deletingBusType) {
+                                    deleteBusTypeMutation.mutate({ id: deletingBusType.id });
                                 }
                             }}>
-                            {deleteRouteMutation.isPending ? "Deleting..." : "Confirm"}
+                            {deleteBusTypeMutation.isPending ? "Deleting..." : "Confirm"}
                         </Button>
                         <Button variant="primary"
                             className="flex-1"

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { RouteCreateOneDtoType, RouteDeleteOneDtoType, RouteSearchDtoType, RouteUpdateOneDtoType } from '@repo/shared';
+import { RouteCreateOneDtoType, RouteDeleteOneDtoType, RouteFindOneByIdDtoType, RouteSearchDtoType, RouteUpdateOneDtoType } from '@repo/shared';
 import { TRPCError } from '@trpc/server';
 import { Route } from '../entities/route.entity';
 import { Station } from '../entities/station.entity';
@@ -51,6 +51,7 @@ export class RoutesService {
             where: { id: dto.id },
             relations: { origin: true, destination: true },
         });
+
         if (!route) {
             throw new TRPCError({
                 code: "NOT_FOUND",
@@ -58,6 +59,8 @@ export class RoutesService {
                 cause: "Not found route ID",
             });
         }
+
+        const originalRoute = { ...route };
 
         if ((dto.originId && dto.originId === route.destination.id) || (dto.destinationId && dto.destinationId === route.origin.id)) {
             throw new TRPCError({
@@ -87,9 +90,25 @@ export class RoutesService {
                     code: "NOT_FOUND",
                     message: `Destination station with ID: ${dto.destinationId} is not found`,
                     cause: "Not found destination station ID",
-                })
+                });
             }
             route.destination = destinationStation;
+        }
+
+        const duplicateRoute = await this.findOneHelper({
+            where: {
+                origin: route.origin,
+                destination: route.destination,
+            },
+            relations: { origin: true, destination: true },
+        });
+
+        if (duplicateRoute && (originalRoute.origin.id !== duplicateRoute.origin.id || originalRoute.destination.id !== duplicateRoute.destination.id)) {
+            throw new TRPCError({
+                code: "CONFLICT",
+                message: `Duplicate route the same origin and destination found`,
+                cause: "Duplicate route origin and destination",
+            });
         }
 
         if (dto.distanceKm) {
@@ -144,6 +163,13 @@ export class RoutesService {
 
     async deleteOne(dto: RouteDeleteOneDtoType) {
         await this.routeRepo.delete({ id: dto.id });
+    }
+
+    findOneByid(dto: RouteFindOneByIdDtoType) {
+        return this.findOneHelper({
+            where: { id: dto.id },
+            relations: { origin: true, destination: true },
+        });
     }
 
     findOneHelper(options: FindOneOptions<Route>) {

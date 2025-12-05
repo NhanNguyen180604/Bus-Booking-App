@@ -7,3 +7,12 @@ export const PaginationDto = z.object({
 
 export const sortOptions = z.enum(["asc", "desc"]).optional();
 export type SortOptionsType = z.infer<typeof sortOptions>;
+
+export const DepartureTimeRange = z.enum([
+    "early",
+    "midday",
+    "late",
+    "midnight",
+]);
+
+export type DepartureTimeRangeType = z.infer<typeof DepartureTimeRange>;

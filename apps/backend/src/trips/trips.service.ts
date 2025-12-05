@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { TripCreateOneDtoType, TripDeleteOneDtoType, TripFindManyDtoType, TripUpdateOneDtoType } from '@repo/shared';
+import { TripAdminSearchDtoType, TripCreateOneDtoType, TripDeleteOneDtoType, TripFindManyDtoType, TripUpdateOneDtoType } from '@repo/shared';
 import { TRPCError } from '@trpc/server';
 import { Trip } from '../entities/trip.entity';
-import { Between, FindOneOptions, FindOptionsOrder, FindOptionsWhere, In, Repository } from 'typeorm';
+import { Between, FindManyOptions, FindOneOptions, FindOptionsOrder, FindOptionsWhere, ILike, In, LessThan, MoreThan, Not, Repository } from 'typeorm';
+import { Route } from 'src/entities/route.entity';
 import { RoutesService } from 'src/routes/routes.service';
 import { BusesService } from 'src/buses/buses.service';
 
@@ -42,6 +43,21 @@ export class TripsService {
             });
         }
 
+        // find trips with this bus in overlapping time
+        const overlappingTimeTripCount = await this.tripRepo.count({
+            where: {
+                bus,
+                departureTime: LessThan(dto.arrivalTime),
+                arrivalTime: MoreThan(dto.departureTime),
+            }
+        });
+        if (overlappingTimeTripCount) {
+            throw new TRPCError({
+                code: "CONFLICT",
+                message: "Overlapping bus schedule",
+            });
+        }
+
         const newTrip = this.tripRepo.create({
             ...dto,
             route: route,
@@ -55,7 +71,7 @@ export class TripsService {
     async updateOne(dto: TripUpdateOneDtoType) {
         const trip = await this.findOneHelper({
             where: { id: dto.id },
-            relations: { route: true, bus: true },
+            relations: { route: { origin: true, destination: true }, bus: { type: true, driver: true } },
         });
         if (!trip) {
             throw new TRPCError({
@@ -103,6 +119,26 @@ export class TripsService {
             }
             trip.bus = bus;
         }
+        if (dto.basePrice) {
+            trip.basePrice = dto.basePrice;
+        }
+
+        // find trips with this bus in overlapping time
+        const overlappingTimeTripCount = await this.tripRepo.count({
+            where: {
+                id: Not(trip.id),
+                bus: trip.bus,
+                departureTime: LessThan(trip.arrivalTime),
+                arrivalTime: MoreThan(trip.departureTime),
+            }
+        });
+        if (overlappingTimeTripCount) {
+            throw new TRPCError({
+                code: "CONFLICT",
+                message: "Overlapping bus schedule",
+            });
+        }
+
         return await this.tripRepo.save(trip);
     }
 
@@ -115,11 +151,11 @@ export class TripsService {
         let order: FindOptionsOrder<Trip> = {};
 
         if (dto.origin && dto.destination) {
-            where = { 
-                route: { 
-                    origin: { id: dto.origin }, 
-                    destination: { id: dto.destination } 
-                } 
+            where = {
+                route: {
+                    origin: { id: dto.origin },
+                    destination: { id: dto.destination }
+                }
             };
         }
         if (dto.departureTime) {
@@ -158,14 +194,126 @@ export class TripsService {
             take: dto.perPage,
         });
 
+        const totalPage = Math.ceil(count / dto.perPage);
+
         return {
             trips,
-            page: dto.page,
+            page: Math.min(dto.page, totalPage),
             perPage: Math.min(dto.perPage, count),
             total: count,
-            totalPage: Math.ceil(count / dto.perPage),
+            totalPage,
         }
     }
+
+    async adminSearch(dto: TripAdminSearchDtoType) {
+        const {
+            page,
+            perPage,
+            originId,
+            destinationId,
+            busTypeIds,
+            minPrice,
+            maxPrice,
+            depatureTimeRange,
+            sortPrice,
+            sortDepartureTime,
+        } = dto;
+
+        const qb = this.tripRepo
+            .createQueryBuilder("trip")
+            .leftJoin("trip.route", "route")
+            .leftJoin("route.origin", "originStation")
+            .leftJoin("route.destination", "destinationStation")
+            .leftJoin("trip.bus", "bus")
+            .leftJoin("bus.driver", "driver")
+            .leftJoin("bus.type", "busType")
+            .select([
+                "trip",
+                "route",
+                "originStation",
+                "destinationStation",
+                "bus",
+                "driver",
+                "busType",
+            ])
+            .skip((page - 1) * perPage)
+            .take(perPage);
+
+        // filters
+        if (originId) {
+            qb.andWhere("originStation.id = :origin", {
+                origin: originId,
+            });
+        }
+        if (destinationId) {
+            qb.andWhere("destinationStation.id = :destination", {
+                destination: destinationId,
+            });
+        }
+
+        if (busTypeIds?.length) {
+            qb.andWhere("busType.id IN (:...busTypeIds)", { busTypeIds });
+        }
+
+        if (minPrice !== undefined) {
+            qb.andWhere("trip.basePrice >= :minPrice", { minPrice });
+        }
+        if (maxPrice !== undefined) {
+            qb.andWhere("trip.basePrice <= :maxPrice", { maxPrice });
+        }
+
+        // filter departure time range
+        if (depatureTimeRange?.length) {
+            const minuteExpr = `
+                EXTRACT(HOUR FROM (trip.departureTime AT TIME ZONE 'Asia/Ho_Chi_Minh')) * 60 +
+                EXTRACT(MINUTE FROM (trip.departureTime AT TIME ZONE 'Asia/Ho_Chi_Minh'))
+            `;
+
+            const ranges: Record<string, [number, number]> = {
+                early: [6 * 60, 11 * 60],
+                midday: [11 * 60, 17 * 60],
+                late: [17 * 60, 24 * 60],
+                midnight: [0, 6 * 60],
+            };
+
+            const orConditions: string[] = [];
+            const params: any = {};
+
+            depatureTimeRange.forEach((label, idx) => {
+                const [min, max] = ranges[label];
+                orConditions.push(`(${minuteExpr} BETWEEN :tMin${idx} AND :tMax${idx})`);
+                params[`tMin${idx}`] = min;
+                params[`tMax${idx}`] = max;
+            });
+
+            qb.andWhere(orConditions.join(" OR "), params);
+        }
+
+        // sort
+        if (sortPrice) {
+            qb.addOrderBy("trip.basePrice", sortPrice.toUpperCase() as "ASC" | "DESC");
+        }
+
+        if (sortDepartureTime) {
+            qb.addOrderBy("trip.departureTime", sortDepartureTime.toUpperCase() as "ASC" | "DESC");
+        }
+
+        qb.addOrderBy("trip.departureTime", "DESC");
+
+
+        const [trips, count] = await qb.getManyAndCount();
+
+        const totalPage = Math.ceil(count / dto.perPage);
+
+        return {
+            data: trips,
+            page: Math.min(dto.page, totalPage),
+            perPage: Math.min(dto.perPage, count),
+            total: count,
+            totalPage,
+        };
+    }
+
     findOneHelper(options: FindOneOptions<Trip>) {
         return this.tripRepo.findOne(options);
     }

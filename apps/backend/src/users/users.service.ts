@@ -1,8 +1,8 @@
-import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
-import { UserLoginDtoType, UserRegisterDtoType } from '@repo/shared';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { UserLoginDtoType, UserRegisterDtoType, UserSearchDtoType } from '@repo/shared';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from '../entities/users.entity';
-import { DeepPartial, FindOptionsWhere, Repository } from 'typeorm';
+import { User, UserRoleEnum } from '../entities/users.entity';
+import { DeepPartial, FindOptionsOrder, FindOptionsWhere, ILike, Repository } from 'typeorm';
 import bcryptjs from 'bcryptjs';
 import { TRPCError } from '@trpc/server';
 import { TokenService } from '../token/token.service';
@@ -84,5 +84,68 @@ export class UsersService {
         }
 
         return { access_token };
+    }
+
+    async search(dto: UserSearchDtoType) {
+        let where: FindOptionsWhere<User> = {};
+        let order: FindOptionsOrder<User> = {};
+
+        if (dto.role) {
+            where = { ...where, role: UserRoleEnum[dto.role] };
+        }
+
+        if (dto.nameQuery) {
+            where = { ...where, name: ILike(`%${dto.nameQuery}%`) };
+        }
+
+        if (dto.phoneQuery) {
+            where = { ...where, phone: ILike(`%${dto.phoneQuery}%`) };
+        }
+
+        if (dto.emailQuery) {
+            where = { ...where, email: ILike(`%${dto.emailQuery}%`) };
+        }
+
+        if (dto.nameSort) {
+            order = { ...order, name: dto.nameSort };
+        }
+
+        if (dto.phoneSort) {
+            order = { ...order, phone: dto.phoneSort };
+        }
+
+        if (dto.emailSort) {
+            order = { ...order, email: dto.emailSort };
+        }
+
+        order = { ...order, createdAt: "DESC" };
+
+        const [users, count] = await this.userRepo.findAndCount({
+            where,
+            order,
+            skip: (dto.page - 1) * dto.perPage,
+            take: dto.perPage,
+            // this is so cooked *insert high Gojo face, it's 23:33
+            select: [
+                "id",
+                "name",
+                "email",
+                "phone",
+                "role",
+                "provider",
+                "providerId",
+                "createdAt",
+            ],
+        });
+
+        const totalPage = Math.ceil(count / dto.perPage);
+
+        return {
+            data: users,
+            page: Math.min(dto.page, totalPage),
+            perPage: Math.min(dto.perPage, count),
+            total: count,
+            totalPage,
+        };
     }
 }

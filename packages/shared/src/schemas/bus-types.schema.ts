@@ -23,6 +23,11 @@ export const BusTypeDeleteOneDto = z.object({
 });
 export type BusTypeDeleteOneDtoType = z.infer<typeof BusTypeDeleteOneDto>;
 
+export const BusTypeGetOneByIdDto = z.object({
+    id: z.uuid({ error: "ID must be an UUID string" }),
+});
+export type BusTypeGetOneByIdDtoType = z.infer<typeof BusTypeGetOneByIdDto>;
+
 export const BusTypeFindDto = z.object({
     sortName: sortOptions,
     sortPriceMultiplier: sortOptions,

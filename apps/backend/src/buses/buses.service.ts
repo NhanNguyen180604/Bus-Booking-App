@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Bus } from '../entities/bus.entity';
 import { FindOneOptions, Repository } from 'typeorm';
-import { BusAddSeatsDtoType, BusCreateOneDtoType, BusGetSeatsByBusIdDtoType } from '@repo/shared';
+import { BusAddSeatsDtoType, BusCreateOneDtoType, BusDeleteOneDtoType, BusGetOneByIdDtoType, BusGetSeatsByBusIdDtoType, BusSearchDtoType } from '@repo/shared';
 import { Seat } from '../entities/seat.entity';
 import { UsersService } from '../users/users.service';
 import { User, UserRoleEnum } from '../entities/users.entity';
@@ -139,6 +139,73 @@ export class BusesService {
         }
         return await this.seatRepo.find({ where: { bus: { id: dto.id } } });
     }
+
+    async getOneBusById(dto: BusGetOneByIdDtoType) {
+        const bus = await this.findOneBusHelper({
+            where: { id: dto.id },
+            relations: { driver: true },
+        });
+        if (!bus) {
+            throw new TRPCError({
+                code: "NOT_FOUND",
+                message: `Bus with ID: ${dto.id} is not found`,
+                cause: "Not found bus ID",
+            });
+        }
+        return bus;
+    }
+
+    async deleteOne(dto: BusDeleteOneDtoType){
+        await this.busRepo.delete({id: dto.id});
+    }
+
+    async searchBus(dto: BusSearchDtoType) {
+        const qb = this.busRepo
+            .createQueryBuilder("bus")
+            .leftJoinAndSelect("bus.driver", "driver")
+            .leftJoinAndSelect("bus.type", "type")
+            .skip((dto.page - 1) * dto.perPage)
+            .take(dto.perPage);
+
+        if (dto.driverNotNull){
+            qb.andWhere("bus.driver IS NOT NULL");
+        }
+
+        if (dto.driverId) {
+            qb.andWhere("driver.id = :driverId", { driverId: dto.driverId });
+        }
+
+        if (dto.typeId) {
+            qb.andWhere("type.id = :typeId", { typeId: dto.typeId });
+        }
+
+        if (dto.plateNumberQuery) {
+            qb.andWhere("bus.plateNumber ILIKE :plateQuery", {
+                plateQuery: `%${dto.plateNumberQuery}%`,
+            });
+        }
+
+        if (dto.driverNameSort) {
+            qb.addOrderBy("driver.name", dto.driverNameSort === "asc" ? "ASC" : "DESC");
+        }
+
+        if (dto.plateNumberSort) {
+            qb.addOrderBy("bus.plateNumber", dto.plateNumberSort === "asc" ? "ASC" : "DESC");
+        }
+
+        const [buses, count] = await qb.getManyAndCount();
+
+        const totalPage = Math.ceil(count / dto.perPage);
+
+        return {
+            data: buses,
+            page: Math.min(dto.page, totalPage),
+            perPage: Math.min(dto.perPage, count),
+            total: count,
+            totalPage,
+        };
+    }
+
 
     /**
      * Create a seat code based on position

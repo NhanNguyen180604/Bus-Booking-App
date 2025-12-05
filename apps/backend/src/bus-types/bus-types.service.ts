@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BusType } from '../entities/bus-type.entity';
 import { Between, FindOneOptions, FindOptionsOrder, FindOptionsWhere, ILike, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
-import { BusTypeCreateOneDtoType, BusTypeDeleteOneDtoType, BusTypeFindDtoType, BusTypeUpdateOneDtoType } from '@repo/shared';
+import { BusTypeCreateOneDtoType, BusTypeDeleteOneDtoType, BusTypeFindDtoType, BusTypeGetOneByIdDtoType, BusTypeUpdateOneDtoType } from '@repo/shared';
 import { TRPCError } from '@trpc/server';
 
 @Injectable()
@@ -64,7 +64,19 @@ export class BusTypesService {
         return this.busTypeRepo.findOne(where);
     }
 
-    async find(dto: BusTypeFindDtoType) {
+    async getOneById(dto: BusTypeGetOneByIdDtoType) {
+        const busType = await this.findOneHelper({ where: { id: dto.id } });
+        if (!busType) {
+            throw new TRPCError({
+                code: "NOT_FOUND",
+                message: `Bus Type with ID: ${dto.id} not found`,
+                cause: "Not found bus type ID",
+            });
+        }
+        return busType;
+    }
+
+    async search(dto: BusTypeFindDtoType) {
         let where: FindOptionsWhere<BusType> = {};
         let order: FindOptionsOrder<BusType> = {};
 
