@@ -19,13 +19,14 @@ export default function Home() {
     trpc.trips.search.queryOptions(searchParams ?? skipToken)
   );
 
+  const perPage = 10;
   const handleSearch = (params: Omit<TripFindManyDtoType, 'page' | 'perPage'>) => {
-    setSearchParams({ ...params, page: 1, perPage: 10 });
+    setSearchParams({ ...params, page: 1, perPage });
   };
 
   const handlePageChange = (page: number) => {
     if (searchParams) {
-      setSearchParams({ ...searchParams, page });
+      setSearchParams({ ...searchParams, page, perPage });
     }
   };
 
@@ -33,7 +34,7 @@ export default function Home() {
     options: Omit<TripFindManyDtoType, 'page' | 'perPage'>;
   }) => {
     setSearchParams({ ...searchParams, 
-      ...filters.options, page: 1, perPage: 10 });
+      ...filters.options, page: 1, perPage });
   };
 
   const handleResetFilters = () => {
@@ -43,7 +44,7 @@ export default function Home() {
         destination: searchParams.destination,
         departureTime: searchParams.departureTime,
         page: 1,
-        perPage: 10,
+        perPage,
       });
     }
   };

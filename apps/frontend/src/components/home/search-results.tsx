@@ -5,6 +5,7 @@ import { Button } from "../ui/button";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { type RouterOutputsType } from "backend";
+import Pagination from "../ui/pagination";
 
 type FindTripResults = RouterOutputsType["trips"]["search"];
 type Bus = FindTripResults["trips"][0]["bus"];
@@ -285,86 +286,12 @@ export function SearchResults({
 
       {/* Pagination */}
       {results.totalPage > 1 && (
-        <div className="flex items-center justify-center gap-2 py-4">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => onPageChange(results.page - 1)}
-            disabled={results.page === 1}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="m15 18-6-6 6-6" />
-            </svg>
-          </Button>
-
-          {/* Page Numbers */}
-          <div className="flex gap-1">
-            {Array.from({ length: results.totalPage }, (_, i) => i + 1)
-              .filter((page) => {
-                // Show first, last, current, and adjacent pages
-                return (
-                  page === 1 ||
-                  page === results.totalPage ||
-                  Math.abs(page - results.page) <= 1
-                );
-              })
-              .map((page, index, array) => {
-                // Add ellipsis
-                const showEllipsisBefore =
-                  index > 0 && page - array[index - 1] > 1;
-
-                return (
-                  <div key={page} className="flex items-center">
-                    {showEllipsisBefore && (
-                      <span className="px-2 text-secondary-text">
-                        ...
-                      </span>
-                    )}
-                    <Button
-                      variant={
-                        page === results.page ? "accent" : "secondary"
-                      }
-                      size="sm"
-                      onClick={() => onPageChange(page)}
-                      className="min-w-10"
-                    >
-                      {page}
-                    </Button>
-                  </div>
-                );
-              })}
-          </div>
-
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => onPageChange(results.page + 1)}
-            disabled={results.page === results.totalPage}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="m9 18 6-6-6-6" />
-            </svg>
-          </Button>
+        <div className="flex items-center justify-center py-4">
+          <Pagination
+            currentPage={results.page}
+            totalPage={results.totalPage}
+            loadPageFn={onPageChange}
+          />
         </div>
       )}
     </div>

@@ -28,8 +28,8 @@ export function FilterSortPanel({
   const [localBusTypes, setLocalBusTypes] = useState<string[]>(options.busType || []);
   const [localMinPrice, setLocalMinPrice] = useState<number>(options.minPrice || 0);
   const [localMaxPrice, setLocalMaxPrice] = useState<number>(options.maxPrice || PRICE_MAX);
-  const [localSortPrice, setLocalSortPrice] = useState<"ASC" | "DESC" | undefined>(options.sortPrice);
-  const [localSortDepartureTime, setLocalSortDepartureTime] = useState<"ASC" | "DESC" | undefined>(options.sortDepartureTime);
+  const [localSortPrice, setLocalSortPrice] = useState<"asc" | "desc" | undefined>(options.sortPrice);
+  const [localSortDepartureTime, setLocalSortDepartureTime] = useState<"asc" | "desc" | undefined>(options.sortDepartureTime);
 
   useEffect(() => {
     setLocalBusTypes(options.busType || []);
@@ -48,10 +48,10 @@ export function FilterSortPanel({
 
   const handleDepartureTimeSort = () => {
     if (localSortDepartureTime === undefined) {
-      setLocalSortDepartureTime("ASC");
+      setLocalSortDepartureTime("asc");
       setLocalSortPrice(undefined);
-    } else if (localSortDepartureTime === "ASC") {
-      setLocalSortDepartureTime("DESC");
+    } else if (localSortDepartureTime === "asc") {
+      setLocalSortDepartureTime("desc");
       setLocalSortPrice(undefined);
     } else {
       setLocalSortDepartureTime(undefined);
@@ -60,10 +60,10 @@ export function FilterSortPanel({
 
   const handlePriceSort = () => {
     if (localSortPrice === undefined) {
-      setLocalSortPrice("ASC");
+      setLocalSortPrice("asc");
       setLocalSortDepartureTime(undefined);
-    } else if (localSortPrice === "ASC") {
-      setLocalSortPrice("DESC");
+    } else if (localSortPrice === "asc") {
+      setLocalSortPrice("desc");
       setLocalSortDepartureTime(undefined);
     } else {
       setLocalSortPrice(undefined);
@@ -101,7 +101,7 @@ export function FilterSortPanel({
   
   const trpc = useTRPC();
   const busTypesQuery = useQuery(
-    trpc.busTypes.find.queryOptions({
+    trpc.busTypes.search.queryOptions({
       page: 1,
       perPage: 100,
     })
@@ -214,7 +214,7 @@ export function FilterSortPanel({
                   size="sm"
                   onClick={handleDepartureTimeSort}
                 >
-                  {localSortDepartureTime === "ASC" ? (
+                  {localSortDepartureTime === "asc" ? (
                     <>
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -236,7 +236,7 @@ export function FilterSortPanel({
                       </svg>
                       Earliest First
                     </>
-                  ) : localSortDepartureTime === "DESC" ? (
+                  ) : localSortDepartureTime === "desc" ? (
                     <>
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -272,7 +272,7 @@ export function FilterSortPanel({
                   size="sm"
                   onClick={handlePriceSort}
                 >
-                  {localSortPrice === "ASC" ? (
+                  {localSortPrice === "asc" ? (
                     <>
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -294,7 +294,7 @@ export function FilterSortPanel({
                       </svg>
                       Low to High
                     </>
-                  ) : localSortPrice === "DESC" ? (
+                  ) : localSortPrice === "desc" ? (
                     <>
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
