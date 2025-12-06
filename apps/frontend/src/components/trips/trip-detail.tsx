@@ -7,11 +7,21 @@ import { Button } from "../ui/button";
 import { RouterOutputsType } from "backend";
 import Image from "next/image";
 import { SeatTypeEnum } from "@repo/shared";
+import { useTRPC } from "@/src/utils/trpc";
+import { useQuery } from "@tanstack/react-query";
+import { get } from "http";
 
 type Trip = RouterOutputsType["trips"]["findOneById"];
 type Seat = Omit<RouterOutputsType["buses"]["getSeatsByBus"][0], "bus">;
 
 export function TripDetail({ trip }: { trip: Trip }) {
+  const trpc = useTRPC();
+  
+  const getSeatsQueryOptions = trpc.buses.getSeatsByBus.queryOptions({ id: trip!.bus.id });
+  const getSeatsQuery = useQuery({
+    ...getSeatsQueryOptions,
+    staleTime: 60 * 60 * 1000,
+  });
   const router = useRouter();
   const [selectedFloor, setSelectedFloor] = useState(0);
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
@@ -44,44 +54,12 @@ export function TripDetail({ trip }: { trip: Trip }) {
   const totalSeats = trip!.bus.rows * trip!.bus.cols * trip!.bus.floors;
 
   // Generate seat layout (mock data for now)
-  const generateSeatLayout = (floor: number) => {
-    const seats: Array<Seat> = [];
-
-    for (let row = 0; row < trip!.bus.rows; row++) {
-      for (let col = 0; col < trip!.bus.cols; col++) {
-        const isAisle = trip!.bus.cols >= 4 && col === Math.floor(trip!.bus.cols / 2);
-
-        const isDriver = floor === 0 && row === 0 && col === 0;
-
-        if (!isAisle && !isDriver) {
-          const seatCode = `${String.fromCharCode(65 + floor)}${row + 1}${col + 1}`;
-          seats.push({
-            id: seatCode,
-            row,
-            col,
-            floor,
-            code: seatCode,
-            seatType: SeatTypeEnum.PASSENGER,
-            isActive: true,
-          });
-        } else if (isDriver) {
-          seats.push({
-            id: "Driver",
-            row,
-            col,
-            floor,
-            code: "DRIVER",
-            seatType: SeatTypeEnum.DRIVER,
-            isActive: false,
-          });
-        }
-      }
-    }
-
-    return seats;
+  const getSeatsAtFloor = (floor: number) => {
+    const seats: Array<Seat> = getSeatsQuery.data || [];
+    return seats.filter((seat) => seat.floor === floor);
   };
 
-  const seats = generateSeatLayout(selectedFloor);
+  const seats = getSeatsAtFloor(selectedFloor);
 
   const toggleSeat = (seatCode: string) => {
     if (selectedSeats.includes(seatCode)) {
@@ -92,7 +70,7 @@ export function TripDetail({ trip }: { trip: Trip }) {
   };
 
   const getSeatStatus = (seat: Seat) => {
-    if (seat.row === 0 && seat.col === 0) return "driver";
+    if (seat.row === 0 && seat.col === 0 && seat.floor === 0) return "driver";
     if (selectedSeats.includes(seat.code)) return "selected";
     if (!seat.isActive) return "booked";
     return "available";
@@ -267,7 +245,7 @@ export function TripDetail({ trip }: { trip: Trip }) {
                   <span className="text-sm text-secondary-text">Selected</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded bg-text/10 border-2 border-secondary-text"></div>
+                  <div className="w-8 h-8 rounded bg-text/10 border-2 border-secondary-text opacity-50"></div>
                   <span className="text-sm text-secondary-text">Booked</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -318,17 +296,17 @@ export function TripDetail({ trip }: { trip: Trip }) {
                           <button
                             className={getSeatClassName(status)}
                             onClick={() =>
-                              (status === "available" || status === "selected") && toggleSeat(seat.id)
+                              (status === "available" || status === "selected") && toggleSeat(seat.code)
                             }
                             disabled={
                               status === "booked" || status === "driver"
                             }
-                            title={seat.id}
+                            title={seat.code}
                           >
                             {status === 'driver' ? (
                               <Image src={"/icons/steering-wheel.svg"} alt={`driver icon`} width={24} height={24} />
                             ) : (
-                              seat.id
+                              seat.code
                             )}
                           </button>
                         </div>
