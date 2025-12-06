@@ -174,8 +174,8 @@ export default function AdminCreateTripPage() {
                             <Controller control={control}
                                 name="busId"
                                 render={({ field: { onChange } }) => (
-                                    <SelectDropdown label="Bus (Plate Number - Type - Type Price Multi - Driver Name - Driver Email)" isClearable required
-                                        options={buses.map(bus => ({ value: bus.id, label: `${bus.plateNumber} - ${bus.type.name} - ${bus.type.priceMultiplier} - ${bus.driver.name} - ${bus.driver.email}` }))}
+                                    <SelectDropdown label="Bus (Plate Number - Type - Driver Name - Driver Email)" isClearable required
+                                        options={buses.map(bus => ({ value: bus.id, label: `${bus.plateNumber} - ${bus.type.name} - ${bus.driver.name} - ${bus.driver.email}` }))}
                                         onChange={(newValue, _) => {
                                             const newVal: OptionType<string> = newValue as OptionType<string>;
                                             onChange(newVal ? newVal.value : "");

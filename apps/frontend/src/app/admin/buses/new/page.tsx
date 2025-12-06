@@ -466,7 +466,7 @@ export function AdminCreateBusPage() {
                         <Controller control={busForm.control}
                             name="bus.driverId"
                             render={({ field: { onChange } }) => (
-                                <SelectDropdown label="Driver" isClearable required
+                                <SelectDropdown label="Driver" isClearable
                                     options={drivers.map(driver => ({ value: driver.id, label: `${driver.name} - ${driver.email} - ${driver.phone}` }))}
                                     onChange={(newValue, _) => {
                                         const newVal: OptionType<string> = newValue as OptionType<string>;
