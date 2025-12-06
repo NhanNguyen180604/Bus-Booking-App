@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { type RouterOutputsType } from "backend";
 import Pagination from "../ui/pagination";
+import Image from "next/image";
 
 type FindTripResults = RouterOutputsType["trips"]["search"];
 type Bus = FindTripResults["trips"][0]["bus"];
@@ -187,27 +188,12 @@ export function SearchResults({
                       {/* Bus Details */}
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
                         <div className="flex items-center gap-1.5 text-secondary-text">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <rect width="18" height="18" x="3" y="3" rx="2" />
-                            <path d="M9 3v18" />
-                            <path d="M15 3v18" />
-                            <path d="M3 9h18" />
-                            <path d="M3 15h18" />
-                          </svg>
+                          <Image src={"/icons/bus-ic.svg"} alt={`bus icon`} width={24} height={24} />
                           <span className="font-medium text-text">{trip.bus.type.name}</span>
                         </div>
                         <div className="text-secondary-text">•</div>
                         <div className="flex items-center gap-1.5 text-secondary-text">
+                          <Image src={"/icons/seat-ic.svg"} alt={`seat icon`} width={24} height={24} />
                           <span>{totalSeats} seats</span>
                         </div>
                       </div>

@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { TripFindManyDtoType } from "@repo/shared";
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/src/utils/trpc";
+import Checkbox from "../ui/checkbox";
 
 type FilterSortOptionsType = Omit<TripFindManyDtoType, 'page' | 'perPage'>;
 
@@ -130,18 +131,13 @@ export function FilterSortPanel({
             <h4 className="text-sm font-medium text-text mb-3">Bus Type</h4>
             <div className="space-y-2">
               {busTypesQuery.data?.data.map((busType) => (
-                <label
-                  key={busType.id}
-                  className="flex items-center gap-2 cursor-pointer hover:bg-secondary-hover p-2 rounded-md transition-colors"
+                <Checkbox
+                  title={busType.name}
+                  checked={localBusTypes.includes(busType.id)}
+                  onChange={() => handleBusTypeToggle(busType.id)
+                  }
                 >
-                  <input
-                    type="checkbox"
-                    checked={localBusTypes.includes(busType.id)}
-                    onChange={() => handleBusTypeToggle(busType.id)}
-                    className="w-4 h-4 rounded border-border text-accent"
-                  />
-                  <span className="text-sm text-text">{busType.name}</span>
-                </label>
+                </Checkbox>
               ))}
             </div>
           </div>
