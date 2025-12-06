@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { Button } from "@/src/components/ui/button";
 import { Card, CardBody, CardFooter, CardHeader } from "@/src/components/ui/card";
 import { SelectDropdown, OptionType } from "@/src/components/ui/select-dropdown";
@@ -22,8 +22,8 @@ export default function AdminManageBusTypePage() {
 
     // zodResolver for react hook form doesn't work for some reasons
     // it keeps saying mistmatching
+    const [sortBusTypeNameInput, setSortBusTypeNameInput] = useState<SortOptionsType>(undefined);
     const [sortBusTypeName, setSortBusTypeName] = useState<SortOptionsType>(undefined);
-    const [sortBusTypePriceMulti, setSortBusTypePriceMulti] = useState<SortOptionsType>(undefined);
 
     // searching bus type
     // clunky as hell
@@ -37,7 +37,6 @@ export default function AdminManageBusTypePage() {
         page: busTypePage,
         perPage,
         sortName: sortBusTypeName,
-        sortPriceMultiplier: sortBusTypePriceMulti,
         nameQuery: busTypeNameQuery,
     });
     const searchBusTypeQuery = useQuery({
@@ -107,21 +106,7 @@ export default function AdminManageBusTypePage() {
                                 ]}
                                 onChange={(newValue, _) => {
                                     const newVal: OptionType<string> = newValue as OptionType<string>;
-                                    setSortBusTypeName(newVal ? newVal.value as SortOptionsType : undefined);
-                                }}
-                            />
-                        </div>
-                        <div className="flex-1">
-                            <SelectDropdown label="Sort Bus Type Price Multiplier" id="sort-bus-type-price-multi" name="sort-bus-type-price-multi" isClearable
-                                menuPortalTarget={document.body}
-                                menuPosition="fixed"
-                                options={[
-                                    { value: "asc", label: "Ascending" },
-                                    { value: "desc", label: "Descending" },
-                                ]}
-                                onChange={(newValue, _) => {
-                                    const newVal: OptionType<string> = newValue as OptionType<string>;
-                                    setSortBusTypePriceMulti(newVal ? newVal.value as SortOptionsType : undefined);
+                                    setSortBusTypeNameInput(newVal ? newVal.value as SortOptionsType : undefined);
                                 }}
                             />
                         </div>
@@ -134,6 +119,7 @@ export default function AdminManageBusTypePage() {
                         className="m-6"
                         onClick={(e) => {
                             e.preventDefault();
+                            setSortBusTypeName(sortBusTypeNameInput || undefined);
                             setBusTypeNameQuery(busTypeNameQueryInput || undefined);
                             searchBusTypeQuery.refetch();
                         }}

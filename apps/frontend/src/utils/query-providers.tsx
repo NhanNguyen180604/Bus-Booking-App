@@ -1,5 +1,4 @@
-"use client"
-
+"use client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { createTRPCClient, httpBatchLink } from '@trpc/client';
@@ -8,7 +7,7 @@ import { TRPCProvider } from "./trpc";
 
 interface MyQueryProviderProps {
     children: React.ReactNode;
-};
+}
 
 const QueryProvider = ({ children }: MyQueryProviderProps) => {
     const [queryClient] = useState(() => new QueryClient());

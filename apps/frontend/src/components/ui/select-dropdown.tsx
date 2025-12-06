@@ -14,7 +14,7 @@ export interface OptionType<T> {
 const classNamesStyles: ClassNamesConfig = {
     control: ({ isFocused }) => `
         border-box border-2 ${isFocused ? "border-accent dark:border-accent" : "border-border dark:border-border"} bg-primary
-        rounded-md px-2
+        rounded-md px-2 h-[2.5rem]
     `,
     placeholder: ({ }) => `text-secondary-text dark:text-secondary-text`,
     singleValue: ({ }) => `text-text dark:text-text`,
@@ -24,9 +24,9 @@ const classNamesStyles: ClassNamesConfig = {
         `;
     },
     input: () => `text-text dark:text-text`,
-    clearIndicator: (props) => `text-text dark:text-text`,
+    clearIndicator: () => `text-text dark:text-text`,
     menu: () => `
-        bg-primary border border-border dark:border-border 
+        bg-primary border border-border dark:border-border
         rounded-md shadow-lg mt-1
     `,
     menuList: () => `

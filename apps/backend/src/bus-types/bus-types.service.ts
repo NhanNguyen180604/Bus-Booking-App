@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BusType } from '../entities/bus-type.entity';
-import { Between, FindOneOptions, FindOptionsOrder, FindOptionsWhere, ILike, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
+import { FindOneOptions, FindOptionsOrder, FindOptionsWhere, ILike, Not, Repository } from 'typeorm';
 import { BusTypeCreateOneDtoType, BusTypeDeleteOneDtoType, BusTypeFindDtoType, BusTypeGetOneByIdDtoType, BusTypeUpdateOneDtoType } from '@repo/shared';
 import { TRPCError } from '@trpc/server';
 
@@ -36,23 +36,16 @@ export class BusTypesService {
             });
         }
 
-        if (dto.name !== busType.name) {
-            const duplicateName = await this.busTypeRepo.findOneBy({ name: dto.name });
-            if (duplicateName) {
-                throw new TRPCError({
-                    code: "CONFLICT",
-                    message: `Bus type with name: ${dto.name} already exists`,
-                    cause: "Duplicate bus type name",
-                });
-            }
+        const duplicateName = await this.busTypeRepo.findOneBy({ name: dto.name, id: Not(busType.id) });
+        if (duplicateName) {
+            throw new TRPCError({
+                code: "CONFLICT",
+                message: `Bus type with name: ${dto.name} already exists`,
+                cause: "Duplicate bus type name",
+            });
         }
 
-        if (dto.name) {
-            busType.name = dto.name;
-        }
-        if (dto.priceMultiplier) {
-            busType.priceMultiplier = dto.priceMultiplier;
-        }
+        busType.name = dto.name;
         return await this.busTypeRepo.save(busType);
     }
 
@@ -83,30 +76,9 @@ export class BusTypesService {
         if (dto.nameQuery) {
             where = { name: ILike(`%${dto.nameQuery}%`) };
         }
-        if (dto.priceMultiplierMin && dto.priceMultiplierMax) {
-            where = {
-                ...where,
-                priceMultiplier: Between(dto.priceMultiplierMin, dto.priceMultiplierMax),
-            }
-        }
-        else if (dto.priceMultiplierMin) {
-            where = {
-                ...where,
-                priceMultiplier: MoreThanOrEqual(dto.priceMultiplierMin),
-            }
-        }
-        else if (dto.priceMultiplierMax) {
-            where = {
-                ...where,
-                priceMultiplier: LessThanOrEqual(dto.priceMultiplierMax),
-            }
-        }
 
         if (dto.sortName) {
             order = { name: dto.sortName };
-        }
-        if (dto.sortPriceMultiplier) {
-            order = { ...order, priceMultiplier: dto.sortPriceMultiplier };
         }
 
         const [busTypes, count] = await this.busTypeRepo.findAndCount({
