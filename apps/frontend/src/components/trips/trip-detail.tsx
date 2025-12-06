@@ -266,7 +266,7 @@ export function TripDetail({ trip }: TripDetailProps) {
           </Card>
 
           {/* Floor Selector */}
-          {trip.bus.floors > 1 && (
+          {trip.bus.floors > 0 && (
             <Card>
               <CardBody>
                 <div className="flex items-center gap-2">
