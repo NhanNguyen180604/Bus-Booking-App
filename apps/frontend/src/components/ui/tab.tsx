@@ -3,10 +3,11 @@ import { useState } from "react";
 
 interface TabProps {
     children: React.ReactNode;
+    initialActiveTab?: number;
 }
 
-export function Tab({ children }: TabProps) {
-    const [activeTab, setActiveTab] = useState(0);
+export function Tab({ children, initialActiveTab }: TabProps) {
+    const [activeTab, setActiveTab] = useState(initialActiveTab);
 
     const panels = React.Children.toArray(children) as React.ReactElement<TabPanelProps>[];
 
@@ -17,7 +18,10 @@ export function Tab({ children }: TabProps) {
                 {panels.map((panel, index) => (
                     <div
                         key={`tab-header-${index}`}
-                        onClick={() => setActiveTab(index)}
+                        onClick={() => {
+                            setActiveTab(index);
+                            window.history.replaceState({}, "", `?tab=${index}`);
+                        }}
                         className={`
                             flex-1 text-center transition-all cursor-pointer px-2 py-4 rounded-lg
                             ${activeTab === index ?

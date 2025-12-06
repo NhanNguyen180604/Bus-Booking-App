@@ -7,6 +7,7 @@ import bcryptjs from 'bcryptjs';
 import { TRPCError } from '@trpc/server';
 import { TokenService } from '../token/token.service';
 import { Request } from 'express';
+import { Bus } from 'src/entities/bus.entity';
 
 @Injectable()
 export class UsersService {
@@ -87,63 +88,57 @@ export class UsersService {
     }
 
     async search(dto: UserSearchDtoType) {
-        let where: FindOptionsWhere<User> = {};
-        let order: FindOptionsOrder<User> = {};
+        const qb = this.userRepo
+            .createQueryBuilder("u")
+            .leftJoin(Bus, "b", "b.driverId = u.id");
 
-        if (dto.role) {
-            where = { ...where, role: UserRoleEnum[dto.role] };
+        qb.select([
+            "u.id",
+            "u.name",
+            "u.email",
+            "u.phone",
+            "u.role",
+            "u.provider",
+            "u.providerId",
+            "u.createdAt",
+        ]);
+
+        if (dto.driverWithNoBus) {
+            qb.andWhere("u.role = :role", { role: UserRoleEnum.DRIVER })
+                .andWhere("b.id IS NULL");
+        }
+
+        if (dto.role && !dto.driverWithNoBus) {
+            qb.andWhere("u.role = :role", { role: UserRoleEnum[dto.role] });
         }
 
         if (dto.nameQuery) {
-            where = { ...where, name: ILike(`%${dto.nameQuery}%`) };
+            qb.andWhere("u.name ILIKE :name", { name: `%${dto.nameQuery}%` });
         }
-
         if (dto.phoneQuery) {
-            where = { ...where, phone: ILike(`%${dto.phoneQuery}%`) };
+            qb.andWhere("u.phone ILIKE :phone", { phone: `%${dto.phoneQuery}%` });
         }
-
         if (dto.emailQuery) {
-            where = { ...where, email: ILike(`%${dto.emailQuery}%`) };
+            qb.andWhere("u.email ILIKE :email", { email: `%${dto.emailQuery}%` });
         }
 
-        if (dto.nameSort) {
-            order = { ...order, name: dto.nameSort };
-        }
+        if (dto.nameSort) qb.addOrderBy("u.name", dto.nameSort.toUpperCase() as "ASC" | "DESC");
+        if (dto.phoneSort) qb.addOrderBy("u.phone", dto.phoneSort.toUpperCase() as "ASC" | "DESC");
+        if (dto.emailSort) qb.addOrderBy("u.email", dto.emailSort.toUpperCase() as "ASC" | "DESC");
 
-        if (dto.phoneSort) {
-            order = { ...order, phone: dto.phoneSort };
-        }
+        qb.addOrderBy("u.createdAt", "DESC");
 
-        if (dto.emailSort) {
-            order = { ...order, email: dto.emailSort };
-        }
+        qb.skip((dto.page - 1) * dto.perPage)
+            .take(dto.perPage);
 
-        order = { ...order, createdAt: "DESC" };
-
-        const [users, count] = await this.userRepo.findAndCount({
-            where,
-            order,
-            skip: (dto.page - 1) * dto.perPage,
-            take: dto.perPage,
-            // this is so cooked *insert high Gojo face, it's 23:33
-            select: [
-                "id",
-                "name",
-                "email",
-                "phone",
-                "role",
-                "provider",
-                "providerId",
-                "createdAt",
-            ],
-        });
+        const [users, count] = await qb.getManyAndCount();
 
         const totalPage = Math.ceil(count / dto.perPage);
 
         return {
             data: users,
             page: Math.min(dto.page, totalPage),
-            perPage: Math.min(dto.perPage, count),
+            perPage: dto.perPage,
             total: count,
             totalPage,
         };

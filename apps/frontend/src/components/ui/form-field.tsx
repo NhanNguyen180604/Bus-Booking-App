@@ -12,13 +12,13 @@ const formFieldStyles = tv({
   variants: {
     variant: {
       default: {
-        input: "border-border dark:border-border bg-primary dark:bg-primary focus:border-accent",
+        input: "border-2 border-border dark:border-border bg-primary dark:bg-primary focus:border-accent focus:ring-0",
       },
       error: {
-        input: "border-danger dark:border-danger bg-primary dark:bg-primary focus:border-danger",
+        input: "border-2 border-danger dark:border-danger bg-primary dark:bg-primary focus:border-danger focus:ring-0",
       },
       success: {
-        input: "border-success dark:border-success bg-primary dark:bg-primary focus:border-success",
+        input: "border-2 border-success dark:border-success bg-primary dark:bg-primary focus:border-success focus:ring-0",
       },
     },
     size: {

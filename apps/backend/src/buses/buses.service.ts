@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Bus } from '../entities/bus.entity';
 import { FindOneOptions, Repository } from 'typeorm';
-import { BusAddSeatsDtoType, BusCreateOneDtoType, BusDeleteOneDtoType, BusGetOneByIdDtoType, BusGetSeatsByBusIdDtoType, BusSearchDtoType } from '@repo/shared';
+import { BusAddSeatsDtoType, BusCreateOneDtoType, BusCreateOneWithSeatsDtoType, BusDeleteOneDtoType, BusGetOneByIdDtoType, BusGetSeatsByBusIdDtoType, BusSearchDtoType, BusSeatCreateOneDtoType, generateSeatCode } from '@repo/shared';
 import { Seat } from '../entities/seat.entity';
 import { UsersService } from '../users/users.service';
 import { User, UserRoleEnum } from '../entities/users.entity';
@@ -63,6 +63,34 @@ export class BusesService {
         return await this.busRepo.save(newBus);
     }
 
+    async createOneWithSeats(dto: BusCreateOneWithSeatsDtoType) {
+        const newBus = await this.createOne(dto.bus);
+
+        try {
+            // this will throw error if invalid
+            this.validateSeatsLayout(dto.seats, dto.bus.rows, dto.bus.cols, dto.bus.floors);
+
+            let newSeats = this.seatRepo.create(dto.seats.map(seat => ({
+                bus: newBus,
+                code: generateSeatCode(seat.row, seat.col, seat.floor),
+                row: seat.row,
+                col: seat.col,
+                floor: seat.floor,
+                seatType: seat.seatType,
+            })));
+            newSeats = await this.seatRepo.save(newSeats, { transaction: true });
+
+            return {
+                bus: newBus,
+                seats: newSeats,
+            };
+        }
+        catch (error) {
+            await this.busRepo.delete({ id: newBus.id });
+            throw error;
+        }
+    }
+
     /**
      * Add 1 or multiple seats to the bus by ID
      */
@@ -76,10 +104,57 @@ export class BusesService {
             });
         }
 
-        if (!dto.seats.every(
-            (v) => v.row >= 0 && v.row < bus.rows && v.row + v.rowSpan - 1 < bus.rows &&
-                v.col >= 0 && v.col < bus.cols && v.col + v.colSpan - 1 < bus.cols &&
-                v.floor >= 0 && v.floor < bus.floors
+        // this will throw error if invalid
+        this.validateSeatsLayout(dto.seats, bus.rows, bus.cols, bus.floors);
+        // TODO: get existing seats and validate layout too
+
+        // scrapped
+        // // coded this at 0AM
+        // // this needs more testing
+        // dto.seats.sort((a, b) => a.floor - b.floor);
+        // const seatsGroupedByFloor = Object.values(groupBy(dto.seats, seat => seat.floor));
+        // for (let i = 0; i < seatsGroupedByFloor.length; i++) {
+        //     const seatGroup = seatsGroupedByFloor.at(i)!;
+        //     const matrix = Array.from({ length: bus.rows }, () => new Array(bus.cols).fill(-1)) as number[][];
+        //     for (let currentSeatIndex = 0; currentSeatIndex < seatGroup.length; currentSeatIndex++) {
+        //         const currentSeat = seatGroup.at(currentSeatIndex)!;
+        //         const rowStartIndex = currentSeat.row;
+        //         const rowEndIndex = currentSeat.row + currentSeat.rowSpan - 1;
+        //         const colStartIndex = currentSeat.col;
+        //         const colEndIndex = currentSeat.col + currentSeat.colSpan - 1;
+        //         for (let k = rowStartIndex; k <= rowEndIndex; k++) {
+        //             for (let l = colStartIndex; l <= colEndIndex; l++) {
+        //                 if (matrix[k][l] !== -1) {
+        //                     throw new TRPCError({
+        //                         code: "BAD_REQUEST",
+        //                         message: `Invalid seat layout, overlapping seats detected. Overlapping seat indices: ${matrix[k][l]} and ${currentSeatIndex}`,
+        //                         cause: "Row index, row span, col index, col span or floor violates the bus layout range constraint",
+        //                     });
+        //                 }
+        //                 matrix[k][l] = currentSeatIndex;
+        //             }
+        //         }
+        //     }
+        // }
+
+        const newSeats = this.seatRepo.create(dto.seats.map(seat => ({
+            bus,
+            code: generateSeatCode(seat.row, seat.col, seat.floor),
+            row: seat.row,
+            col: seat.col,
+            // rowSpan: seat.rowSpan,
+            // colSpan: seat.colSpan,
+            floor: seat.floor,
+            seatType: seat.seatType,
+        })));
+        return await this.seatRepo.save(newSeats, { transaction: true });
+    }
+
+    validateSeatsLayout(seats: BusSeatCreateOneDtoType[], busRows: number, busCols: number, busFloors: number) {
+        if (!seats.every(
+            (v) => v.row >= 0 && v.row < busRows &&
+                v.col >= 0 && v.col < busCols &&
+                v.floor >= 0 && v.floor < busFloors
         )) {
             throw new TRPCError({
                 code: "BAD_REQUEST",
@@ -88,44 +163,18 @@ export class BusesService {
             });
         }
 
-        // coded this at 0AM
-        // this needs more testing
-        dto.seats.sort((a, b) => a.floor - b.floor);
-        const seatsGroupedByFloor = Object.values(groupBy(dto.seats, seat => seat.floor));
-        for (let i = 0; i < seatsGroupedByFloor.length; i++) {
-            const seatGroup = seatsGroupedByFloor.at(i)!;
-            const matrix = Array.from({ length: bus.rows }, () => new Array(bus.cols).fill(-1)) as number[][];
-            for (let currentSeatIndex = 0; currentSeatIndex < seatGroup.length; currentSeatIndex++) {
-                const currentSeat = seatGroup.at(currentSeatIndex)!;
-                const rowStartIndex = currentSeat.row;
-                const rowEndIndex = currentSeat.row + currentSeat.rowSpan - 1;
-                const colStartIndex = currentSeat.col;
-                const colEndIndex = currentSeat.col + currentSeat.colSpan - 1;
-                for (let k = rowStartIndex; k <= rowEndIndex; k++) {
-                    for (let l = colStartIndex; l <= colEndIndex; l++) {
-                        if (matrix[k][l] !== -1) {
-                            throw new TRPCError({
-                                code: "BAD_REQUEST",
-                                message: `Invalid seat layout, overlapping seats detected. Overlapping seat indices: ${matrix[k][l]} and ${currentSeatIndex}`,
-                                cause: "Row index, row span, col index, col span or floor violates the bus layout range constraint",
-                            });
-                        }
-                        matrix[k][l] = currentSeatIndex;
-                    }
-                }
+        const seatSet = new Set<string>();
+        for (let i = 0; i < seats.length; i++) {
+            const seat = seats[i];
+            const key = `${seat.row}-${seat.col}-${seat.floor}`;
+            if (seatSet.has(key)) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: `Invalid seat layout, overlapping seats detected. Overlapping seat (row-col-floor): ${key}`,
+                    cause: "Row index, row span, col index, col span or floor violates the bus layout range constraint",
+                });
             }
         }
-
-        const newSeats = this.seatRepo.create(dto.seats.map(seat => ({
-            bus,
-            code: this.generateSeatCode(seat.row, seat.col, seat.floor),
-            row: seat.row,
-            rowSpan: seat.rowSpan,
-            col: seat.col,
-            colSpan: seat.colSpan,
-            floor: seat.floor,
-        })));
-        return await this.seatRepo.save(newSeats, { transaction: true });
     }
 
     async getSeatsByBus(dto: BusGetSeatsByBusIdDtoType) {
@@ -155,8 +204,17 @@ export class BusesService {
         return bus;
     }
 
-    async deleteOne(dto: BusDeleteOneDtoType){
-        await this.busRepo.delete({id: dto.id});
+    async deleteOne(dto: BusDeleteOneDtoType) {
+        const bus = await this.findOneBusHelper({ where: { id: dto.id } });
+        if (!bus) {
+            throw new TRPCError({
+                code: "NOT_FOUND",
+                message: `Bus with ID: ${dto.id} is not found`,
+                cause: "Not found bus ID",
+            });
+        }
+        await this.busRepo.delete({ id: bus.id });
+        await this.seatRepo.delete({ bus: bus });
     }
 
     async searchBus(dto: BusSearchDtoType) {
@@ -167,7 +225,7 @@ export class BusesService {
             .skip((dto.page - 1) * dto.perPage)
             .take(dto.perPage);
 
-        if (dto.driverNotNull){
+        if (dto.driverNotNull) {
             qb.andWhere("bus.driver IS NOT NULL");
         }
 
@@ -204,14 +262,6 @@ export class BusesService {
             total: count,
             totalPage,
         };
-    }
-
-
-    /**
-     * Create a seat code based on position
-     */
-    generateSeatCode(rowIndex: number, colIndex: number, floorIndex: number): string {
-        return `${String(rowIndex + 1).padStart(2, '0')}-${(colIndex + 1).toString(16).padStart(2, '0')}-${String(floorIndex + 1).padStart(2, '0')}`;
     }
 
     findOneBusHelper(options: FindOneOptions<Bus>) {

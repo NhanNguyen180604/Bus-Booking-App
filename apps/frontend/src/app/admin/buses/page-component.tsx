@@ -62,7 +62,7 @@ export default function AdminManageBusPage() {
     // appending bus types whenever successfully fetch
     useEffect(() => {
         if (searchBusTypeQuery.isSuccess) {
-            driverTotalPageNumber.current = searchBusTypeQuery.data.totalPage;
+            busTypesTotalPageNumber.current = searchBusTypeQuery.data.totalPage;
             setBusTypes([...busTypes, ...searchBusTypeQuery.data.data]);
         }
     }, [searchBusTypeQuery.isSuccess]);
@@ -114,6 +114,7 @@ export default function AdminManageBusPage() {
             onDeleteModalClose();
             queryClient.removeQueries({ queryKey: trpc.buses.getOneById.queryKey({ id: variables.id }) });
             queryClient.invalidateQueries({ queryKey: trpc.buses.searchBus.queryKey() });
+            queryClient.invalidateQueries({ queryKey: trpc.users.search.queryKey() });
         },
     });
 

@@ -120,7 +120,7 @@ export default function AdminManageTripPage() {
             <form>
                 <Card className="flex flex-col mb-8">
                     <CardHeader className="text-text dark:text-text text-[20px] font-bold">FILTER</CardHeader>
-                    <CardBody className="flex px-6 border-b border-border dark:border-border pb-4 gap-8">
+                    <CardBody className="flex px-6 border-border dark:border-border pb-4 gap-8">
                         <div className="flex flex-col gap-2 flex-1">
                             <span className="text-text dark:text-text font-bold text-[1rem]">Bus Type</span>
                             {busTypesQuery.isPending ? (
@@ -407,7 +407,7 @@ export default function AdminManageTripPage() {
                                             {
                                                 header: "Price",
                                                 render: trip => {
-                                                    const price = Math.ceil(trip.basePrice * trip.bus.type.priceMultiplier);
+                                                    const price = Math.ceil(trip.basePrice);
                                                     return new Intl.NumberFormat("de-DE", {
                                                         style: "currency", currency: "VND", currencyDisplay: "code"
                                                     }).format(price);

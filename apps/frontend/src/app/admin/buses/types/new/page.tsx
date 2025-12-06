@@ -56,31 +56,23 @@ export default function AdminCreateNewBusTypePage() {
     return (
         <div className="flex flex-col">
             <h1 className="text-[2rem] text-text dark:text-text font-bold mb-8">Create New Bus Type</h1>
-            <Button variant="accent" className="self-start mb-8" onClick={() => router.push('/admin/buses')}>Return</Button>
+            <Button variant="accent" className="self-start mb-8" onClick={() => router.push('/admin/buses?tab=1')}>Return</Button>
 
             <form onSubmit={handleSubmit(onSubmit)}>
                 <Card>
-                    <CardBody className="grid grid-cols-2 gap-x-6 gap-y-4">
+                    <CardBody className="gap-x-6 gap-y-4">
                         {formErrors.root && (
                             <div className="col-span-2">
                                 <p className="text-danger dark:text-danger font-bold">{formErrors.root.message}</p>
                             </div>
                         )}
 
-                        {/* station dropdowns */}
                         <FormField
                             label="Name"
                             placeholder="Sleeper"
                             required
                             {...register("name")}
                             error={formErrors.name?.message}
-                        />
-                        <FormField
-                            label="Price Multiplier"
-                            placeholder="1"
-                            required
-                            {...register("priceMultiplier", { valueAsNumber: true })}
-                            error={formErrors.priceMultiplier?.message}
                         />
                     </CardBody>
 

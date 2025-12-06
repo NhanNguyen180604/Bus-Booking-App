@@ -188,11 +188,15 @@ export default function AdminManageRoutePage() {
                                     },
                                     {
                                         header: "Distance",
-                                        render: route => route.distanceKm,
+                                        render: route => `${route.distanceKm} km`,
                                     },
                                     {
-                                        header: "Estimated Minutes",
-                                        render: route => route.estimatedMinutes,
+                                        header: "Estimated Duration",
+                                        render: route => {
+                                            const hours = Math.floor(route.estimatedMinutes / 60);
+                                            const minutes = route.estimatedMinutes % 60;
+                                            return `${hours} hour${hours > 1 && "s"}, ${minutes} minute${minutes > 1 && "s"}`;
+                                        }
                                     },
                                     {
                                         header: "Actions",
@@ -200,7 +204,7 @@ export default function AdminManageRoutePage() {
                                             <>
                                                 <Button className="flex-1" variant="accent" onClick={() => { router.push(`/admin/routes/edit/${route.id}`) }}>Edit</Button>
                                                 <Button className="flex-1" variant="danger"
-                                                    onClick={(e) => {
+                                                    onClick={() => {
                                                         setShowDeleteModal(true);
                                                         setDeletingRoute(route);
                                                     }}

@@ -2,17 +2,13 @@
 import { Button } from "@/src/components/ui/button";
 import { Card, CardBody, CardFooter } from "@/src/components/ui/card";
 import { FormField } from "@/src/components/ui/form-field";
-import { OptionType, SelectDropdown } from "@/src/components/ui/select-dropdown";
 import { useTRPC } from "@/src/utils/trpc";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type RouterOutputsType } from 'backend'
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { BusTypeUpdateOneDto, BusTypeUpdateOneDtoType } from "@repo/shared";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter, useParams } from "next/navigation";
 import { useEffect } from "react";
-
-type BusType = RouterOutputsType['busTypes']['getOneById'];
 
 export default function AdminEditRoutePage() {
     const params = useParams<{ id: string }>();
@@ -76,11 +72,11 @@ export default function AdminEditRoutePage() {
     return (
         <div className="flex flex-col">
             <h1 className="text-[2rem] text-text dark:text-text font-bold mb-8">Edit Route</h1>
-            <Button variant="accent" className="self-start mb-8" onClick={() => router.push('/admin/routes')}>Return</Button>
+            <Button variant="accent" className="self-start mb-8" onClick={() => router.push('/admin/buses?tab=1')}>Return</Button>
 
             <form onSubmit={handleSubmit(onSubmit)}>
                 <Card>
-                    <CardBody className="grid grid-cols-2 gap-x-6 gap-y-4">
+                    <CardBody className="gap-x-6 gap-y-4">
                         {formErrors.root && (
                             <div className="col-span-2">
                                 <p className="text-danger dark:text-danger font-bold">{formErrors.root.message}</p>
@@ -93,13 +89,6 @@ export default function AdminEditRoutePage() {
                             required
                             {...register("name")}
                             error={formErrors.name?.message}
-                        />
-                        <FormField
-                            label="Price Multiplier"
-                            placeholder="1"
-                            required
-                            {...register("priceMultiplier", { valueAsNumber: true })}
-                            error={formErrors.priceMultiplier?.message}
                         />
                     </CardBody>
 

@@ -9,6 +9,6 @@ export class BusType {
     @Column({ unique: true })
     name: string;
 
-    @Column({ type: 'real' })
+    @Column({ type: 'real', default: 1 })
     priceMultiplier: number;
 };

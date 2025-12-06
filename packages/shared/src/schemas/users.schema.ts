@@ -36,6 +36,7 @@ export type UserRegisterDtoType = z.infer<typeof UserRegisterDto>;
 
 export const UserSearchDto = z.object({
     role: z.enum(["USER", "DRIVER"]).optional(),
+    driverWithNoBus: z.boolean().optional(),
     nameQuery: z.string().nonempty({ error: "Name must not be an empty string" }).optional(),
     nameSort: sortOptions,
     phoneQuery: z.string().nonempty({ error: "Phone must not be an empty string" }).optional(),
