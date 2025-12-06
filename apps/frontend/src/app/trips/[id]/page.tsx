@@ -51,11 +51,8 @@ export default function TripDetailPage() {
   return (
     <AppShell hideNav>
       <TripDetail 
-        trip={{
-          ...tripQuery.data,
-          departureTime: new Date(tripQuery.data.departureTime),
-          arrivalTime: new Date(tripQuery.data.arrivalTime),
-        }} 
+        trip={tripQuery.data}
+        key={tripQuery.data.id} 
       />
     </AppShell>
   );

@@ -6,36 +6,17 @@ import { z } from "zod";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { FormField } from "../ui/form-field";
-import { Autocomplete } from "../ui/autocomplete";
+import { SelectDropdown, type OptionType } from "../ui/select-dropdown";
 import { useTRPC } from "../../utils/trpc";
 import { useQuery } from "@tanstack/react-query";
-import { type TripFindManyDtoType } from "@repo/shared";
+import { TripFindManyDto, type TripFindManyDtoType } from "@repo/shared";
 
 interface BusSearchFormProps {
   onSearch: (params: Omit<TripFindManyDtoType, 'page' | 'perPage'>) => void;
   isLoading: boolean;
 }
 
-const BusSearchFormSchema = z.object({
-  origin: z.uuid().optional(),
-  destination: z.uuid().optional(),
-  departureTime: z.string().optional(),
-}).refine(
-  (data) => data.origin && data.destination,
-  {
-    message: "Both origin and destination are required",
-  }
-).refine(
-  (data) => data.origin !== data.destination,
-  {
-    message: "Origin and destination must be different",
-    path: ["destination"],
-  }
-);
-
-type BusSearchFormType = {
-  origin?: string;
-  destination?: string;
+type BusSearchFormType = Omit<TripFindManyDtoType, 'departureTime' | 'page' | 'perPage'> & {
   departureTime?: string;
 };
 
@@ -47,16 +28,14 @@ export function BusSearchForm({ onSearch, isLoading }: BusSearchFormProps) {
     register,
     handleSubmit,
     setValue,
-    watch,
     control,
     getValues,
     formState: { errors },
   } = useForm<BusSearchFormType>({
-    resolver: zodResolver(BusSearchFormSchema),
+    resolver: zodResolver(TripFindManyDto.omit({ page: true, perPage: true, departureTime: true }).extend({
+      departureTime: z.string().optional(),
+    })),
   });
-
-  const origin = watch("origin");
-  const destination = watch("destination");
 
   const onSubmit = (data: BusSearchFormType) => {
     onSearch({
@@ -88,26 +67,29 @@ export function BusSearchForm({ onSearch, isLoading }: BusSearchFormProps) {
                   name="origin"
                   control={control}
                   render={({ field }) => (
-                    <Autocomplete
+                    <SelectDropdown
                       label="Origin"
                       options={stations.map((station) => ({
-                        id: station.id,
+                        value: station.id,
                         label: station.name,
                       }))}
-                      value={field.value}
-                      onChange={field.onChange}
+                      value={stations.find((s) => s.id === field.value) ? { value: field.value!, label: stations.find((s) => s.id === field.value)!.name } : null}
+                      onChange={(option) => field.onChange((option as OptionType<string> | null)?.value)}
                       placeholder="Select origin..."
-                      disabled={stationsQuery.isLoading}
-                      error={errors.origin?.message}
+                      isDisabled={stationsQuery.isLoading}
+                      isClearable
                     />
                   )}
                 />
+                {errors.origin?.message && (
+                  <p className="text-sm text-danger mt-1">{errors.origin.message}</p>
+                )}
               </div>
 
               <button
                 type="button"
                 onClick={handleSwap}
-                className="self-end mb-0 p-3 text-text hover:text-text dark:text-text dark:hover:text-text transition-colors"
+                className="self-center mb-0 p-3 text-text hover:cursor-pointer hover:text-text/50 dark:text-text dark:hover:text-text transition-colors"
                 aria-label="Swap origin and destination"
               >
                 <svg
@@ -132,20 +114,23 @@ export function BusSearchForm({ onSearch, isLoading }: BusSearchFormProps) {
                   name="destination"
                   control={control}
                   render={({ field }) => (
-                    <Autocomplete
+                    <SelectDropdown
                       label="Destination"
                       options={stations.map((station) => ({
-                        id: station.id,
+                        value: station.id,
                         label: station.name,
                       }))}
-                      value={field.value}
-                      onChange={field.onChange}
+                      value={stations.find((s) => s.id === field.value) ? { value: field.value!, label: stations.find((s) => s.id === field.value)!.name } : null}
+                      onChange={(option) => field.onChange((option as OptionType<string> | null)?.value)}
                       placeholder="Select destination..."
-                      disabled={stationsQuery.isLoading}
-                      error={errors.destination?.message}
+                      isDisabled={stationsQuery.isLoading}
+                      isClearable
                     />
                   )}
                 />
+                {errors.destination?.message && (
+                  <p className="text-sm text-danger mt-1">{errors.destination.message}</p>
+                )}
               </div>
             </div>
 
@@ -162,30 +147,23 @@ export function BusSearchForm({ onSearch, isLoading }: BusSearchFormProps) {
 
             {/* Passengers */}
             <div className="flex-1 lg:max-w-xs">
-              <label className="block text-sm font-medium text-text dark:text-text mb-1">
-                Passengers
-              </label>
-              <select
-              //Change later
-                disabled
-                // {...register("passengers", { valueAsNumber: true })}
-                className="w-full rounded-md border border-border dark:border-border bg-primary py-3 text-text dark:text-text focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
-              >
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                  <option key={num} value={num}>
-                    {num} passenger{num > 1 ? "s" : ""}
-                  </option>
-                ))}
-              </select>
+              <SelectDropdown
+                label="Passengers"
+                options={[1, 2, 3, 4, 5].map((num) => ({
+                  value: num,
+                  label: `${num} passenger${num > 1 ? "s" : ""}`,
+                }))}
+                defaultValue={{ value: 1, label: "1 passenger" }}
+              />
             </div>
 
             {/* Search Button */}
-            <div className="flex items-end">
+            <div className="flex items-center min-h-[100px]">
               <Button
                 type="submit"
                 variant="accent"
                 size="lg"
-                className="w-full lg:w-auto px-8"
+                className="w-full lg:w-auto"
                 disabled={isLoading}
               >
                 {isLoading ? (

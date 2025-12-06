@@ -167,16 +167,16 @@ export class TripsService {
                 ),
             }
         }
-        if (dto.minPrice && dto.maxPrice) {
+        if (dto.minPrice !== undefined && dto.maxPrice !== undefined) {
             where = {
                 ...where,
                 basePrice: Between(dto.minPrice, dto.maxPrice),
             }
         }
-        if (dto.bus && dto.bus.length > 0) {
+        if (dto.busType && dto.busType.length > 0) {
             where = {
                 ...where,
-                bus: { id: In(dto.bus) },
+                bus: { type: { id: In(dto.busType) } },
             }
         }
         if (dto.sortPrice) {

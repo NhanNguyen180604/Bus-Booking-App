@@ -4,41 +4,15 @@ import { Card, CardBody } from "../ui/card";
 import { Button } from "../ui/button";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { type RouterOutputsType } from "backend";
+import Pagination from "../ui/pagination";
+import Image from "next/image";
 
-interface Trip {
-  id: string;
-  departureTime: Date;
-  arrivalTime: Date;
-  basePrice: number;
-  route: {
-    id: string;
-    origin: { id: string; name: string };
-    destination: { id: string; name: string };
-    distanceKm: number;
-    estimatedMinutes: number;
-  };
-  bus: {
-    id: string;
-    plateNumber: string;
-    rows: number;
-    cols: number;
-    floors: number;
-    type: {
-      id: string;
-      name: string;
-      priceMultiplier: number;
-    };
-  };
-}
+type FindTripResults = RouterOutputsType["trips"]["search"];
+type Bus = FindTripResults["trips"][0]["bus"];
 
 interface SearchResultsProps {
-  results: {
-    trips: Trip[];
-    page: number;
-    perPage: number;
-    total: number;
-    totalPage: number;
-  } | null;
+  results: FindTripResults | null;
   isLoading: boolean;
   onPageChange: (page: number) => void;
 }
@@ -95,7 +69,7 @@ export function SearchResults({
     );
   }
 
-  const formatTime = (date: Date) => {
+  const getTime = (date: string) => {
     return new Date(date).toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
@@ -103,7 +77,7 @@ export function SearchResults({
     });
   };
 
-  const formatDate = (date: Date) => {
+  const getDate = (date: string) => {
     return new Date(date).toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
@@ -111,14 +85,14 @@ export function SearchResults({
     });
   };
 
-  const calculateDuration = (start: Date, end: Date) => {
+  const calculateDuration = (start: string, end: string) => {
     const diff = new Date(end).getTime() - new Date(start).getTime();
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     return `${hours}h ${minutes}m`;
   };
 
-  const calculateSeats = (bus: Trip["bus"]) => {
+  const calculateSeats = (bus: Bus) => {
     return bus.rows * bus.cols * bus.floors;
   };
 
@@ -158,8 +132,8 @@ export function SearchResults({
                       <div className="flex items-center gap-6 mb-3">
                         {/* Departure */}
                         <div className="text-center min-w-20">
-                          <div className="text-3xl font-bold text-text">
-                            {formatTime(trip.departureTime)}
+                          <div className="text-3xl font-semibold text-text">
+                            {getTime(trip.departureTime)}
                           </div>
                           <div className="text-sm text-secondary-text mt-1">
                             {trip.route.origin.name}
@@ -202,8 +176,8 @@ export function SearchResults({
 
                         {/* Arrival */}
                         <div className="text-center min-w-20">
-                          <div className="text-3xl font-bold text-text">
-                            {formatTime(trip.arrivalTime)}
+                          <div className="text-3xl font-semibold text-text">
+                            {getTime(trip.arrivalTime)}
                           </div>
                           <div className="text-sm text-secondary-text mt-1">
                             {trip.route.destination.name}
@@ -214,27 +188,12 @@ export function SearchResults({
                       {/* Bus Details */}
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
                         <div className="flex items-center gap-1.5 text-secondary-text">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <rect width="18" height="18" x="3" y="3" rx="2" />
-                            <path d="M9 3v18" />
-                            <path d="M15 3v18" />
-                            <path d="M3 9h18" />
-                            <path d="M3 15h18" />
-                          </svg>
+                          <Image src={"/icons/bus-ic.svg"} alt={`bus icon`} width={24} height={24} />
                           <span className="font-medium text-text">{trip.bus.type.name}</span>
                         </div>
                         <div className="text-secondary-text">•</div>
                         <div className="flex items-center gap-1.5 text-secondary-text">
+                          <Image src={"/icons/seat-ic.svg"} alt={`seat icon`} width={24} height={24} />
                           <span>{totalSeats} seats</span>
                         </div>
                       </div>
@@ -243,11 +202,11 @@ export function SearchResults({
                     {/* Right: Price and Action */}
                     <div className="flex flex-col items-end justify-between min-w-40">
                       <div className="text-right mb-4">
-                        <div className="text-sm font-bold text-text uppercase tracking-wide mb-1">
+                        <div className="text-sm font-semibold text-text uppercase tracking-wide mb-1">
                           Price
                         </div>
-                        <div className="text-3xl font-bold text-accent">
-                          ${totalPrice.toFixed(2)}
+                        <div className="text-3xl font-semibold text-accent">
+                          ${totalPrice}
                         </div>
                         <div className="text-xs text-secondary-text mt-0.5">
                           per seat
@@ -271,13 +230,13 @@ export function SearchResults({
                         <div>
                           <div className="text-secondary-text mb-1">Departure Date</div>
                           <div className="font-medium text-text">
-                            {formatDate(trip.departureTime)}
+                            {getDate(trip.departureTime)}
                           </div>
                         </div>
                         <div>
                           <div className="text-secondary-text mb-1">Estimated Arrival</div>
                           <div className="font-medium text-text">
-                            {formatDate(trip.arrivalTime)}
+                            {getDate(trip.arrivalTime)}
                           </div>
                         </div>
                         <div>
@@ -313,86 +272,12 @@ export function SearchResults({
 
       {/* Pagination */}
       {results.totalPage > 1 && (
-        <div className="flex items-center justify-center gap-2 py-4">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => onPageChange(results.page - 1)}
-            disabled={results.page === 1}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="m15 18-6-6 6-6" />
-            </svg>
-          </Button>
-
-          {/* Page Numbers */}
-          <div className="flex gap-1">
-            {Array.from({ length: results.totalPage }, (_, i) => i + 1)
-              .filter((page) => {
-                // Show first, last, current, and adjacent pages
-                return (
-                  page === 1 ||
-                  page === results.totalPage ||
-                  Math.abs(page - results.page) <= 1
-                );
-              })
-              .map((page, index, array) => {
-                // Add ellipsis
-                const showEllipsisBefore =
-                  index > 0 && page - array[index - 1] > 1;
-
-                return (
-                  <div key={page} className="flex items-center">
-                    {showEllipsisBefore && (
-                      <span className="px-2 text-secondary-text">
-                        ...
-                      </span>
-                    )}
-                    <Button
-                      variant={
-                        page === results.page ? "accent" : "secondary"
-                      }
-                      size="sm"
-                      onClick={() => onPageChange(page)}
-                      className="min-w-10"
-                    >
-                      {page}
-                    </Button>
-                  </div>
-                );
-              })}
-          </div>
-
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => onPageChange(results.page + 1)}
-            disabled={results.page === results.totalPage}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="m9 18 6-6-6-6" />
-            </svg>
-          </Button>
+        <div className="flex items-center justify-center py-4">
+          <Pagination
+            currentPage={results.page}
+            totalPage={results.totalPage}
+            loadPageFn={onPageChange}
+          />
         </div>
       )}
     </div>

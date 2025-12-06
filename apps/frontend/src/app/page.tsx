@@ -6,9 +6,10 @@ import { BusSearchForm } from "../components/home/bus-search-form";
 import { HeroSection } from "../components/home/hero-section";
 import { AuthActions } from "../components/home/auth-actions";
 import { SearchResults } from "../components/home/search-results";
+import { FilterSortPanel } from "../components/home/filter-sort-panel";
 import { useTRPC } from "../utils/trpc";
 import { useQuery, skipToken } from "@tanstack/react-query";
-import { type TripFindManyDtoType, TripFindManyDto } from "@repo/shared";
+import { type TripFindManyDtoType } from "@repo/shared";
 
 export default function Home() {
   const trpc = useTRPC();
@@ -18,13 +19,33 @@ export default function Home() {
     trpc.trips.search.queryOptions(searchParams ?? skipToken)
   );
 
+  const perPage = 10;
   const handleSearch = (params: Omit<TripFindManyDtoType, 'page' | 'perPage'>) => {
-    setSearchParams({ ...params, page: 1, perPage: 10 });
+    setSearchParams({ ...params, page: 1, perPage });
   };
 
   const handlePageChange = (page: number) => {
     if (searchParams) {
-      setSearchParams({ ...searchParams, page });
+      setSearchParams({ ...searchParams, page, perPage });
+    }
+  };
+
+  const handleFilterChange = (filters: {
+    options: Omit<TripFindManyDtoType, 'page' | 'perPage'>;
+  }) => {
+    setSearchParams({ ...searchParams, 
+      ...filters.options, page: 1, perPage });
+  };
+
+  const handleResetFilters = () => {
+    if (searchParams) {
+      setSearchParams({
+        origin: searchParams.origin,
+        destination: searchParams.destination,
+        departureTime: searchParams.departureTime,
+        page: 1,
+        perPage,
+      });
     }
   };
 
@@ -37,22 +58,24 @@ export default function Home() {
           isLoading={searchQuery.isFetching}
         />
         {searchParams && (
-          <SearchResults
-            results={
-              searchQuery.data
-                ? {
-                    ...searchQuery.data,
-                    trips: searchQuery.data.trips.map((trip) => ({
-                      ...trip,
-                      departureTime: new Date(trip.departureTime),
-                      arrivalTime: new Date(trip.arrivalTime),
-                    })),
-                  }
-                : null
-            }
-            isLoading={searchQuery.isFetching}
-            onPageChange={handlePageChange}
-          />
+          <div className="flex gap-6">
+            <div className="w-80 shrink-0">
+              <FilterSortPanel
+                options={searchParams}
+                onFilterChange={handleFilterChange}
+                onReset={handleResetFilters}
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <SearchResults
+                results={
+                  searchQuery.data ? searchQuery.data : null
+                }
+                isLoading={searchQuery.isFetching}
+                onPageChange={handlePageChange}
+              />
+            </div>
+          </div>
         )}
         <AuthActions />
       </div>
