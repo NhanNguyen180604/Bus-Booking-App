@@ -6,6 +6,7 @@ import { Card, CardBody, CardHeader } from "../ui/card";
 import { Button } from "../ui/button";
 import { RouterOutputsType } from "backend";
 import Image from "next/image";
+import { SeatTypeEnum } from "@repo/shared";
 
 type Trip = RouterOutputsType["trips"]["findOneById"];
 type Seat = Omit<RouterOutputsType["buses"]["getSeatsByBus"][0], "bus">;
@@ -58,10 +59,9 @@ export function TripDetail({ trip }: { trip: Trip }) {
             id: seatCode,
             row,
             col,
-            rowSpan: 1,
-            colSpan: 1,
             floor,
             code: seatCode,
+            seatType: SeatTypeEnum.PASSENGER,
             isActive: true,
           });
         } else if (isDriver) {
@@ -69,10 +69,9 @@ export function TripDetail({ trip }: { trip: Trip }) {
             id: "Driver",
             row,
             col,
-            rowSpan: 1,
-            colSpan: 1,
             floor,
             code: "DRIVER",
+            seatType: SeatTypeEnum.DRIVER,
             isActive: false,
           });
         }
@@ -215,11 +214,11 @@ export function TripDetail({ trip }: { trip: Trip }) {
                   Plate: {trip!.bus.plateNumber}
                 </div>
                 <div>•</div>
-                <div className="flex items-center gap-1.5"> 
+                <div className="flex items-center gap-1.5">
                   <Image src={"/icons/seat-ic.svg"} alt={`seat icon`} width={24} height={24} />
                   {totalSeats} seats</div>
                 <div>•</div>
-                <div className="flex items-center"> 
+                <div className="flex items-center">
                   <Image src={"/icons/floor-ic.svg"} alt={`floor icon`} width={24} height={24} />
                   {trip!.bus.floors} floor{trip!.bus.floors > 1 ? "s" : ""}</div>
               </div>
@@ -313,7 +312,7 @@ export function TripDetail({ trip }: { trip: Trip }) {
                     {seats.map((seat, index) => {
                       const status = getSeatStatus(seat);
                       return (
-                        <div 
+                        <div
                           key={index}
                           className="flex justify-between items-center">
                           <button
