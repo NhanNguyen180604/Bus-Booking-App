@@ -224,9 +224,9 @@ export default function AdminEditTripPage() {
                                 render={({ field: { onChange } }) => (
                                     <SelectDropdown label="Bus (Plate Number - Type - Type Price Multi - Driver Name - Driver Email)" isClearable required
                                         value={selectedBus && function () {
-                                            return { value: selectedBus.id, label: `${selectedBus.plateNumber} - ${selectedBus.type.name} - ${selectedBus.type.priceMultiplier} - ${selectedBus.driver.name} - ${selectedBus.driver.email}` };
+                                            return { value: selectedBus.id, label: `${selectedBus.plateNumber} - ${selectedBus.type.name} - ${selectedBus.driver.name} - ${selectedBus.driver.email}` };
                                         }()}
-                                        options={buses.map(bus => ({ value: bus.id, label: `${bus.plateNumber} - ${bus.type.name} - ${bus.type.priceMultiplier} - ${bus.driver.name} - ${bus.driver.email}` }))}
+                                        options={buses.map(bus => ({ value: bus.id, label: `${bus.plateNumber} - ${bus.type.name} - ${bus.driver.name} - ${bus.driver.email}` }))}
                                         onChange={(newValue, _) => {
                                             const newVal: OptionType<string> = newValue as OptionType<string>;
                                             onChange(newVal ? newVal.value : "");
