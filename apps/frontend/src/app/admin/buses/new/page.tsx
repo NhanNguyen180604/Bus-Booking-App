@@ -91,6 +91,13 @@ export function AdminCreateBusPage() {
     const busForm = useForm<BusCreateOneWithSeatsDtoType>({
         resolver: zodResolver(BusCreateOneWithSeatsDto),
         mode: "onBlur",
+        defaultValues: {
+            bus: {
+                floors: 1,
+                rows: 0,
+                cols: 0,
+            },
+        }
     });
 
     const createBusMutationOpts = trpc.buses.createOneWithSeats.mutationOptions();
@@ -121,8 +128,6 @@ export function AdminCreateBusPage() {
     });
     //#endregion
 
-    // gomen, performance
-    // ore wa ima, omae no tame ni wa optimze de nai
     const [seatMatrix, setSeatMatrix] = useState<(Seat | null)[][][]>([]);
     const watchRows = useWatch({ control: busForm.control, name: "bus.rows" });
     const watchCols = useWatch({ control: busForm.control, name: "bus.cols" });
@@ -134,25 +139,74 @@ export function AdminCreateBusPage() {
             setCurrentFloorIndex(0);
         }
 
-        const newSeatMatrix: (Seat | null)[][][] = [];
+        const prevFloors = seatMatrix.length;
+        const prevRows = seatMatrix.at(0)?.length ?? 0;
+        const prevCols = seatMatrix.at(0)?.at(0)?.length ?? 0;
 
-        for (let floorIndex = 0; floorIndex < watchFloors; floorIndex++) {
-            const newFloor: (Seat | null)[][] = [];
-            for (let rowIndex = 0; rowIndex < watchRows; rowIndex++) {
-                const newRow: (Seat | null)[] = [];
-                for (let colIndex = 0; colIndex < watchCols; colIndex++) {
-                    // preserve seat if inside old bounds
-                    const seat = seatMatrix?.[floorIndex]?.[rowIndex]?.[colIndex] ?? null;
-                    newRow.push(seat);
-                }
-                newFloor.push(newRow);
+        let newSeatMatrix: (Seat | null)[][][] = [...seatMatrix];
+        if (prevFloors !== watchFloors) {
+            if (watchFloors < prevFloors) {
+                newSeatMatrix = seatMatrix.slice(0, watchFloors);
+                setSeatMatrix(newSeatMatrix);
             }
-            newSeatMatrix.push(newFloor);
+            else {
+                newSeatMatrix = [...seatMatrix];
+                for (let floorIndex = prevFloors; floorIndex < watchFloors; floorIndex++) {
+                    const newFloor: (Seat | null)[][] = [];
+                    for (let rowIndex = 0; rowIndex < watchRows; rowIndex++) {
+                        const newRow: (Seat | null)[] = [];
+                        for (let colIndex = 0; colIndex < watchCols; colIndex++) {
+                            newRow.push(null);
+                        }
+                        newFloor.push(newRow);
+                    }
+                    newSeatMatrix.push(newFloor);
+                }
+                setSeatMatrix(newSeatMatrix);
+            }
+            if (watchFloors - 1 < currentFloorIndex)
+                setCurrentFloorIndex(watchFloors - 1);
         }
-
-        if (watchFloors < currentFloorIndex)
-            setCurrentFloorIndex(watchFloors);
-        setSeatMatrix(newSeatMatrix);
+        else if (prevRows !== watchRows) {
+            if (watchRows < prevRows) {
+                newSeatMatrix = seatMatrix.map(floor =>
+                    floor.slice(0, watchRows)
+                );
+                setSeatMatrix(newSeatMatrix);
+            }
+            else {
+                for (const floor of newSeatMatrix) {
+                    for (let rowIndex = prevRows; rowIndex < watchRows; rowIndex++) {
+                        const newRow: (Seat | null)[] = [];
+                        for (let colIndex = 0; colIndex < watchCols; colIndex++) {
+                            newRow.push(null);
+                        }
+                        floor.push(newRow);
+                    }
+                }
+                setSeatMatrix(newSeatMatrix);
+            }
+        }
+        else if (prevCols !== watchCols) {
+            if (watchCols < prevCols) {
+                newSeatMatrix = seatMatrix.map(floor =>
+                    floor.map(row =>
+                        row.slice(0, watchCols)
+                    )
+                );
+                setSeatMatrix(newSeatMatrix);
+            }
+            else {
+                for (const floor of newSeatMatrix) {
+                    for (const row of floor) {
+                        for (let colIndex = prevCols; colIndex < watchCols; colIndex++) {
+                            row.push(null);
+                        }
+                    }
+                }
+                setSeatMatrix(newSeatMatrix);
+            }
+        }
     }, [watchRows, watchCols, watchFloors]);
 
     // -100000 performance points, Capcom shall hire me to optimize Monster Hunter Wilds
@@ -287,43 +341,48 @@ export function AdminCreateBusPage() {
                     </Card>
                 </div>
                 <div className="flex flex-col-reverse xl:flex-row gap-4 mt-4 xl:grid-cols-3">
-                    {/* seat layout */}
-                    <Card className="flex justify-center space-y-2 flex-1 py-2 xl:flex-2">
-                        <CardBody className="flex flex-col gap-y-2">
-                            {Array.from({ length: rows }).map((_, rowIndex) => (
-                                <div key={`seat-row-${rowIndex}`} className="flex space-x-2">
-                                    {Array.from({ length: cols }).map((_, colIndex) => (
-                                        <button
-                                            draggable={false}
-                                            key={`seat-${rowIndex}-${colIndex}`}
-                                            ref={attachRef}
-                                            // data-id for drag select
-                                            data-id={`${currentFloorIndex}-${rowIndex}-${colIndex}`}
-                                            className={`
+                    {seatMatrix[currentFloorIndex] && (
+                        <>
+                            {/* seat layout */}
+                            <Card className="flex justify-center space-y-2 flex-1 py-2 xl:flex-2">
+                                <CardBody className="flex flex-col gap-y-2">
+                                    {Array.from({ length: rows }).map((_, rowIndex) => (
+                                        <div key={`seat-row-${rowIndex}`} className="flex space-x-2">
+                                            {Array.from({ length: cols }).map((_, colIndex) => (
+                                                <button
+                                                    draggable={false}
+                                                    key={`seat-${rowIndex}-${colIndex}`}
+                                                    ref={attachRef}
+                                                    // data-id for drag select
+                                                    data-id={`${currentFloorIndex}-${rowIndex}-${colIndex}`}
+                                                    className={`
                                             w-12 h-12 transition-all border-2 hover:border-accent
                                             ${seatMatrix[currentFloorIndex][rowIndex][colIndex] ?
-                                                    `${seatMatrix[currentFloorIndex][rowIndex][colIndex]?.seatType === SeatTypeEnum.DRIVER ? "bg-warning dark:bg-warning border-warning!" : "bg-accent dark:bg-accent "}
+                                                            `${seatMatrix[currentFloorIndex][rowIndex][colIndex]?.seatType === SeatTypeEnum.DRIVER ? "bg-warning dark:bg-warning border-warning!" : "bg-accent dark:bg-accent "}
                                                  text-light-text-button dark:text-light-text-button border-accent scale-105` :
-                                                    `bg-primary dark:bg-primary hover:bg-primary/50 text-text dark:text-text border-primary hover:scale-105`
-                                                }
+                                                            `bg-primary dark:bg-primary hover:bg-primary/50 text-text dark:text-text border-primary hover:scale-105`
+                                                        }
                                             flex items-center justify-center cursor-pointer rounded-lg select-none
                                         `}
-                                            onContextMenu={(e) => {
-                                                e.preventDefault();
-                                                onSeatClick(rowIndex, colIndex, false);
-                                            }}
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                onSeatClick(rowIndex, colIndex, true);
-                                            }}
-                                        >
-                                            {generateSeatCode(rowIndex, colIndex, currentFloorIndex)}
-                                        </button>
+                                                    onContextMenu={(e) => {
+                                                        e.preventDefault();
+                                                        onSeatClick(rowIndex, colIndex, false);
+                                                    }}
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        onSeatClick(rowIndex, colIndex, true);
+                                                    }}
+                                                >
+                                                    {generateSeatCode(rowIndex, colIndex, currentFloorIndex)}
+                                                </button>
+                                            ))}
+                                        </div>
                                     ))}
-                                </div>
-                            ))}
-                        </CardBody>
-                    </Card>
+                                </CardBody>
+                            </Card>
+                        </>
+                    )}
+
                     <div className="flex-1 flex xl:flex-col gap-4">
                         {/* legend */}
                         <Card className="flex items-center">
@@ -352,7 +411,7 @@ export function AdminCreateBusPage() {
                             </CardBody>
                         </Card>
                     </div>
-                </div>
+                </div >
             </>
         );
     };
