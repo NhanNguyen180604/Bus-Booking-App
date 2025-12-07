@@ -8,6 +8,11 @@ export enum PaymentProviderEnum {
     BANK = 'BANK',
 }
 
+export enum PaymentStatusEnum {
+    PROCESSING = 'PROCESSING',
+    COMPLETED = 'COMPLETED',
+}
+
 const PaymentDetails = z.object({
     methodId: z.uuid({ error: 'Payment method ID must be a UUID string' }).optional(),
     isGuestPayment: z.boolean().optional(),
@@ -23,9 +28,14 @@ const PaymentDetails = z.object({
 export const BookingCreateOneDto = z.object({
     tripId: z.uuid({ error: 'Trip ID must be a UUID string' }),
     seatIds: z.array(z.uuid({ error: 'Seat ID must be a UUID string' })).min(1, { error: 'At least one seat must be selected' }),
-    fullName: z.string().nonempty({ error: 'Full name is required' }),
-    phone: z.string().nonempty({ error: 'Phone number is required' }),
-    email: z.email({ error: 'Invalid email address' }).optional(),
+    fullName: z.string().trim().nonempty({ error: 'Full name is required' }),
+    phone: z.string().trim().nonempty({ error: 'Phone number is required' }),
+    // https://github.com/colinhacks/zod/issues/2513#issuecomment-1732405993
+    // what in the hell
+    email: z.union([
+        z.literal(''),
+        z.email({ error: 'Invalid email address' }),
+    ]),
     paymentDetails: PaymentDetails,
 });
 export type BookingCreateOneDtoType = z.infer<typeof BookingCreateOneDto>;

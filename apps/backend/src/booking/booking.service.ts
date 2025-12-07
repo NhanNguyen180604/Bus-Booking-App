@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
-import { BookingConfirmDtoType, BookingCreateOneDtoType, BookingLookUpDtoType, BookingUserSearchDtoType } from '@repo/shared';
+import { BookingConfirmDtoType, BookingCreateOneDtoType, BookingLookUpDtoType, BookingUserSearchDtoType, PaymentStatusEnum } from '@repo/shared';
 import { TRPCError } from '@trpc/server';
 import { Booking } from 'src/entities/booking.entity';
-import { Payment, PaymentStatusEnum } from 'src/entities/payment.entity';
+import { Payment } from 'src/entities/payment.entity';
 import { Seat } from 'src/entities/seat.entity';
 import { Trip } from 'src/entities/trip.entity';
 import { User } from 'src/entities/users.entity';
@@ -68,16 +68,18 @@ export class BookingService {
             }
 
             const { methodId: paymentMethodId, isGuestPayment, guestPaymentProvider } = dto.paymentDetails;
-            if ((user && !paymentMethodId) || (!user && !isGuestPayment)) {
-                const message = user && !paymentMethodId ?
-                    'Payment method ID must be provided for registered users' :
-                    'Guest payment details must be provided for guest users';
-                throw new TRPCError({
-                    code: 'BAD_REQUEST',
-                    message,
-                    cause: 'Invalid payment details',
-                });
-            }
+
+            // TODO: use this after integrate payment
+            // if ((user && !paymentMethodId) || (!user && !isGuestPayment)) {
+            //     const message = user && !paymentMethodId ?
+            //         'Payment method ID must be provided for registered users' :
+            //         'Guest payment details must be provided for guest users';
+            //     throw new TRPCError({
+            //         code: 'BAD_REQUEST',
+            //         message,
+            //         cause: 'Invalid payment details',
+            //     });
+            // }
 
             let payment = transactionalEntityManager
                 .getRepository(Payment)
@@ -123,6 +125,13 @@ export class BookingService {
                     expiresAt,
                 });
             booking = await transactionalEntityManager.save(booking);
+            if (paymentMethodId) {
+                const currentPaymentMethod = booking.payment.method;
+                booking.payment.method = {
+                    ...currentPaymentMethod,
+                    token: '',  // nuh uh
+                }
+            }
 
             return booking;
         });
@@ -177,9 +186,9 @@ export class BookingService {
             .findOne({
                 where: { lookupCode: dto.bookingCode },
                 relations: {
-                    trip: { bus: { type: true } },
+                    trip: { bus: { type: true }, route: { origin: true, destination: true } },
                     seats: true,
-                    payment: true,
+                    payment: { method: true },
                 },
             });
         if (!booking) {
@@ -194,6 +203,14 @@ export class BookingService {
                 code: "FORBIDDEN",
                 message: "You are not allowed to read this booking info, incorrect phone number",
             });
+        }
+
+        if (booking.payment.method) {
+            const currentPaymentMethod = booking.payment.method;
+            booking.payment.method = {
+                ...currentPaymentMethod,
+                token: '',  // nuh uh
+            }
         }
         return booking;
     }

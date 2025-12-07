@@ -3,15 +3,18 @@ import { useState } from "react";
 import { Button } from "../ui/button";
 import { Card, CardHeader, CardBody } from "../ui/card";
 import { FormField } from "../ui/form-field";
+import { PaymentProviderEnum } from "@repo/shared";
 
 interface PaymentMethodsCardProps {
-    onPaymentConfirmClick: () => void;
+    onPaymentConfirmClick: (provider: PaymentProviderEnum) => void;
     onCancelClick: () => void;
+    isLoading?: boolean;
+    confirmPaymentBtnDisabled?: boolean;
     ref?: React.Ref<HTMLDivElement>;
 }
 
-export default function PaymentMethodsCard({ onPaymentConfirmClick, onCancelClick, ref }: PaymentMethodsCardProps) {
-    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'momo' | 'stripe' | 'bank'>('momo');
+export default function PaymentMethodsCard({ onPaymentConfirmClick, onCancelClick, isLoading = false, confirmPaymentBtnDisabled = false, ref }: PaymentMethodsCardProps) {
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentProviderEnum>(PaymentProviderEnum.MOMO);
 
     return (
         <>
@@ -24,18 +27,18 @@ export default function PaymentMethodsCard({ onPaymentConfirmClick, onCancelClic
                     <div className='space-y-4'>
                         {/* Momo Payment Option */}
                         <div
-                            onClick={() => setSelectedPaymentMethod('momo')}
-                            className={`p-4 border rounded-lg cursor-pointer transition-all ${selectedPaymentMethod === 'momo'
+                            onClick={() => setSelectedPaymentMethod(PaymentProviderEnum.MOMO)}
+                            className={`p-4 border rounded-lg cursor-pointer transition-all ${selectedPaymentMethod === PaymentProviderEnum.MOMO
                                 ? 'border-accent dark:border-accent bg-accent/5 dark:bg-accent/10'
                                 : 'border-border dark:border-border hover:border-border/80 dark:hover:border-border/80'
                                 }`}
                         >
                             <div className='flex items-center gap-3'>
-                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedPaymentMethod === 'momo'
+                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedPaymentMethod === PaymentProviderEnum.MOMO
                                     ? 'border-accent dark:border-accent bg-accent dark:bg-accent'
                                     : 'border-border dark:border-border'
                                     }`}>
-                                    {selectedPaymentMethod === 'momo' && (
+                                    {selectedPaymentMethod === PaymentProviderEnum.MOMO && (
                                         <div className='w-2 h-2 bg-white dark:bg-white rounded-full' />
                                     )}
                                 </div>
@@ -59,18 +62,18 @@ export default function PaymentMethodsCard({ onPaymentConfirmClick, onCancelClic
 
                         {/* Stripe Payment Option */}
                         <div
-                            onClick={() => setSelectedPaymentMethod('stripe')}
-                            className={`p-4 border rounded-lg cursor-pointer transition-all ${selectedPaymentMethod === 'stripe'
+                            onClick={() => setSelectedPaymentMethod(PaymentProviderEnum.STRIPE)}
+                            className={`p-4 border rounded-lg cursor-pointer transition-all ${selectedPaymentMethod === PaymentProviderEnum.STRIPE
                                 ? 'border-accent dark:border-accent bg-accent/5 dark:bg-accent/10'
                                 : 'border-border dark:border-border hover:border-border/80 dark:hover:border-border/80'
                                 }`}
                         >
                             <div className='flex items-center gap-3'>
-                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedPaymentMethod === 'stripe'
+                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedPaymentMethod === PaymentProviderEnum.STRIPE
                                     ? 'border-accent dark:border-accent bg-accent dark:bg-accent'
                                     : 'border-border dark:border-border'
                                     }`}>
-                                    {selectedPaymentMethod === 'stripe' && (
+                                    {selectedPaymentMethod === PaymentProviderEnum.STRIPE && (
                                         <div className='w-2 h-2 bg-white dark:bg-white rounded-full' />
                                     )}
                                 </div>
@@ -94,18 +97,18 @@ export default function PaymentMethodsCard({ onPaymentConfirmClick, onCancelClic
 
                         {/* Bank Transfer Payment Option */}
                         <div
-                            onClick={() => setSelectedPaymentMethod('bank')}
-                            className={`p-4 border rounded-lg cursor-pointer transition-all ${selectedPaymentMethod === 'bank'
+                            onClick={() => setSelectedPaymentMethod(PaymentProviderEnum.BANK)}
+                            className={`p-4 border rounded-lg cursor-pointer transition-all ${selectedPaymentMethod === PaymentProviderEnum.BANK
                                 ? 'border-accent dark:border-accent bg-accent/5 dark:bg-accent/10'
                                 : 'border-border dark:border-border hover:border-border/80 dark:hover:border-border/80'
                                 }`}
                         >
                             <div className='flex items-center gap-3'>
-                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedPaymentMethod === 'bank'
+                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedPaymentMethod === PaymentProviderEnum.BANK
                                     ? 'border-accent dark:border-accent bg-accent dark:bg-accent'
                                     : 'border-border dark:border-border'
                                     }`}>
-                                    {selectedPaymentMethod === 'bank' && (
+                                    {selectedPaymentMethod === PaymentProviderEnum.BANK && (
                                         <div className='w-2 h-2 bg-white dark:bg-white rounded-full' />
                                     )}
                                 </div>
@@ -129,7 +132,7 @@ export default function PaymentMethodsCard({ onPaymentConfirmClick, onCancelClic
 
                     {/* Payment Method Details */}
                     <div className='mt-6 p-4 bg-background dark:bg-background border border-border dark:border-border rounded-lg'>
-                        {selectedPaymentMethod === 'momo' && (
+                        {selectedPaymentMethod === PaymentProviderEnum.MOMO && (
                             <div className='space-y-2'>
                                 <h5 className='font-semibold text-text dark:text-text'>Momo Payment Details</h5>
                                 <p className='text-sm text-secondary-text dark:text-secondary-text'>
@@ -138,7 +141,7 @@ export default function PaymentMethodsCard({ onPaymentConfirmClick, onCancelClic
                             </div>
                         )}
 
-                        {selectedPaymentMethod === 'stripe' && (
+                        {selectedPaymentMethod === PaymentProviderEnum.STRIPE && (
                             <div className='space-y-2'>
                                 <h5 className='font-semibold text-text dark:text-text'>Credit Card Payment Details</h5>
                                 <p className='text-sm text-secondary-text dark:text-secondary-text'>
@@ -155,7 +158,7 @@ export default function PaymentMethodsCard({ onPaymentConfirmClick, onCancelClic
                             </div>
                         )}
 
-                        {selectedPaymentMethod === 'bank' && (
+                        {selectedPaymentMethod === PaymentProviderEnum.BANK && (
                             <div className='space-y-2'>
                                 <h5 className='font-semibold text-text dark:text-text'>Bank Transfer Details</h5>
                                 <p className='text-sm text-secondary-text dark:text-secondary-text'>
@@ -192,12 +195,14 @@ export default function PaymentMethodsCard({ onPaymentConfirmClick, onCancelClic
                         }}>
                             Cancel
                         </Button>
-                        <Button variant='accent' fullWidth onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            onPaymentConfirmClick();
-                        }}>
-                            Proceed to Payment
+                        <Button variant='accent' fullWidth
+                            disabled={confirmPaymentBtnDisabled}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                onPaymentConfirmClick(selectedPaymentMethod);
+                            }}>
+                            {isLoading ? 'Creating Booking...' : 'Proceed to Payment'}
                         </Button>
                     </div>
                 </CardBody>

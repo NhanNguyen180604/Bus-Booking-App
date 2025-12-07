@@ -1,11 +1,6 @@
 import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { PaymentMethod } from "./payment-method.entity";
-import { PaymentProviderEnum } from "@repo/shared";
-
-export enum PaymentStatusEnum {
-    PROCESSING = 'PROCESSING',
-    COMPLETED = 'COMPLETED',
-}
+import { PaymentProviderEnum, PaymentStatusEnum } from "@repo/shared";
 
 @Entity()
 export class Payment {
