@@ -27,6 +27,10 @@ export class TrpcService {
 
     roleGuardProcedure(...allowedRoles: UserRoleEnum[]) {
         const procedure = this.trpc.procedure.use(async (opts) => {
+            if (allowedRoles.includes(UserRoleEnum.GUEST)) {
+                return opts.next();
+            }
+
             const user = opts.ctx.user;
             if (!user) {
                 throw new TRPCError({

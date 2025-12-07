@@ -29,6 +29,7 @@ import { RoutesModule } from './routes/routes.module';
 import { TripsModule } from './trips/trips.module';
 import { BusesModule } from './buses/buses.module';
 import { BusTypesModule } from './bus-types/bus-types.module';
+import { BookingModule } from './booking/booking.module';
 
 // TODO: actually set as production mode
 // const loader = process.env.NODE_ENV === 'production' ?
@@ -77,6 +78,7 @@ const loader = dotenvLoader({
     TripsModule,
     BusesModule,
     BusTypesModule,
+    BookingModule,
   ],
   controllers: [AppController],
   providers: [AppService, AppRouter, JwtMiddleware],

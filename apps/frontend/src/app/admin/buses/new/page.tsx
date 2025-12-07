@@ -121,7 +121,7 @@ export function AdminCreateBusPage() {
                 });
             } else {
                 busForm.setError("root", {
-                    message: error.message || "Create new route failed. Please try again.",
+                    message: error.message || "Create new bus failed. Please try again.",
                 });
             }
         },
