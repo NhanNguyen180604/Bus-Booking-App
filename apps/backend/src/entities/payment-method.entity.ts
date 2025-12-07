@@ -1,12 +1,6 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { User } from "./users.entity";
-
-export enum PaymentProviderEnum {
-    ZALO_PAY = 'ZALO_PAY',
-    STRIPE = 'STRIPE',
-    MOMO = 'MOMO',
-    BANK = 'BANK',
-}
+import { PaymentProviderEnum } from "@repo/shared";
 
 @Entity()
 export class PaymentMethod {

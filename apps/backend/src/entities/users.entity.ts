@@ -4,6 +4,7 @@ export enum UserRoleEnum {
     USER = 'USER',
     ADMIN = 'ADMIN',
     DRIVER = 'DRIVER',
+    GUEST = 'GUEST',  // do not use this for account role
 };
 
 export enum LoginProviderEnum {

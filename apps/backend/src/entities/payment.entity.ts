@@ -1,5 +1,6 @@
 import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { PaymentMethod } from "./payment-method.entity";
+import { PaymentProviderEnum } from "@repo/shared";
 
 export enum PaymentStatusEnum {
     PROCESSING = 'PROCESSING',
@@ -20,9 +21,17 @@ export class Payment {
 
     // points to a user's payment method
     // just use JOIN on everything ahahahahhahahahahahahahah
-    @ManyToOne(() => PaymentMethod)
+    @ManyToOne(() => PaymentMethod, { nullable: true, onDelete: 'SET NULL' })
     @JoinColumn()
     method: PaymentMethod;
+
+    // for guest user
+    @Column({ default: false })
+    isGuestPayment: boolean;
+
+    @Column({ nullable: true, type: 'enum', enum: PaymentProviderEnum })
+    guestPaymentProvider: PaymentProviderEnum;
+    // for guest user
 
     @Column({ type: 'decimal' })
     amount: number;
