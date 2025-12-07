@@ -1,14 +1,14 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { AppShell } from "../../../components/layout/app-shell";
 import { TripDetail } from "../../../components/trips/trip-detail";
 import { useTRPC } from "../../../utils/trpc";
 import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
 
 export default function TripDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const trpc = useTRPC();
   const tripId = params.id as string;
 
@@ -36,12 +36,12 @@ export default function TripDetailPage() {
             <p className="text-secondary-text mb-6">
               The trip you're looking for doesn't exist or has been removed.
             </p>
-            <button
-              onClick={() => router.push("/")}
+            <Link
+              href="/"
               className="text-accent hover:underline"
             >
               Return to Home
-            </button>
+            </Link>
           </div>
         </div>
       </AppShell>
@@ -50,9 +50,9 @@ export default function TripDetailPage() {
 
   return (
     <AppShell hideNav>
-      <TripDetail 
+      <TripDetail
         trip={tripQuery.data}
-        key={tripQuery.data.id} 
+        key={tripQuery.data.id}
       />
     </AppShell>
   );

@@ -346,7 +346,7 @@ export function TripDetail({ trip }: { trip: Trip }) {
 
         {/* Right: Booking Summary */}
         <div className="lg:col-span-1">
-          <Card className="sticky top-4">
+          <Card className="sticky top-20">
             <CardHeader>
               <h3 className="text-lg font-semibold text-text">
                 Booking Summary

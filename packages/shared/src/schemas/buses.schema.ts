@@ -95,3 +95,9 @@ export const BusDeleteOneDto = z.object({
     id: z.uuid({ error: "ID must be an UUID string" }),
 });
 export type BusDeleteOneDtoType = z.infer<typeof BusDeleteOneDto>;
+
+
+export const BusSeatsGetManyByIdsDto = z.object({
+    ids: z.array(z.uuid({ error: "Seat ID must be an UUID string" })).min(1, { error: "Array must not be empty" }),
+});
+export type BusSeatsGetManyByIdsDtoType = z.infer<typeof BusSeatsGetManyByIdsDto>;

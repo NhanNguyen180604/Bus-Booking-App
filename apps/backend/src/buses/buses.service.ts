@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Bus } from '../entities/bus.entity';
-import { FindOneOptions, Repository } from 'typeorm';
-import { BusAddSeatsDtoType, BusCreateOneDtoType, BusCreateOneWithSeatsDtoType, BusDeleteOneDtoType, BusGetOneByIdDtoType, BusGetSeatsByBusIdDtoType, BusSearchDtoType, BusSeatCreateOneDtoType, generateSeatCode } from '@repo/shared';
+import { FindOneOptions, In, Repository } from 'typeorm';
+import { BusAddSeatsDtoType, BusCreateOneDtoType, BusCreateOneWithSeatsDtoType, BusDeleteOneDtoType, BusGetOneByIdDtoType, BusGetSeatsByBusIdDtoType, BusSearchDtoType, BusSeatCreateOneDtoType, BusSeatsGetManyByIdsDtoType, generateSeatCode } from '@repo/shared';
 import { Seat } from '../entities/seat.entity';
 import { UsersService } from '../users/users.service';
 import { User, UserRoleEnum } from '../entities/users.entity';
@@ -187,6 +187,12 @@ export class BusesService {
             });
         }
         return await this.seatRepo.find({ where: { bus: { id: dto.id } } });
+    }
+
+    async getManySeatsByIds(dto: BusSeatsGetManyByIdsDtoType) {
+        return await this.seatRepo.find({
+            where: { id: In(dto.ids) },
+        });
     }
 
     async getOneBusById(dto: BusGetOneByIdDtoType) {

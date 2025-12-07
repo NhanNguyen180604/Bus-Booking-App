@@ -5,7 +5,7 @@ import Link from "next/link";
 
 export default function AdminNavBar() {
     return (
-        <Card className="w-72 flex flex-col gap-8 p-4 sticky top-[5rem] h-[calc(100vh-6rem)] overflow-y-auto">
+        <Card className="w-72 flex flex-col gap-8 p-4 sticky top-20 h-[calc(100vh-6rem)] overflow-y-auto">
             <div className="flex flex-col gap-2">
                 <AdminNavTab name="Dashboard" url="/admin" iconPath="/icons/dashboard-ic.svg" />
                 <AdminNavTab name="Revenue" url="/admin/revenue" iconPath="/icons/finance-ic.svg" />
