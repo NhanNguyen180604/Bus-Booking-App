@@ -73,13 +73,13 @@ export function FilterSortPanel({
 
   const handleApply = () => {
     onFilterChange({
-      options:{
+      options: {
         busType: localBusTypes,
         minPrice: localMinPrice,
         maxPrice: localMaxPrice,
         sortPrice: localSortPrice,
         sortDepartureTime: localSortDepartureTime,
-      }   
+      }
     });
   };
 
@@ -92,14 +92,14 @@ export function FilterSortPanel({
     onReset();
   };
 
-  const hasActiveFilters = 
-    localBusTypes.length > 0 || 
-    localMinPrice > 0 || 
+  const hasActiveFilters =
+    localBusTypes.length > 0 ||
+    localMinPrice > 0 ||
     localMaxPrice < PRICE_MAX ||
     localSortPrice !== undefined ||
     localSortDepartureTime !== undefined;
 
-  
+
   const trpc = useTRPC();
   const busTypesQuery = useQuery(
     trpc.busTypes.search.queryOptions({
@@ -115,15 +115,15 @@ export function FilterSortPanel({
           {/* Header */}
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-text">Filters & Sort</h3>
-            {hasActiveFilters && (
-              <Button
-                variant="danger"
-                size="sm"
-                onClick={handleReset}
-              >
-                Reset
-              </Button>
-            )}
+            <Button
+              variant="danger"
+              size="sm"
+              disabled={!hasActiveFilters}
+              className={`${!hasActiveFilters ? `opacity-0!` : `opacity-100`} transition-opacity`}
+              onClick={handleReset}
+            >
+              Reset
+            </Button>
           </div>
 
           {/* Bus Type Filter */}
@@ -132,6 +132,8 @@ export function FilterSortPanel({
             <div className="space-y-2">
               {busTypesQuery.data?.data.map((busType) => (
                 <Checkbox
+                  id={busType.id}
+                  key={busType.id}
                   title={busType.name}
                   checked={localBusTypes.includes(busType.id)}
                   onChange={() => handleBusTypeToggle(busType.id)
@@ -326,6 +328,7 @@ export function FilterSortPanel({
             fullWidth
             onClick={handleApply}
             disabled={!hasActiveFilters}
+            className="transition"
           >
             Apply Filters
           </Button>

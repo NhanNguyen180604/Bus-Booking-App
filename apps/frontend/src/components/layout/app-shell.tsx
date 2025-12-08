@@ -34,7 +34,7 @@ export function AppShell({
       {!hideHeader && (header || <DefaultHeader isAdminPage={isAdminPage} />)}
       <div className="flex flex-1 p-4">
         {!hideNav && (nav || <DefaultNav />)}
-        <main className="flex-1 px-16">{children}</main>
+        <main className="flex-1 px-4 lg:px-16">{children}</main>
       </div>
       {!hideFooter && (footer || <DefaultFooter />)}
     </div>
@@ -83,8 +83,8 @@ function DefaultHeader({ isAdminPage = false }: DefaultHeaderProps) {
             </span>
           </Link>
           {isAdmin && (
-            <Link href='/admin/trips' 
-            className="
+            <Link href='/admin/trips'
+              className="
               bg-accent dark:bg-accent text-light-text-button dark:text-light-text-button w-fit h-fit px-4 py-2
               rounded-md hover:bg-accent/50 transition-colors font-bold
             ">

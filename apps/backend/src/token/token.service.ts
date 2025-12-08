@@ -40,7 +40,7 @@ export class TokenService {
             user = (await this.usersService.findOneBy({ id: user }))!;
         }
         const payload: AccessTokenPayload = { sub: user.id, email: user.email };
-        const access_token = this.accessJwtService.sign(payload);
+        const access_token = await this.accessJwtService.signAsync(payload);
         return access_token;
     }
 
@@ -48,7 +48,7 @@ export class TokenService {
         if (typeof (user) === 'string') {
             user = (await this.usersService.findOneBy({ id: user }))!;
         }
-        const refresh_token = this.refreshJwtService.sign({ sub: user.id });
+        const refresh_token = await this.refreshJwtService.signAsync({ sub: user.id });
 
         const refreshTokenEntity = this.tokenRepo.create({
             user,

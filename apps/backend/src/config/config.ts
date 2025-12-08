@@ -30,9 +30,17 @@ export class CookieConfig {
     public readonly refresh_token_max_age!: number;
 };
 
+// export class SessionConfig {
+//     @Allow()
+//     public readonly secret!: string;
+// }
+
 export class DatabaseConfig {
     @Allow()
     public readonly url!: string;
+
+    // @Allow()
+    // public readonly session_db_url!: string;
 };
 
 export class ProviderOAuth2Config {
@@ -74,6 +82,10 @@ export class RootConfig {
     @Type(() => CookieConfig)
     @Allow()
     public readonly cookie!: CookieConfig;
+
+    // @Type(() => SessionConfig)
+    // @Allow()
+    // public readonly session!: SessionConfig;
 
     @Type(() => DatabaseConfig)
     @Allow()

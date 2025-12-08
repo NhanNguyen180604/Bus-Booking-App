@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { TrpcService } from "../trpc/trpc.service";
 import { BusesService } from "./buses.service";
 import { UserRoleEnum } from "../entities/users.entity";
-import { BusAddSeatsDto, BusCreateOneDto, BusCreateOneWithSeatsDto, BusDeleteOneDto, BusGetOneByIdDto, BusGetSeatsByBusIdDto, BusSearchDto, } from "@repo/shared";
+import { BusAddSeatsDto, BusCreateOneDto, BusCreateOneWithSeatsDto, BusDeleteOneDto, BusGetOneByIdDto, BusGetSeatsByBusIdDto, BusSearchDto, BusSeatsGetManyByIdsDto, } from "@repo/shared";
 
 @Injectable()
 export class BusesRouter {
@@ -49,6 +49,12 @@ export class BusesRouter {
                 .input(BusGetSeatsByBusIdDto)
                 .query(({ input }) => {
                     return this.busesService.getSeatsByBus(input);
+                }),
+            getSeatsByIds: this.trpcService
+                .publicProcedure()
+                .input(BusSeatsGetManyByIdsDto)
+                .query(({ input }) => {
+                    return this.busesService.getManySeatsByIds(input);
                 }),
             searchBus: this.trpcService
                 .publicProcedure()

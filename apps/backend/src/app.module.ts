@@ -20,7 +20,6 @@ import { Trip } from './entities/trip.entity';
 import { Seat } from './entities/seat.entity';
 import { BusType } from './entities/bus-type.entity';
 import { Booking } from './entities/booking.entity';
-import { PassengerDetails } from './entities/passenger-details.entity';
 import { PaymentMethod } from './entities/payment-method.entity';
 import { Payment } from './entities/payment.entity';
 import { NotificationTemplate } from './entities/notification-template.entity';
@@ -30,6 +29,7 @@ import { RoutesModule } from './routes/routes.module';
 import { TripsModule } from './trips/trips.module';
 import { BusesModule } from './buses/buses.module';
 import { BusTypesModule } from './bus-types/bus-types.module';
+import { BookingModule } from './booking/booking.module';
 
 // TODO: actually set as production mode
 // const loader = process.env.NODE_ENV === 'production' ?
@@ -61,7 +61,7 @@ const loader = dotenvLoader({
           User, RefreshToken,
           Bus, BusType, Seat,
           Station, Route, Trip,
-          Booking, PassengerDetails,
+          Booking,
           Payment, PaymentMethod,
           Notification, NotificationTemplate,
         ],
@@ -78,6 +78,7 @@ const loader = dotenvLoader({
     TripsModule,
     BusesModule,
     BusTypesModule,
+    BookingModule,
   ],
   controllers: [AppController],
   providers: [AppService, AppRouter, JwtMiddleware],

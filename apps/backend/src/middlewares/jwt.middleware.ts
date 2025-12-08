@@ -26,7 +26,7 @@ export class JwtMiddleware implements NestMiddleware {
         }
 
         if (tokenObj.access_token) {
-            const payload = this.accessJwtService.verify<AccessTokenPayload>(tokenObj.access_token);
+            const payload = await this.accessJwtService.verifyAsync<AccessTokenPayload>(tokenObj.access_token);
             const foundUser = await this.usersService.findOneBy({ id: payload.sub });
             if (foundUser) {
                 req.user = foundUser;
@@ -43,7 +43,7 @@ export class JwtMiddleware implements NestMiddleware {
             }
 
             try {
-                const payload = this.refreshJwtService.verify<RefreshTokenPayload>(tokenObj.refresh_token);
+                const payload = await this.refreshJwtService.verifyAsync<RefreshTokenPayload>(tokenObj.refresh_token);
                 const foundUser = await this.usersService.findOneBy({ id: payload.sub });
                 if (foundUser) {
                     req.user = foundUser;
