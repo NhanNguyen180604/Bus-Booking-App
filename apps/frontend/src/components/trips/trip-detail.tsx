@@ -61,17 +61,17 @@ export function TripDetail({ trip }: { trip: Trip }) {
 
   const seats = getSeatsAtFloor(selectedFloor);
 
-  const toggleSeat = (seatCode: string) => {
-    if (selectedSeats.includes(seatCode)) {
-      setSelectedSeats(selectedSeats.filter((s) => s !== seatCode));
+  const toggleSeat = (seatId: string) => {
+    if (selectedSeats.includes(seatId)) {
+      setSelectedSeats(selectedSeats.filter((s) => s !== seatId));
     } else {
-      setSelectedSeats([...selectedSeats, seatCode]);
+      setSelectedSeats([...selectedSeats, seatId]);
     }
   };
 
   const getSeatStatus = (seat: Seat) => {
     if (seat.row === 0 && seat.col === 0 && seat.floor === 0) return "driver";
-    if (selectedSeats.includes(seat.code)) return "selected";
+    if (selectedSeats.includes(seat.id)) return "selected";
     if (!seat.isActive) return "booked";
     return "available";
   };
@@ -296,7 +296,7 @@ export function TripDetail({ trip }: { trip: Trip }) {
                           <button
                             className={getSeatClassName(status)}
                             onClick={() =>
-                              (status === "available" || status === "selected") && toggleSeat(seat.code)
+                              (status === "available" || status === "selected") && toggleSeat(seat.id)
                             }
                             disabled={
                               status === "booked" || status === "driver"
