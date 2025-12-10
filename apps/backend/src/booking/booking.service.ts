@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
-import { BookingConfirmDtoType, BookingCreateOneDtoType, BookingLookUpDtoType, BookingUserSearchDtoType, PaymentStatusEnum } from '@repo/shared';
+import { BookingCancelDtoType, BookingConfirmDtoType, BookingCreateOneDtoType, BookingLookUpDtoType, BookingUserSearchDtoType, PaymentStatusEnum } from '@repo/shared';
 import { TRPCError } from '@trpc/server';
 import { Booking } from 'src/entities/booking.entity';
 import { Payment } from 'src/entities/payment.entity';
@@ -94,6 +94,7 @@ export class BookingService {
 
             const expiresAt = new Date(Date.now() + convertToMs('30m'));
             const token = crypto.randomBytes(32).toString('hex');
+            const cancelToken = crypto.randomBytes(32).toString('hex');
             let booking = transactionalEntityManager
                 .getRepository(Booking)
                 .create({
@@ -106,6 +107,7 @@ export class BookingService {
                     totalPrice: trip.basePrice * seats.length,
                     payment,
                     token,
+                    cancelToken,
                     expiresAt,
                 });
             booking = await transactionalEntityManager.save(booking);
@@ -192,6 +194,9 @@ export class BookingService {
             .leftJoin('booking.user', 'user')
             .leftJoinAndSelect('booking.trip', 'trip')
             .leftJoinAndSelect('trip.bus', 'bus')
+            .leftJoinAndSelect('trip.route', 'route')
+            .leftJoinAndSelect('route.origin', 'origin')
+            .leftJoinAndSelect('route.destination', 'destination')
             .leftJoinAndSelect('bus.type', 'busType')
             .leftJoinAndSelect('booking.seats', 'seats')
             .leftJoinAndSelect('booking.payment', 'payment')
@@ -202,6 +207,13 @@ export class BookingService {
         }
         if (dto.sortPrice) {
             qb.addOrderBy('booking.totalPrice', dto.sortPrice.toUpperCase() as "ASC" | "DESC");
+        }
+
+        if (dto.upcoming) {
+            qb.andWhere('trip.departureTime > NOW()');
+        }
+        else if (dto.completed) {
+            qb.andWhere('trip.arrivalTime < NOW()');
         }
 
         qb.skip((dto.page - 1) * dto.perPage)
@@ -218,5 +230,36 @@ export class BookingService {
             total: count,
             totalPage,
         };
+    }
+
+    async userCancelBooking(dto: BookingCancelDtoType, user: User | undefined) {
+        const booking = await this.entityManager
+            .getRepository(Booking)
+            .createQueryBuilder('booking')
+            .leftJoinAndSelect('booking.user', 'user')
+            .leftJoinAndSelect('booking.payment', 'payment')
+            .where('booking.cancelToken = :cancelToken', { cancelToken: dto.cancelToken })
+            .getOne();
+
+        if (!booking) {
+            throw new TRPCError({
+                code: "NOT_FOUND",
+                message: `Booking was not found`,
+                cause: "Not found booking",
+            });
+        }
+
+        if (booking.user?.id !== user?.id) {
+            throw new TRPCError({
+                code: "FORBIDDEN",
+                message: `You are not allowed to delete this booking`,
+                cause: "Not owner of the booking",
+            });
+        }
+
+        // this has cascade
+        await this.entityManager
+            .getRepository(Payment)
+            .delete({ id: booking.payment.id });
     }
 }

@@ -1,10 +1,10 @@
 "use client"
-import { AdminNavBar } from "@/src/components/layout/navbar";
+import { UserNavBar } from "@/src/components/layout/navbar";
 import { AppShell } from "@/src/components/layout/app-shell";
 import Loading from "@/src/components/ui/loading";
 import useUser from "@/src/hooks/useUser";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function UserDashboardLayout({ children }: { children: React.ReactNode }) {
     const userQuery = useUser();
     if (userQuery.isPending) {
         return <Loading />;
@@ -16,7 +16,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
 
     return (
-        <AppShell hideFooter hideHeaderNav nav={<AdminNavBar />}>
+        <AppShell hideFooter hideHeaderNav nav={<UserNavBar />}>
             {children}
         </AppShell>
     );

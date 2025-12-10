@@ -47,8 +47,8 @@ export const BookingConfirmDto = z.object({
 export type BookingConfirmDtoType = z.infer<typeof BookingConfirmDto>;
 
 export const BookingLookUpDto = z.object({
-    bookingCode: z.string().nonempty({ error: "Booking code is required" }),
-    phone: z.string().nonempty({ error: 'Phone number is required' }),
+    bookingCode: z.string().trim().nonempty({ error: "Booking code is required" }),
+    phone: z.string().trim().nonempty({ error: 'Phone number is required' }),
 });
 export type BookingLookUpDtoType = z.infer<typeof BookingLookUpDto>;
 
@@ -57,5 +57,12 @@ export const BookingUserSearchDto = z.object({
     perPage: z.int().gte(1, { error: "Per Page number must be >= 1" }).default(1),
     sortDate: sortOptions,
     sortPrice: sortOptions,
+    upcoming: z.boolean().optional().default(false),
+    completed: z.boolean().optional().default(false),
 });
 export type BookingUserSearchDtoType = z.infer<typeof BookingUserSearchDto>;
+
+export const BookingCancelDto = z.object({
+    cancelToken: z.string().trim().nonempty(),
+});
+export type BookingCancelDtoType = z.infer<typeof BookingCancelDto>;

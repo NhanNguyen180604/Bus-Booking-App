@@ -127,7 +127,7 @@ export default function PaymentPage() {
         ...confirmMutationOptions,
         onSuccess(data) {
             setConfirmError(null);
-            router.push(`/lookup?lookUpCode=${data.booking.lookupCode}&phoneNumber=${data.booking.phone}`);
+            router.push(`/ticket?lookUpCode=${data.booking.lookupCode}&phoneNumber=${data.booking.phone}`);
         },
         onError(error: any) {
             const errorMessage = error?.message || error?.data?.message || 'Payment confirmation failed. Please try again.';
