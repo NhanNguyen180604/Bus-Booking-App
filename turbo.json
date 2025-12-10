@@ -34,7 +34,7 @@
     },
     "dev": {
       "persistent": true,
-      "cache": true
+      "cache": false
     }
   }
 }

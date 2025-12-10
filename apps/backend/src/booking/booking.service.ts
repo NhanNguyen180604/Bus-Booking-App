@@ -10,7 +10,6 @@ import { User } from 'src/entities/users.entity';
 import { convertToMs } from 'src/utils/convert-to-ms';
 import { EntityManager } from 'typeorm';
 import crypto from 'crypto';
-import { PaymentMethod } from 'src/entities/payment-method.entity';
 
 @Injectable()
 export class BookingService {
@@ -38,6 +37,7 @@ export class BookingService {
                 .setLock('pessimistic_read')
                 .leftJoin('seat.bus', 'bus')
                 .where('seat.id IN (:...seatIds)', { seatIds: dto.seatIds })
+                .andWhere('(seat.isActive OR seat.deactivateDate IS NULL OR seat.deactivateDate > NOW())')
                 .andWhere('bus.id = :tripBus', { tripBus: trip.bus.id })
                 .getMany();
             if (seats.length !== dto.seatIds.length) {
@@ -67,7 +67,7 @@ export class BookingService {
                 });
             }
 
-            const { methodId: paymentMethodId, isGuestPayment, guestPaymentProvider } = dto.paymentDetails;
+            const { isGuestPayment, guestPaymentProvider } = dto.paymentDetails;
 
             // TODO: use this after integrate payment
             // if ((user && !paymentMethodId) || (!user && !isGuestPayment)) {
@@ -88,24 +88,8 @@ export class BookingService {
                     status: PaymentStatusEnum.PROCESSING,
                 });
 
-            if (paymentMethodId) {
-                const userPaymentMethod = await transactionalEntityManager
-                    .getRepository(PaymentMethod)
-                    .findOne({ where: { id: paymentMethodId } });
-                if (!userPaymentMethod) {
-                    throw new TRPCError({
-                        code: 'NOT_FOUND',
-                        message: `Payment method with ID: ${paymentMethodId} was not found`,
-                        cause: 'Not found payment method id',
-                    });
-                }
-                payment.method = userPaymentMethod;
-            }
-            else {
-                payment.isGuestPayment = true;
-                payment.guestPaymentProvider = guestPaymentProvider!;
-            }
-
+            payment.isGuestPayment = true;
+            payment.guestPaymentProvider = guestPaymentProvider!;
             payment = await transactionalEntityManager.save(payment);
 
             const expiresAt = new Date(Date.now() + convertToMs('30m'));
@@ -125,13 +109,6 @@ export class BookingService {
                     expiresAt,
                 });
             booking = await transactionalEntityManager.save(booking);
-            if (paymentMethodId) {
-                const currentPaymentMethod = booking.payment.method;
-                booking.payment.method = {
-                    ...currentPaymentMethod,
-                    token: '',  // nuh uh
-                }
-            }
 
             return booking;
         });
@@ -188,7 +165,7 @@ export class BookingService {
                 relations: {
                     trip: { bus: { type: true }, route: { origin: true, destination: true } },
                     seats: true,
-                    payment: { method: true },
+                    payment: true,
                 },
             });
         if (!booking) {
@@ -205,13 +182,6 @@ export class BookingService {
             });
         }
 
-        if (booking.payment.method) {
-            const currentPaymentMethod = booking.payment.method;
-            booking.payment.method = {
-                ...currentPaymentMethod,
-                token: '',  // nuh uh
-            }
-        }
         return booking;
     }
 

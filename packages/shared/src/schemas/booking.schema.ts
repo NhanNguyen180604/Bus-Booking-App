@@ -14,6 +14,7 @@ export enum PaymentStatusEnum {
 }
 
 const PaymentDetails = z.object({
+    // TODO: update
     methodId: z.uuid({ error: 'Payment method ID must be a UUID string' }).optional(),
     isGuestPayment: z.boolean().optional(),
     guestPaymentProvider: z.enum(PaymentProviderEnum).optional(),

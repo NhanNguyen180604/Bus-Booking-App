@@ -5,7 +5,7 @@ import { TrpcModule } from './trpc/trpc.module';
 import { UsersModule } from './users/users.module';
 import { AppRouter } from './app.router';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { dotenvLoader, fileLoader, TypedConfigModule } from 'nest-typed-config';
+import { dotenvLoader, TypedConfigModule } from 'nest-typed-config';
 import { RootConfig } from './config/config';
 import { CustomJwtModule } from './jwt/custom-jwt.module';
 import { JwtMiddleware } from './middlewares/jwt.middleware';
@@ -20,7 +20,6 @@ import { Trip } from './entities/trip.entity';
 import { Seat } from './entities/seat.entity';
 import { BusType } from './entities/bus-type.entity';
 import { Booking } from './entities/booking.entity';
-import { PaymentMethod } from './entities/payment-method.entity';
 import { Payment } from './entities/payment.entity';
 import { NotificationTemplate } from './entities/notification-template.entity';
 import { Notification } from './entities/notification.entity';
@@ -62,7 +61,7 @@ const loader = dotenvLoader({
           Bus, BusType, Seat,
           Station, Route, Trip,
           Booking,
-          Payment, PaymentMethod,
+          Payment,
           Notification, NotificationTemplate,
         ],
         synchronize: true,
