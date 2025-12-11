@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { type RouterOutputsType } from "backend";
 import Pagination from "../ui/pagination";
 import Image from "next/image";
+import { formatPrice } from "@/src/utils/format-price";
 
 type FindTripResults = RouterOutputsType["trips"]["search"];
 type Bus = FindTripResults["trips"][0]["bus"];
@@ -114,14 +115,13 @@ export function SearchResults({
           const totalPrice = trip.basePrice * trip.bus.type.priceMultiplier;
           const isSelected = selectedTrip === trip.id;
           const totalSeats = calculateSeats(trip.bus);
-          
+
           return (
-            <Card 
-              key={trip.id} 
+            <Card
+              key={trip.id}
               variant="default"
-              className={`transition-all hover:shadow-md ${
-                isSelected ? "ring-2 ring-accent" : ""
-              }`}
+              className={`transition-all hover:shadow-md ${isSelected ? "ring-2 ring-accent" : ""
+                }`}
             >
               <CardBody padding="md">
                 <div className="flex flex-col gap-4">
@@ -206,7 +206,7 @@ export function SearchResults({
                           Price
                         </div>
                         <div className="text-3xl font-semibold text-accent">
-                          ${totalPrice}
+                          {formatPrice(totalPrice)}
                         </div>
                         <div className="text-xs text-secondary-text mt-0.5">
                           per seat
@@ -253,8 +253,8 @@ export function SearchResults({
                         </div>
                       </div>
                       <div className="mt-4 flex gap-2">
-                        <Button 
-                          variant="primary" 
+                        <Button
+                          variant="primary"
                           fullWidth
                           onClick={() => router.push(`/trips/${trip.id}`)}
                         >
