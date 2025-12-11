@@ -243,14 +243,7 @@ export default function BookingsPage() {
                                             },
                                             {
                                                 header: 'Total Price',
-                                                render: (booking) => {
-                                                    const price = Math.ceil(booking.totalPrice || 0);
-                                                    return new Intl.NumberFormat('de-DE', {
-                                                        style: 'currency',
-                                                        currency: 'VND',
-                                                        currencyDisplay: 'code',
-                                                    }).format(price);
-                                                },
+                                                render: (booking) => formatPrice(booking.totalPrice),
                                             },
                                             {
                                                 header: 'Payment Status',
