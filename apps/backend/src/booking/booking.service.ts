@@ -8,14 +8,18 @@ import { Seat } from 'src/entities/seat.entity';
 import { Trip } from 'src/entities/trip.entity';
 import { User } from 'src/entities/users.entity';
 import { convertToMs } from 'src/utils/convert-to-ms';
+import { MyMailerService } from 'src/my-mailer/my-mailer.service';
 import { EntityManager } from 'typeorm';
 import crypto from 'crypto';
 
 @Injectable()
 export class BookingService {
+    private readonly logger = new Logger(BookingService.name);
+
     constructor(
         @InjectEntityManager()
         private readonly entityManager: EntityManager,
+        private readonly mailerService: MyMailerService,
     ) { }
 
     createOne(dto: BookingCreateOneDtoType, user?: User) {
@@ -117,14 +121,18 @@ export class BookingService {
     }
 
     /**
-     * Confirm payment
+     * Confirm payment and send e-ticket email
      */
     async confirmBooking(dto: BookingConfirmDtoType) {
         const booking = await this.entityManager
             .getRepository(Booking)
             .findOne({
                 where: { token: dto.token },
-                relations: { payment: true },
+                relations: {
+                    payment: true,
+                    trip: { route: { origin: true, destination: true } },
+                    seats: true,
+                },
             });
 
         if (!booking) {
@@ -154,8 +162,52 @@ export class BookingService {
         booking.payment.status = PaymentStatusEnum.COMPLETED;
         await this.entityManager.save(booking.payment);
         booking.expiresAt = null;
+        const savedBooking = await this.entityManager.save(booking);
+
+        if (!booking.email || (booking.email.trim().length > 0)) {
+            return {
+                booking: savedBooking,
+            };
+        }
+
+        // email baby
+        try {
+            const departureDateTime = new Date(savedBooking.trip.departureTime).toLocaleString('vi-VN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+            });
+
+            const totalPrice = new Intl.NumberFormat('de-DE', {
+                style: 'currency',
+                currency: 'VND',
+                currencyDisplay: 'code',
+            }).format(Math.ceil(Number(savedBooking.totalPrice)));
+
+            const seatCodes = savedBooking.seats.map(seat => seat.code);
+
+            await this.mailerService.sendETicket({
+                email: savedBooking.email,
+                fullName: savedBooking.fullName,
+                bookingCode: savedBooking.lookupCode,
+                origin: savedBooking.trip.route.origin.name,
+                destination: savedBooking.trip.route.destination.name,
+                departureDateTime,
+                seatCodes,
+                totalPrice,
+                token: savedBooking.token,
+            });
+        } catch (error) {
+            this.logger.error(
+                `Failed to send e-ticket for booking ${savedBooking.id}:`,
+                error instanceof Error ? error.message : 'Unknown error'
+            );
+        }
+
         return {
-            booking: await this.entityManager.save(booking),
+            booking: savedBooking,
         };
     }
 

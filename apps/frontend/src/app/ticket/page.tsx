@@ -7,7 +7,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { BookingLookUpDto, BookingLookUpDtoType } from '@repo/shared';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 import { formatPrice } from '@/src/utils/format-price';
 import { formatVNWithAMPM } from '@/src/utils/format-time';
@@ -16,6 +16,7 @@ export default function LookupPage() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const trpc = useTRPC();
+    const queryClient = useQueryClient();
 
     const phoneParam = searchParams.get('phoneNumber');
     const bookingCodeParam = searchParams.get('lookUpCode');
@@ -41,6 +42,8 @@ export default function LookupPage() {
     useEffect(() => {
         if (phoneParam) setValue('phone', phoneParam, { shouldValidate: true });
         if (bookingCodeParam) setValue('bookingCode', bookingCodeParam, { shouldValidate: true });
+        if (phoneParam || bookingCodeParam)
+            queryClient.invalidateQueries({ queryKey: trpc.booking.lookUpBooking.queryKey() });
     }, [phoneParam, bookingCodeParam, setValue]);
 
     // Auto-fetch if both params are provided

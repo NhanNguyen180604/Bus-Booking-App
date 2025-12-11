@@ -3,7 +3,7 @@ import { Card, CardBody, CardHeader } from '@/src/components/ui/card';
 import { Button } from '@/src/components/ui/button';
 import { useTRPC } from '@/src/utils/trpc';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { PaymentProviderEnum, PaymentStatusEnum } from '@repo/shared';
 import { formatPrice } from '@/src/utils/format-price';
 import { useState, useEffect } from 'react';
