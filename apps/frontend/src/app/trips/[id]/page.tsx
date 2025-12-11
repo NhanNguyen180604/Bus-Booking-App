@@ -1,18 +1,22 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { AppShell } from "../../../components/layout/app-shell";
 import { TripDetail } from "../../../components/trips/trip-detail";
 import { useTRPC } from "../../../utils/trpc";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { RouterOutputsType } from "backend";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import ChevronLeftIcon from "@/src/components/icons/chevron-left";
+import CheckoutInfoComponent from "../../../components/checkout/checkout-info";
+import BookingSummaryCard from "@/src/components/booking/booking-summary-card";
 
 type Seat = RouterOutputsType["buses"]["getSeatsByBus"][number];
 
 export default function TripDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const trpc = useTRPC();
   const tripId = params.id as string;
   const [selectedSeats, setSelectedSeat] = useState<Seat[]>([]);
@@ -40,6 +44,8 @@ export default function TripDetailPage() {
       return [...prevSelectedSeats, seat];
     });
   }
+
+  const paymentFormRef = useRef<HTMLDivElement>(null);
 
   if (tripQuery.isLoading || getSeatsQuery.isLoading) {
     return (
@@ -76,13 +82,50 @@ export default function TripDetailPage() {
 
   return (
     <AppShell hideNav>
-      <TripDetail
-        trip={tripQuery.data}
-        key={tripQuery.data.id}
-        onSelectSeat={onSelectSeat}
-        selectedSeats={selectedSeats}
-        seatList={getSeatsQuery.data}
-      />
+      <div className="max-w-7xl mx-auto py-8 px-8 lg:px-4">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 text-accent hover:text-accent/80 mb-6"
+        >
+          <ChevronLeftIcon />
+          Back to Results
+        </button>
+
+        <div className="flex flex-col lg:grid lg:grid-cols-3 gap-4 relative">
+          <TripDetail
+            className="lg:col-span-2"
+            trip={tripQuery.data}
+            key={tripQuery.data.id}
+            onSelectSeat={onSelectSeat}
+            selectedSeats={selectedSeats}
+            seatList={getSeatsQuery.data}
+          />
+
+          <BookingSummaryCard
+            className="lg:sticky lg:top-20 lg:h-fit lg:col-span-1 overflow-y-auto"
+            trip={tripQuery.data}
+            selectedSeats={selectedSeats}
+            onPaymentClick={() => {
+              if (paymentFormRef) {
+                const headerOffset = 80;
+                const elementPosition = paymentFormRef.current!.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                window.scrollTo({
+                  top: offsetPosition,
+                  behavior: 'smooth',
+                });
+              }
+            }}
+          />
+
+          <CheckoutInfoComponent
+            className="lg:col-span-2"
+            trip={tripQuery.data}
+            selectedSeats={selectedSeats}
+            paymentFormRef={paymentFormRef}
+          />
+        </div>
+      </div>
     </AppShell>
   );
 }

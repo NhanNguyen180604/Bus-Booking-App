@@ -165,7 +165,7 @@ export default function PaymentPage() {
                             onClick={() => router.push('/checkout/info')}
                             className="w-full"
                         >
-                            Back to Checkout
+                            Return
                         </Button>
                     </CardBody>
                 </Card>
