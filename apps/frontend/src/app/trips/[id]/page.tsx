@@ -6,16 +6,32 @@ import { TripDetail } from "../../../components/trips/trip-detail";
 import { useTRPC } from "../../../utils/trpc";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { RouterOutputsType } from "backend";
+import { useState } from "react";
 
 export default function TripDetailPage() {
   const params = useParams();
   const trpc = useTRPC();
   const tripId = params.id as string;
+  type Seat = RouterOutputsType["buses"]["getSeatsByBus"][number];
+  const [selectedSeats, setSelectedSeat] = useState<Seat[]>([]);
 
   const tripQuery = useQuery({
     ...trpc.trips.findOneById.queryOptions({ id: tripId }),
     enabled: !!tripId,
   });
+
+  const onSelectSeat = (seat: Seat) => {
+    setSelectedSeat((prevSelectedSeats) => {
+      const isSeatAlreadySelected = prevSelectedSeats.some(
+        (s) => s.id === seat.id
+      );
+      if (isSeatAlreadySelected) {
+        return prevSelectedSeats.filter((s) => s.id !== seat.id);
+      }
+      return [...prevSelectedSeats, seat];
+    });
+  }
 
   if (tripQuery.isLoading) {
     return (
@@ -53,6 +69,8 @@ export default function TripDetailPage() {
       <TripDetail
         trip={tripQuery.data}
         key={tripQuery.data.id}
+        onSelectSeat={onSelectSeat}
+        selectedSeats={selectedSeats}
       />
     </AppShell>
   );

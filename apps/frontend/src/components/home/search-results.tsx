@@ -206,7 +206,7 @@ export function SearchResults({
                           Price
                         </div>
                         <div className="text-3xl font-semibold text-accent">
-                          ${totalPrice}
+                          VND {totalPrice}
                         </div>
                         <div className="text-xs text-secondary-text mt-0.5">
                           per seat
