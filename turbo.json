@@ -22,6 +22,8 @@
     "oauth2__github__client_id",
     "oauth2__github__client_secret",
     "oauth2__github__callback_url",
+    "send_mail__user",
+    "send_mail__app_password",
     "NEXT_PUBLIC_BACKEND_URL"
   ],
   "tasks": {
@@ -34,7 +36,7 @@
     },
     "dev": {
       "persistent": true,
-      "cache": true
+      "cache": false
     }
   }
 }

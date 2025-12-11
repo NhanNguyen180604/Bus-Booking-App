@@ -68,6 +68,14 @@ export class OAuth2Config {
     public readonly github!: ProviderOAuth2Config;
 }
 
+export class SendMailConfig {
+    @Allow()
+    public readonly user!: string;
+
+    @Allow()
+    public readonly app_password!: string;
+}
+
 export class RootConfig {
     @Allow()
     public readonly port!: number;
@@ -94,4 +102,8 @@ export class RootConfig {
     @Type(() => OAuth2Config)
     @Allow()
     public readonly oauth2!: OAuth2Config;
+
+    @Type(() => SendMailConfig)
+    @Allow()
+    public readonly send_mail!: SendMailConfig;
 };

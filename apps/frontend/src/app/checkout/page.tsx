@@ -3,7 +3,7 @@ import { Card, CardBody, CardHeader } from '@/src/components/ui/card';
 import { Button } from '@/src/components/ui/button';
 import { useTRPC } from '@/src/utils/trpc';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { PaymentProviderEnum, PaymentStatusEnum } from '@repo/shared';
 import { formatPrice } from '@/src/utils/format-price';
 import { useState, useEffect } from 'react';
@@ -127,7 +127,7 @@ export default function PaymentPage() {
         ...confirmMutationOptions,
         onSuccess(data) {
             setConfirmError(null);
-            router.push(`/lookup?lookUpCode=${data.booking.lookupCode}&phoneNumber=${data.booking.phone}`);
+            router.push(`/ticket?lookUpCode=${data.booking.lookupCode}&phoneNumber=${data.booking.phone}`);
         },
         onError(error: any) {
             const errorMessage = error?.message || error?.data?.message || 'Payment confirmation failed. Please try again.';
@@ -165,7 +165,7 @@ export default function PaymentPage() {
                             onClick={() => router.push('/checkout/info')}
                             className="w-full"
                         >
-                            Back to Checkout
+                            Return
                         </Button>
                     </CardBody>
                 </Card>

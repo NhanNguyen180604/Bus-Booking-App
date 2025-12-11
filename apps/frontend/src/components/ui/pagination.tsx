@@ -17,6 +17,9 @@ export default function Pagination({ currentPage, totalPage, loadPageFn }: Pagin
         loadPageFn(p);
     };
 
+    if (totalPage < 1)
+        return null;
+
     const renderPages = () => {
         const pages: number[] = [];
 
@@ -63,7 +66,7 @@ export default function Pagination({ currentPage, totalPage, loadPageFn }: Pagin
             <div className="flex gap-2">
                 <Button
                     variant="primary"
-                    disabled={page === 1}
+                    disabled={page === 1 || totalPage === 0}
                     onClick={() => loadPage(page - 1)}
                 >
                     Previous
@@ -73,7 +76,7 @@ export default function Pagination({ currentPage, totalPage, loadPageFn }: Pagin
 
                 <Button
                     variant="primary"
-                    disabled={page === totalPage}
+                    disabled={page === totalPage || totalPage === 0}
                     onClick={() => loadPage(page + 1)}
                 >
                     Next

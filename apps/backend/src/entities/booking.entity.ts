@@ -44,8 +44,12 @@ export class Booking {
     @CreateDateColumn()
     createdAt: Date;
 
+    // confirm token, cant rename now cuz out of time
     @Column()
     token: string;
+
+    @Column({ default: null, nullable: true })
+    cancelToken: string;
 
     // null if success payment
     @Column({ type: 'timestamptz', nullable: true })

@@ -41,6 +41,9 @@ export class Seat {
     @Column({ default: true })
     isActive: boolean;
 
+    @Column({ type: 'timestamptz', nullable: true, default: null })
+    deactivateDate: Date;
+
     @Column({ type: 'enum', enum: SeatTypeEnum, default: SeatTypeEnum.PASSENGER })
     seatType: SeatTypeEnum;
 }

@@ -112,7 +112,7 @@ export function SearchResults({
       {/* Trip List */}
       <div className="space-y-3">
         {results.trips.map((trip) => {
-          const totalPrice = trip.basePrice * trip.bus.type.priceMultiplier;
+          const totalPrice = trip.basePrice;
           const isSelected = selectedTrip === trip.id;
           const totalSeats = calculateSeats(trip.bus);
 
