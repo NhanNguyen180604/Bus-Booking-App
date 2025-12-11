@@ -6,26 +6,24 @@ import { Card, CardBody, CardHeader } from "../ui/card";
 import { Button } from "../ui/button";
 import { RouterOutputsType } from "backend";
 import Image from "next/image";
-import { SeatTypeEnum } from "@repo/shared";
+import { generateSeatCode, SeatTypeEnum } from "@repo/shared";
 import { useTRPC } from "@/src/utils/trpc";
 import { useQuery } from "@tanstack/react-query";
+import { formatPrice } from "@/src/utils/format-price";
+import React from "react";
 
 type Trip = RouterOutputsType["trips"]["findOneById"];
 type Seat = RouterOutputsType["buses"]["getSeatsByBus"][0];
 
 interface TripDetailProps {
-   trip: Trip;
-   onSelectSeat: (seat: Seat) => void;
-   selectedSeats: Seat[];
+    trip: Trip;
+    onSelectSeat: (seat: Seat) => void;
+    selectedSeats: Seat[];
+    seatList: Seat[];
 }
 
-export function TripDetail({ trip, onSelectSeat, selectedSeats }: TripDetailProps) {
-   const trpc = useTRPC();
-
-   const getSeatsQueryOptions = trpc.buses.getSeatsByBus.queryOptions({ id: trip!.bus.id });
-   const getSeatsQuery = useQuery({
-      ...getSeatsQueryOptions
-   });
+export function TripDetail({ trip, onSelectSeat, selectedSeats, seatList }: TripDetailProps) {
+    const trpc = useTRPC();
 
    const getBookingSeatsQueryOptions = trpc.booking.getBookingSeatsByTrip.queryOptions({ tripId: trip!.id });
    const getBookingSeatsQuery = useQuery({
@@ -60,30 +58,36 @@ export function TripDetail({ trip, onSelectSeat, selectedSeats }: TripDetailProp
       return `${hours}h ${minutes}m`;
    };
 
-   const totalPrice = trip!.basePrice * trip!.bus.type.priceMultiplier;
-   const totalSeats = trip!.bus.rows * trip!.bus.cols * trip!.bus.floors;
+    const totalPrice = trip!.basePrice * trip!.bus.type.priceMultiplier;
+    const totalSeats = seatList.length;
 
-   // Generate seat layout (mock data for now)
-   const getSeatsAtFloor = (floor: number) => {
-      const seats: Array<Seat> = getSeatsQuery.data || [];
-      return seats.filter((seat) => seat.floor === floor);
-   };
+    // Generate seat layout (mock data for now)
+    const getSeatsAtFloor = (floor: number) => {
+        const seats: Array<Seat> = seatList || [];
+        return seats.filter((seat) => seat.floor === floor);
+    };
 
-   const seats = getSeatsAtFloor(selectedFloor);
+    const seats = getSeatsAtFloor(selectedFloor);
+    const seatMap = new Map<string, Seat>();
+    seats.forEach((s) => {
+        seatMap.set(generateSeatCode(s.row, s.col, s.floor), s);
+    })
 
    const toggleSeat = (seat: Seat) => {
       onSelectSeat(seat);
    };
 
-   const getSeatStatus = (seat: Seat) => {
-      if (seat.seatType == SeatTypeEnum.DRIVER) return "driver";
-      if (selectedSeats.includes(seat)) return "selected";
-      if (getBookingSeatsQuery.data?.some((bookedSeat) => bookedSeat.id === seat.id) || seat.isActive === false) return "booked";
-      return "available";
-   };
+    type SeatStatus = "driver" | "selected" | "booked" | "available" | "aisle";
+    const getSeatStatus: (seat: Seat) => SeatStatus = (seat: Seat) => {
+        if (seat.seatType == SeatTypeEnum.DRIVER) return "driver";
+        if (selectedSeats.includes(seat)) return "selected";
+        if (getBookingSeatsQuery.data?.some((bookedSeat) => bookedSeat.id === seat.id)) return "booked";
+        // TODO: merge then add check for disabled seat
+        return "available";
+    };
 
-   const getSeatClassName = (status: string) => {
-      const base = "w-12 h-12 rounded-lg transition-all flex items-center justify-center text-xs font-semibold border-2";
+    const getSeatClassName = (status: SeatStatus) => {
+        const base = "w-12 h-12 rounded-lg transition-all flex items-center justify-center text-xs font-semibold border-2";
 
       switch (status) {
          case "available":
@@ -262,71 +266,80 @@ export function TripDetail({ trip, onSelectSeat, selectedSeats }: TripDetailProp
                         </div>
                      </div>
 
-                     {/* Seat Grid */}
-                     <div className="flex justify-center">
-                        <div className="inline-block bg-linear-to-b from-secondary/40 to-secondary/20 p-8 rounded-2xl border-2 border-border shadow-inner">
-                           <div className="text-center text-sm text-text font-semibold mb-6 flex items-center justify-center gap-2 bg-primary/50 py-2 px-4 rounded-lg">
-                              <svg
-                                 xmlns="http://www.w3.org/2000/svg"
-                                 width="16"
-                                 height="16"
-                                 viewBox="0 0 24 24"
-                                 fill="none"
-                                 stroke="currentColor"
-                                 strokeWidth="2"
-                                 strokeLinecap="round"
-                                 strokeLinejoin="round"
-                                 className="text-accent"
-                              >
-                                 <path d="M8 6v6" />
-                                 <path d="M15 6v6" />
-                                 <path d="M2 12h19.6" />
-                                 <path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3" />
-                                 <circle cx="7" cy="18" r="2" />
-                                 <circle cx="17" cy="18" r="2" />
-                              </svg>
-                              FRONT OF BUS
-                           </div>
-                           <div
-                              className="grid gap-4"
-                              style={{
-                                 gridTemplateColumns: `repeat(${trip!.bus.cols}, minmax(0, 1fr))`,
-                              }}
-                           >
-                              {seats.map((seat, index) => {
-                                 const status = getSeatStatus(seat);
-                                 return (
-                                    <div
-                                       key={index}
-                                       className="flex justify-between items-center">
-                                       <button
-                                          className={getSeatClassName(status)}
-                                          onClick={() =>
-                                             (status === "available" || status === "selected") && toggleSeat(seat)
-                                          }
-                                          disabled={
-                                             status === "booked" || status === "driver"
-                                          }
-                                          title={seat.code}
-                                       >
-                                          {status === 'driver' ? (
-                                             <Image src={"/icons/steering-wheel.svg"} alt={`driver icon`} width={24} height={24} />
-                                          ) : (
-                                             seat.code
-                                          )}
-                                       </button>
+                            {/* Seat Grid */}
+                            <div className="flex justify-center">
+                                <div className="inline-block bg-linear-to-b from-secondary/40 to-secondary/20 p-8 rounded-2xl border-2 border-border shadow-inner">
+                                    <div className="text-center text-sm text-text font-semibold mb-6 flex items-center justify-center gap-2 bg-primary/50 py-2 px-4 rounded-lg">
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="16"
+                                            height="16"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            className="text-accent"
+                                        >
+                                            <path d="M8 6v6" />
+                                            <path d="M15 6v6" />
+                                            <path d="M2 12h19.6" />
+                                            <path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3" />
+                                            <circle cx="7" cy="18" r="2" />
+                                            <circle cx="17" cy="18" r="2" />
+                                        </svg>
+                                        FRONT OF BUS
                                     </div>
-                                 );
-                              })}
-                           </div>
-                           <div className="text-center text-xs text-secondary-text mt-6 font-medium">
-                              BACK OF BUS
-                           </div>
-                        </div>
-                     </div>
-                  </CardBody>
-               </Card>
-            </div>
+
+                                    <div
+                                        className="grid gap-4"
+                                        style={{
+                                            gridTemplateColumns: `repeat(${trip!.bus.cols}, minmax(0, 1fr))`,
+                                        }}
+                                    >
+                                        {Array.from({ length: trip!.bus.rows }).map((_, rowIndex) => (
+                                            <React.Fragment key={`seat-row-${rowIndex}`}>
+                                                {Array.from({ length: trip!.bus.cols }).map((_, colIndex) => {
+                                                    const seat = seatMap.get(generateSeatCode(rowIndex, colIndex, selectedFloor));
+                                                    const status: SeatStatus = seat ? getSeatStatus(seat) : "aisle";
+                                                    return (
+                                                        <div
+                                                            key={`seat-col-${colIndex}`}
+                                                            className="flex justify-between items-center"
+                                                        >
+                                                            <button
+                                                                className={getSeatClassName(status)}
+                                                                onClick={() =>
+                                                                    seat && (status === "available" || status === "selected") && toggleSeat(seat)
+                                                                }
+                                                                disabled={
+                                                                    status === "booked" || status === "driver" || !seat
+                                                                }
+                                                                title={seat && seat.code}
+                                                            >
+                                                                {seat && (<>
+                                                                    {status === 'driver' ? (
+                                                                        <Image src={"/icons/steering-wheel.svg"} alt={`driver icon`} width={24} height={24} />
+                                                                    ) : (
+                                                                        seat.code
+                                                                    )}
+                                                                </>)}
+                                                            </button>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </React.Fragment>
+                                        ))}
+                                    </div>
+                                    <div className="text-center text-xs text-secondary-text mt-6 font-medium">
+                                        BACK OF BUS
+                                    </div>
+                                </div>
+                            </div>
+                        </CardBody>
+                    </Card>
+                </div>
 
             {/* Right: Booking Summary */}
             <div className="lg:col-span-1">
@@ -361,14 +374,14 @@ export function TripDetail({ trip, onSelectSeat, selectedSeats }: TripDetailProp
                            )}
                         </div>
 
-                        <div className="border-t border-border pt-4 space-y-3">
-                           {/* Price per seat */}
-                           <div className="flex justify-between text-sm">
-                              <span className="text-secondary-text">Price per seat</span>
-                              <span className="font-medium text-text">
-                                 VND {totalPrice}
-                              </span>
-                           </div>
+                                <div className="border-t border-border pt-4 space-y-3">
+                                    {/* Price per seat */}
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-secondary-text">Price per seat</span>
+                                        <span className="font-medium text-text">
+                                            {formatPrice(totalPrice)}
+                                        </span>
+                                    </div>
 
                            {/* Number of seats */}
                            <div className="flex justify-between text-sm">
@@ -380,14 +393,14 @@ export function TripDetail({ trip, onSelectSeat, selectedSeats }: TripDetailProp
                               </span>
                            </div>
 
-                           {/* Total */}
-                           <div className="flex justify-between text-lg font-bold border-t border-border pt-3">
-                              <span className="text-text">Total</span>
-                              <span className="text-accent">
-                                 VND {(totalPrice * selectedSeats.length)}
-                              </span>
-                           </div>
-                        </div>
+                                    {/* Total */}
+                                    <div className="flex justify-between text-lg font-bold border-t border-border pt-3">
+                                        <span className="text-text">Total</span>
+                                        <span className="text-accent">
+                                            {formatPrice(totalPrice * selectedSeats.length)}
+                                        </span>
+                                    </div>
+                                </div>
 
                         {/* Proceed Button */}
                         <Button

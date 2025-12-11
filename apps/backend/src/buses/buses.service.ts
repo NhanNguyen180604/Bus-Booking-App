@@ -186,7 +186,14 @@ export class BusesService {
                 cause: "Not found bus ID",
             });
         }
-        return await this.seatRepo.find({ where: { bus: { id: dto.id } } });
+        return await this.seatRepo.find({
+            where: { bus: { id: dto.id } },
+            order: {
+                floor: "ASC",
+                row: "ASC",
+                col: "ASC",
+            }
+        });
     }
 
     async getManySeatsByIds(dto: BusSeatsGetManyByIdsDtoType) {
