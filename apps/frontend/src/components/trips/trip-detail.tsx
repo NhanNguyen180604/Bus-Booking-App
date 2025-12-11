@@ -6,9 +6,11 @@ import { Card, CardBody, CardHeader } from "../ui/card";
 import { Button } from "../ui/button";
 import { RouterOutputsType } from "backend";
 import Image from "next/image";
-import { SeatTypeEnum } from "@repo/shared";
+import { generateSeatCode, SeatTypeEnum } from "@repo/shared";
 import { useTRPC } from "@/src/utils/trpc";
 import { useQuery } from "@tanstack/react-query";
+import { formatPrice } from "@/src/utils/format-price";
+import React from "react";
 
 type Trip = RouterOutputsType["trips"]["findOneById"];
 type Seat = RouterOutputsType["buses"]["getSeatsByBus"][0];
@@ -17,15 +19,11 @@ interface TripDetailProps {
     trip: Trip;
     onSelectSeat: (seat: Seat) => void;
     selectedSeats: Seat[];
+    seatList: Seat[];
 }
 
-export function TripDetail({ trip, onSelectSeat, selectedSeats }: TripDetailProps) {
+export function TripDetail({ trip, onSelectSeat, selectedSeats, seatList }: TripDetailProps) {
     const trpc = useTRPC();
-
-    const getSeatsQueryOptions = trpc.buses.getSeatsByBus.queryOptions({ id: trip!.bus.id });
-    const getSeatsQuery = useQuery({
-        ...getSeatsQueryOptions
-    });
 
     const getBookingSeatsQueryOptions = trpc.booking.getBookingSeatsByTrip.queryOptions({ tripId: trip!.id });
     const getBookingSeatsQuery = useQuery({
@@ -61,28 +59,34 @@ export function TripDetail({ trip, onSelectSeat, selectedSeats }: TripDetailProp
     };
 
     const totalPrice = trip!.basePrice * trip!.bus.type.priceMultiplier;
-    const totalSeats = trip!.bus.rows * trip!.bus.cols * trip!.bus.floors;
+    const totalSeats = seatList.length;
 
     // Generate seat layout (mock data for now)
     const getSeatsAtFloor = (floor: number) => {
-        const seats: Array<Seat> = getSeatsQuery.data || [];
+        const seats: Array<Seat> = seatList || [];
         return seats.filter((seat) => seat.floor === floor);
     };
 
     const seats = getSeatsAtFloor(selectedFloor);
+    const seatMap = new Map<string, Seat>();
+    seats.forEach((s) => {
+        seatMap.set(generateSeatCode(s.row, s.col, s.floor), s);
+    })
 
     const toggleSeat = (seat: Seat) => {
         onSelectSeat(seat);
     };
 
-    const getSeatStatus = (seat: Seat) => {
+    type SeatStatus = "driver" | "selected" | "booked" | "available" | "aisle";
+    const getSeatStatus: (seat: Seat) => SeatStatus = (seat: Seat) => {
         if (seat.seatType == SeatTypeEnum.DRIVER) return "driver";
         if (selectedSeats.includes(seat)) return "selected";
-        if (getBookingSeatsQuery.data?.some((bookedSeat) => bookedSeat.id === seat.id) || seat.isActive === false) return "booked";
+        if (getBookingSeatsQuery.data?.some((bookedSeat) => bookedSeat.id === seat.id)) return "booked";
+        // TODO: merge then add check for disabled seat
         return "available";
     };
 
-    const getSeatClassName = (status: string) => {
+    const getSeatClassName = (status: SeatStatus) => {
         const base = "w-12 h-12 rounded-lg transition-all flex items-center justify-center text-xs font-semibold border-2";
 
         switch (status) {
@@ -287,37 +291,46 @@ export function TripDetail({ trip, onSelectSeat, selectedSeats }: TripDetailProp
                                         </svg>
                                         FRONT OF BUS
                                     </div>
+
                                     <div
                                         className="grid gap-4"
                                         style={{
                                             gridTemplateColumns: `repeat(${trip!.bus.cols}, minmax(0, 1fr))`,
                                         }}
                                     >
-                                        {seats.map((seat, index) => {
-                                            const status = getSeatStatus(seat);
-                                            return (
-                                                <div
-                                                    key={index}
-                                                    className="flex justify-between items-center">
-                                                    <button
-                                                        className={getSeatClassName(status)}
-                                                        onClick={() =>
-                                                            (status === "available" || status === "selected") && toggleSeat(seat)
-                                                        }
-                                                        disabled={
-                                                            status === "booked" || status === "driver"
-                                                        }
-                                                        title={seat.code}
-                                                    >
-                                                        {status === 'driver' ? (
-                                                            <Image src={"/icons/steering-wheel.svg"} alt={`driver icon`} width={24} height={24} />
-                                                        ) : (
-                                                            seat.code
-                                                        )}
-                                                    </button>
-                                                </div>
-                                            );
-                                        })}
+                                        {Array.from({ length: trip!.bus.rows }).map((_, rowIndex) => (
+                                            <React.Fragment key={`seat-row-${rowIndex}`}>
+                                                {Array.from({ length: trip!.bus.cols }).map((_, colIndex) => {
+                                                    const seat = seatMap.get(generateSeatCode(rowIndex, colIndex, selectedFloor));
+                                                    const status: SeatStatus = seat ? getSeatStatus(seat) : "aisle";
+                                                    return (
+                                                        <div
+                                                            key={`seat-col-${colIndex}`}
+                                                            className="flex justify-between items-center"
+                                                        >
+                                                            <button
+                                                                className={getSeatClassName(status)}
+                                                                onClick={() =>
+                                                                    seat && (status === "available" || status === "selected") && toggleSeat(seat)
+                                                                }
+                                                                disabled={
+                                                                    status === "booked" || status === "driver" || !seat
+                                                                }
+                                                                title={seat && seat.code}
+                                                            >
+                                                                {seat && (<>
+                                                                    {status === 'driver' ? (
+                                                                        <Image src={"/icons/steering-wheel.svg"} alt={`driver icon`} width={24} height={24} />
+                                                                    ) : (
+                                                                        seat.code
+                                                                    )}
+                                                                </>)}
+                                                            </button>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </React.Fragment>
+                                        ))}
                                     </div>
                                     <div className="text-center text-xs text-secondary-text mt-6 font-medium">
                                         BACK OF BUS
@@ -366,7 +379,7 @@ export function TripDetail({ trip, onSelectSeat, selectedSeats }: TripDetailProp
                                     <div className="flex justify-between text-sm">
                                         <span className="text-secondary-text">Price per seat</span>
                                         <span className="font-medium text-text">
-                                            VND {totalPrice}
+                                            {formatPrice(totalPrice)}
                                         </span>
                                     </div>
 
@@ -384,7 +397,7 @@ export function TripDetail({ trip, onSelectSeat, selectedSeats }: TripDetailProp
                                     <div className="flex justify-between text-lg font-bold border-t border-border pt-3">
                                         <span className="text-text">Total</span>
                                         <span className="text-accent">
-                                            VND {(totalPrice * selectedSeats.length)}
+                                            {formatPrice(totalPrice * selectedSeats.length)}
                                         </span>
                                     </div>
                                 </div>

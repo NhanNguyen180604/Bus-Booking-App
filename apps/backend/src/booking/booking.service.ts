@@ -260,7 +260,6 @@ export class BookingService {
             .andWhere('NOW() < booking.expiresAt OR booking.expiresAt IS NULL')
             .select(['booking.id', 'seats.id'])
             .getMany();
-        Logger.log(bookings);
         return bookings.map(booking => booking.seats).flat();
     }
 }
