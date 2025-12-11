@@ -24,7 +24,7 @@ export function FilterSortPanel({
   onReset,
 }: FilterSortPanelProps) {
   const PRICE_MIN = 0;
-  const PRICE_MAX = 2000;
+  const PRICE_MAX = 2000000;
 
   const [localBusTypes, setLocalBusTypes] = useState<string[]>(options.busType || []);
   const [localMinPrice, setLocalMinPrice] = useState<number>(options.minPrice || 0);
@@ -193,9 +193,9 @@ export function FilterSortPanel({
                 />
               </div>
               <div className="flex justify-between text-xs text-secondary-text items-center">
-                <span>${PRICE_MIN}</span>
-                <span className="text-sm text-text font-semibold">${localMinPrice} - ${localMaxPrice}</span>
-                <span>${PRICE_MAX}</span>
+                <span>VND {PRICE_MIN}</span>
+                <span className="text-sm text-text font-semibold">VND {localMinPrice} - {localMaxPrice}</span>
+                <span>VND {PRICE_MAX}</span>
               </div>
             </div>
           </div>

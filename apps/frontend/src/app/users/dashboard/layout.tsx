@@ -10,8 +10,9 @@ export default function UserDashboardLayout({ children }: { children: React.Reac
         return <Loading />;
     }
 
-    if (userQuery.isSuccess && userQuery.data.role !== "ADMIN" || userQuery.isError) {
+    if (userQuery.isSuccess && userQuery.data.role !== "USER" || userQuery.isError) {
         //TODO: real 401 page
+        console.log(userQuery.data?.role);
         return <>401</>;
     }
 

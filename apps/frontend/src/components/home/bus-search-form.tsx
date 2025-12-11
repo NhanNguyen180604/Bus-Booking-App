@@ -22,7 +22,10 @@ type BusSearchFormType = Omit<TripFindManyDtoType, 'departureTime' | 'page' | 'p
 
 export function BusSearchForm({ onSearch, isLoading }: BusSearchFormProps) {
   const trpc = useTRPC();
-  const stationsQuery = useQuery(trpc.stations.findAll.queryOptions());
+  const stationsQuery = useQuery({
+    ...trpc.stations.findAll.queryOptions(),
+    staleTime: 5 * 60 * 1000,
+  });
 
   const {
     register,

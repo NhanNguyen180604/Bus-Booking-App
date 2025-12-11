@@ -15,9 +15,10 @@ export default function Home() {
   const trpc = useTRPC();
   const [searchParams, setSearchParams] = useState<TripFindManyDtoType | null>(null);
 
-  const searchQuery = useQuery(
-    trpc.trips.search.queryOptions(searchParams ?? skipToken)
-  );
+  const searchQuery = useQuery({
+    ...trpc.trips.search.queryOptions(searchParams ?? skipToken),
+    staleTime: 5 * 60 * 1000,
+  });
 
   const perPage = 10;
   const handleSearch = (params: Omit<TripFindManyDtoType, 'page' | 'perPage'>) => {
@@ -33,8 +34,10 @@ export default function Home() {
   const handleFilterChange = (filters: {
     options: Omit<TripFindManyDtoType, 'page' | 'perPage'>;
   }) => {
-    setSearchParams({ ...searchParams, 
-      ...filters.options, page: 1, perPage });
+    setSearchParams({
+      ...searchParams,
+      ...filters.options, page: 1, perPage
+    });
   };
 
   const handleResetFilters = () => {

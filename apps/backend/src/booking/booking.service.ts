@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
-import { BookingCancelDtoType, BookingConfirmDtoType, BookingCreateOneDtoType, BookingLookUpDtoType, BookingUserSearchDtoType, PaymentStatusEnum } from '@repo/shared';
+import { BookingCancelDtoType, BookingConfirmDtoType, BookingCreateOneDtoType, BookingLookUpDtoType, BookingUserSearchDtoType, GetBookingSeatsByTripDtoType, PaymentStatusEnum } from '@repo/shared';
 import { TRPCError } from '@trpc/server';
 import { Booking } from 'src/entities/booking.entity';
 import { Payment } from 'src/entities/payment.entity';
@@ -261,5 +261,18 @@ export class BookingService {
         await this.entityManager
             .getRepository(Payment)
             .delete({ id: booking.payment.id });
+    }
+
+    async getBookingSeatsByTrip(dto: GetBookingSeatsByTripDtoType) {
+        const bookings = await this.entityManager
+            .getRepository(Booking)
+            .createQueryBuilder('booking')
+            .leftJoin('booking.trip', 'trip')
+            .leftJoin('booking.seats', 'seats')
+            .where('trip.id = :tripId', { tripId: dto.tripId })
+            .andWhere('NOW() < booking.expiresAt OR booking.expiresAt IS NULL')
+            .select(['booking.id', 'seats.id'])
+            .getMany();
+        return bookings.map(booking => booking.seats).flat();
     }
 }

@@ -62,6 +62,11 @@ export const BookingUserSearchDto = z.object({
 });
 export type BookingUserSearchDtoType = z.infer<typeof BookingUserSearchDto>;
 
+export const GetBookingSeatsByTripDto = z.object({
+    tripId: z.uuid({ error: "Trip ID must be a UUID string" }),
+});
+export type GetBookingSeatsByTripDtoType = z.infer<typeof GetBookingSeatsByTripDto>;
+
 export const BookingCancelDto = z.object({
     cancelToken: z.string().trim().nonempty(),
 });
