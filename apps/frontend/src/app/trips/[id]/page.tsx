@@ -11,6 +11,7 @@ import { useRef, useState } from "react";
 import ChevronLeftIcon from "@/src/components/icons/chevron-left";
 import CheckoutInfoComponent from "../../../components/checkout/checkout-info";
 import BookingSummaryCard from "@/src/components/booking/booking-summary-card";
+import NotFoundPage from "@/src/components/status-pages/not-found-page";
 
 type Seat = RouterOutputsType["buses"]["getSeatsByBus"][number];
 
@@ -60,22 +61,13 @@ export default function TripDetailPage() {
   if (tripQuery.isError || !tripQuery.data || !getSeatsQuery.data) {
     return (
       <AppShell hideNav>
-        <div className="max-w-4xl mx-auto py-8">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-text mb-4">
-              {!getSeatsQuery.data ? `Seats Not Found.` : `Trip Not Found`}
-            </h1>
-            <p className="text-secondary-text mb-6">
-              {!getSeatsQuery.data ? `Error loading seats for this trip, please try again later.` : `The trip you're looking for doesn't exist or has been removed.`}
-            </p>
-            <Link
-              href="/"
-              className="text-accent hover:underline"
-            >
-              Return to Home
-            </Link>
-          </div>
-        </div>
+        <NotFoundPage
+          header={!tripQuery.data ? `Trip Not Found.` : `Seats Not Found`}
+          message={!tripQuery.data ? `The trip you're looking for doesn't exist or has been removed.` : `Error loading seats for this trip, please try again later.`}
+          returnBtnText="Go back"
+          redirectUrl="/"
+          routerGoBack
+        />
       </AppShell>
     );
   }

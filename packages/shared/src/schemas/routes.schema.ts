@@ -46,7 +46,7 @@ export type RouteFindOneByIdDtoType = z.infer<typeof RouteFindOneByIdDto>;
 export const RouteSearchDto = z.object({
     sortOriginName: sortOptions,
     sortDestinationName: sortOptions,
-    originNameQuery: z.string().nonempty({ error: "Origin Query must not be empty" }).optional(),
-    destinationNameQuery: z.string().nonempty({ error: "Destination Query must not be empty" }).optional(),
+    originNameQuery: z.string().optional(),
+    destinationNameQuery: z.string().optional(),
 }).extend(PaginationDto.shape);
 export type RouteSearchDtoType = z.infer<typeof RouteSearchDto>;

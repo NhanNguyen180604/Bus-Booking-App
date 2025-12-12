@@ -85,7 +85,7 @@ export const BusSearchDto = z.object({
     driverNotNull: z.boolean().optional(),
     driverId: z.uuid({ error: "Driver ID must be an UUID string" }).optional(),
     driverNameSort: sortOptions,
-    plateNumberQuery: z.string().nonempty({ error: "Plate Number must not be an empty string" }).optional(),
+    plateNumberQuery: z.string().optional(),
     plateNumberSort: sortOptions,
     typeId: z.uuid({ error: "Bus Type ID must be an UUID string" }).optional(),
 }).extend(PaginationDto.shape);

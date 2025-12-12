@@ -1,35 +1,35 @@
-"use client";;
+"use client";
 import { Button } from "@/src/components/ui/button";
 import { Card, CardBody, CardFooter } from "@/src/components/ui/card";
 import { FormField } from "@/src/components/ui/form-field";
 import { useTRPC } from "@/src/utils/trpc";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
-import { BusTypeUpdateOneDto, BusTypeUpdateOneDtoType } from "@repo/shared";
+import { StationUpdateOneDto, StationUpdateOneDtoType } from "@repo/shared";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter, useParams } from "next/navigation";
 import { useEffect } from "react";
 import NotFoundPage from "@/src/components/status-pages/not-found-page";
 
-export default function AdminEditRoutePage() {
+export default function AdminEditStationPage() {
     const params = useParams<{ id: string }>();
     const trpc = useTRPC();
     const router = useRouter();
     const queryClient = useQueryClient();
 
-    const busTypeQueryOpts = trpc.busTypes.getOneById.queryOptions({
+    const stationQueryOpts = trpc.stations.findOne.queryOptions({
         id: params.id,
     });
-    const busTypeQuery = useQuery({
-        ...busTypeQueryOpts,
+    const stationQuery = useQuery({
+        ...stationQueryOpts,
         staleTime: 60 * 60 * 1000,
     });
 
     useEffect(() => {
-        if (busTypeQuery.isSuccess) {
-            reset(busTypeQuery.data);
+        if (stationQuery.isSuccess && stationQuery.data) {
+            reset(stationQuery.data);
         }
-    }, [busTypeQuery.isSuccess]);
+    }, [stationQuery.isSuccess, stationQuery.data]);
 
     const {
         register,
@@ -37,14 +37,14 @@ export default function AdminEditRoutePage() {
         reset,
         formState: { errors: formErrors, isValid },
         setError,
-    } = useForm<BusTypeUpdateOneDtoType>({
-        resolver: zodResolver(BusTypeUpdateOneDto),
+    } = useForm<StationUpdateOneDtoType>({
+        resolver: zodResolver(StationUpdateOneDto),
         mode: "all",
     });
 
-    const updateBusTypeMutationOpts = trpc.busTypes.updateOne.mutationOptions();
-    const updateBusTypeMutation = useMutation({
-        ...updateBusTypeMutationOpts,
+    const updateStationMutationOpts = trpc.stations.updateOne.mutationOptions();
+    const updateStationMutation = useMutation({
+        ...updateStationMutationOpts,
         onError(error: any) {
             if (error.data?.zodError) {
                 const zodErrors = error.data.zodError.fieldErrors;
@@ -55,28 +55,28 @@ export default function AdminEditRoutePage() {
                 });
             } else {
                 setError("root", {
-                    message: error.message || "Updating bus type failed. Please try again.",
+                    message: error.message || "Updating station failed. Please try again.",
                 });
             }
         },
         onSuccess(data) {
-            queryClient.invalidateQueries({ queryKey: trpc.busTypes.search.queryKey() });
-            queryClient.setQueryData(trpc.busTypes.getOneById.queryKey({ id: data.id }), data);
-            setTimeout(() => router.push('/admin/buses'), 3000);
+            queryClient.invalidateQueries({ queryKey: trpc.stations.search.queryKey() });
+            queryClient.setQueryData(trpc.stations.findOne.queryKey({ id: data.id }), data);
+            setTimeout(() => router.push('/admin/stations'), 3000);
         },
     });
 
-    const onSubmit = (data: BusTypeUpdateOneDtoType) => {
-        updateBusTypeMutation.mutate(data);
+    const onSubmit = (data: StationUpdateOneDtoType) => {
+        updateStationMutation.mutate(data);
     }
 
-    if (!busTypeQuery.isPending && !busTypeQuery.data) {
+    if (!stationQuery.isPending && !stationQuery.data) {
         return (
             <NotFoundPage
-                header='Bus Type Not Found'
-                message="The bus type you're looking for doesn't exist or has been removed."
+                header='Station Not Found'
+                message="The station you're looking for doesn't exist or has been removed."
                 returnBtnText="Go back"
-                redirectUrl="/admin/buses?tab=1"
+                redirectUrl="/admin/stations"
                 routerGoBack
             />
         );
@@ -84,8 +84,8 @@ export default function AdminEditRoutePage() {
 
     return (
         <div className="flex flex-col">
-            <h1 className="text-[2rem] text-text dark:text-text font-bold mb-8">Edit Route</h1>
-            <Button variant="accent" className="self-start mb-8" onClick={() => router.push('/admin/buses?tab=1')}>Return</Button>
+            <h1 className="text-[2rem] text-text dark:text-text font-bold mb-8">Edit Station</h1>
+            <Button variant="accent" className="self-start mb-8" onClick={() => router.push('/admin/stations')}>Return</Button>
 
             <form onSubmit={handleSubmit(onSubmit)}>
                 <Card>
@@ -96,9 +96,11 @@ export default function AdminEditRoutePage() {
                             </div>
                         )}
 
+                        <input type="hidden" {...register("id")} />
+
                         <FormField
                             label="Name"
-                            placeholder="Sleeper"
+                            placeholder="Hanoi"
                             required
                             {...register("name")}
                             error={formErrors.name?.message}
@@ -111,18 +113,18 @@ export default function AdminEditRoutePage() {
                             variant="accent"
                             size="md"
                             fullWidth
-                            disabled={!isValid || updateBusTypeMutation.isPending || updateBusTypeMutation.isSuccess}
+                            disabled={!isValid || updateStationMutation.isPending || updateStationMutation.isSuccess}
                         >
-                            {updateBusTypeMutation.isPending ? "Updating..." : "Update"}
+                            {updateStationMutation.isPending ? "Updating..." : "Update"}
                         </Button>
 
-                        {updateBusTypeMutation.isSuccess && (
+                        {updateStationMutation.isSuccess && (
                             <>
                                 <div className="col-span-2 text-success dark:text-success font-bold text-center text-xl mt-4">
-                                    Update Bus Type Successfully!
+                                    Update Station Successfully!
                                 </div>
                                 <div className="col-span-2 text-success dark:text-success font-bold text-center text-xl mt-4">
-                                    Returning to Buses Page
+                                    Returning to Stations Page
                                 </div>
                             </>
                         )}

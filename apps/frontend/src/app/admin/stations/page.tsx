@@ -6,98 +6,100 @@ import { useTRPC } from "@/src/utils/trpc";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { type SortOptionsType } from '@repo/shared';
+import { StationSearchDtoType, type SortOptionsType } from '@repo/shared';
 import { Table } from "@/src/components/ui/table";
 import Pagination from "@/src/components/ui/pagination";
 import { FormField } from "@/src/components/ui/form-field";
 import { type RouterOutputsType } from 'backend';
 import Modal from "@/src/components/ui/modal";
 
-type BusType = RouterOutputsType['busTypes']['getOneById'];
+type Station = RouterOutputsType['stations']['search']['data'][number];
 
-export default function AdminManageBusTypePage() {
+export default function AdminManageStationPage() {
     const router = useRouter();
     const trpc = useTRPC();
     const queryClient = useQueryClient();
-
-    // zodResolver for react hook form doesn't work for some reasons
-    // it keeps saying mistmatching
-    const [sortBusTypeNameInput, setSortBusTypeNameInput] = useState<SortOptionsType>(undefined);
-    const [sortBusTypeName, setSortBusTypeName] = useState<SortOptionsType>(undefined);
-
-    // searching bus type
-    // clunky as hell
-    const [busTypeNameQueryInput, setBusTypeNameQueryInput] = useState("");
-    const [busTypeNameQuery, setBusTypeNameQuery] = useState<string | undefined>(undefined);
-
     const perPage = 20;
-    const [busTypePage, setBusTypePage] = useState(1);
-    const [busTypeTotalPage, setBusTypeTotalPage] = useState(1);
-    const searchBusTypeOpts = trpc.busTypes.search.queryOptions({
-        page: busTypePage,
-        perPage,
-        sortName: sortBusTypeName,
-        nameQuery: busTypeNameQuery,
+
+    const [stationTotalPage, setStationTotalPage] = useState(1);
+
+    const [stationSearchInput, setStationSearchInput] = useState<StationSearchDtoType>({
+        page: 1,
+        perPage: perPage,
+        nameQuery: '',
     });
-    const searchBusTypeQuery = useQuery({
-        ...searchBusTypeOpts,
+    const [stationSearchObj, setStationSearchObj] = useState<StationSearchDtoType>(stationSearchInput);
+
+    const searchStationOpts = trpc.stations.search.queryOptions(stationSearchObj);
+    const searchStationQuery = useQuery({
+        ...searchStationOpts,
         staleTime: 60 * 60 * 1000,
     });
 
     useEffect(() => {
-        if (searchBusTypeQuery.isSuccess) {
-            if (searchBusTypeQuery.data.totalPage !== busTypeTotalPage) {
-                setBusTypeTotalPage(searchBusTypeQuery.data.totalPage);
-                setBusTypePage(1);
+        if (searchStationQuery.isSuccess) {
+            if (searchStationQuery.data.totalPage !== stationTotalPage) {
+                setStationSearchInput({
+                    ...stationSearchInput,
+                    page: 1,
+                });
+                setStationSearchObj({
+                    ...stationSearchObj,
+                    page: 1,
+                });
+                setStationTotalPage(searchStationQuery.data.totalPage);
             }
         }
-    }, [searchBusTypeQuery.isFetching]);
+    }, [searchStationQuery.isFetching]);
 
-    // deleting bus type
+    // deleting station
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [deletingBusType, setDeletingBusType] = useState<BusType | null>(null);
-    const [deleteBusTypeError, setDeleteBusTypeError] = useState<string>();
-    const deleteBusTypeOpts = trpc.busTypes.deleteOne.mutationOptions();
-    const deleteBusTypeMutation = useMutation({
-        ...deleteBusTypeOpts,
+    const [deletingStation, setDeletingStation] = useState<Station | null>(null);
+    const [deleteStationError, setDeleteStationError] = useState<string>();
+    const deleteStationOpts = trpc.stations.deleteOne.mutationOptions();
+    const deleteStationMutation = useMutation({
+        ...deleteStationOpts,
         onError(error) {
-            setDeleteBusTypeError(error.message);
+            setDeleteStationError(error.message);
         },
         onSuccess(_, variables) {
             onDeleteModalClose();
-            queryClient.removeQueries({ queryKey: trpc.busTypes.getOneById.queryKey({ id: variables.id }) });
-            queryClient.invalidateQueries({ queryKey: trpc.busTypes.search.queryKey() });
+            queryClient.removeQueries({ queryKey: trpc.stations.findOne.queryKey({ id: variables.id }) });
+            queryClient.invalidateQueries({ queryKey: trpc.stations.search.queryKey() });
         },
     });
 
     const onDeleteModalClose = () => {
         setShowDeleteModal(false);
-        setDeletingBusType(null);
-        setDeleteBusTypeError(undefined);
+        setDeletingStation(null);
+        setDeleteStationError(undefined);
     };
 
     return (
         <div className="flex flex-col">
-            <h1 className="text-[2rem] text-text dark:text-text font-bold mb-8">Manage Bus Types</h1>
+            <h1 className="text-[2rem] text-text dark:text-text font-bold mb-8">Manage Stations</h1>
             <div className="flex gap-4">
-                <Button variant="accent" className="self-start mb-8" onClick={() => router.push('/admin/buses/types/new')}>CREATE NEW BUS TYPE</Button>
+                <Button variant="accent" className="self-start mb-8" onClick={() => router.push('/admin/stations/new')}>CREATE NEW STATION</Button>
             </div>
 
             {/* Sort and Filter */}
             <form>
                 <Card className="flex flex-col mb-8">
-                    <CardHeader className="text-text dark:text-text text-[20px] font-bold">QUERY AND SORT BUS TYPES</CardHeader>
+                    <CardHeader className="text-text dark:text-text text-[20px] font-bold">QUERY AND SORT STATIONS</CardHeader>
 
                     <CardBody className="flex px-6 border-b border-border dark:border-border pb-4 gap-8">
                         <div className="flex-1">
-                            <FormField label="Bus Type Name Query"
-                                placeholder="Sleeper"
-                                value={busTypeNameQueryInput}
-                                onChange={(e) => setBusTypeNameQueryInput(e.target.value)}
+                            <FormField label="Station Name Query"
+                                placeholder="Hanoi"
+                                value={stationSearchInput.nameQuery}
+                                onChange={(e) => setStationSearchInput({
+                                    ...stationSearchInput,
+                                    nameQuery: e.target.value,
+                                })}
                             />
                         </div>
                         <div className="flex-1">
-                            <SelectDropdown label="Sort Bus Type Name" id="sort-bus-type-name" name="sort-bus-type-name" isClearable
+                            <SelectDropdown label="Sort Station Name" id="sort-station-name" name="sort-station-name" isClearable
                                 menuPortalTarget={document.body}
                                 menuPosition="fixed"
                                 options={[
@@ -106,7 +108,10 @@ export default function AdminManageBusTypePage() {
                                 ]}
                                 onChange={(newValue, _) => {
                                     const newVal: OptionType<string> = newValue as OptionType<string>;
-                                    setSortBusTypeNameInput(newVal ? newVal.value as SortOptionsType : undefined);
+                                    setStationSearchInput({
+                                        ...stationSearchInput,
+                                        sortName: newVal ? newVal.value as "asc" | "desc" : undefined,
+                                    })
                                 }}
                             />
                         </div>
@@ -119,9 +124,8 @@ export default function AdminManageBusTypePage() {
                         className="m-6"
                         onClick={(e) => {
                             e.preventDefault();
-                            setSortBusTypeName(sortBusTypeNameInput || undefined);
-                            setBusTypeNameQuery(busTypeNameQueryInput || undefined);
-                            searchBusTypeQuery.refetch();
+                            setStationSearchObj(stationSearchInput);
+                            searchStationQuery.refetch();
                         }}
                     >
                         <svg
@@ -139,33 +143,33 @@ export default function AdminManageBusTypePage() {
                             <circle cx="11" cy="11" r="8" />
                             <path d="m21 21-4.35-4.35" />
                         </svg>
-                        Search Bus Types
+                        Search Stations
                     </Button>
                 </Card>
             </form>
 
             {/* table here baby */}
-            {searchBusTypeQuery.isFetching ? (
+            {searchStationQuery.isFetching ? (
                 <div className="text-text dark:text-text flex justify-center font-bold">Loading...</div>
             ) : (
                 <>
-                    {searchBusTypeQuery.isSuccess && searchBusTypeQuery.data.total ? (
+                    {searchStationQuery.isSuccess && searchStationQuery.data.data.length ? (
                         <Card className="flex overflow-hidden">
                             <Table
-                                data={searchBusTypeQuery.data.data}
-                                rowKey={(busType) => `bus-type-${busType.id}`}
+                                data={searchStationQuery.data.data}
+                                rowKey={(station) => `station-${station.id}`}
                                 columns={[
                                     {
                                         header: "Name",
-                                        render: busType => busType.name,
+                                        render: station => station.name,
                                     },
                                     {
                                         header: "Actions",
-                                        render: busType => (
+                                        render: station => (
                                             <>
                                                 <Button className="flex-1 max-w-32"
                                                     variant="accent"
-                                                    onClick={() => { router.push(`/admin/buses/types/edit/${busType.id}`) }}
+                                                    onClick={() => { router.push(`/admin/stations/edit/${station.id}`) }}
                                                 >
                                                     Edit
                                                 </Button>
@@ -173,7 +177,7 @@ export default function AdminManageBusTypePage() {
                                                     variant="danger"
                                                     onClick={(_) => {
                                                         setShowDeleteModal(true);
-                                                        setDeletingBusType(busType);
+                                                        setDeletingStation(station);
                                                     }}
                                                 >
                                                     Delete
@@ -190,14 +194,21 @@ export default function AdminManageBusTypePage() {
 
                         </Card>
                     ) : (
-                        <div className="text-text dark:text-text font-bold text-base text-center">No Bus Type Found</div>
+                        <div className="text-text dark:text-text font-semibold text-center">No Station Found</div>
                     )}
                 </>
             )}
-            {!searchBusTypeQuery.isError && (
+            {!searchStationQuery.isError && (
                 <div className="mt-8 flex justify-center">
-                    <Pagination currentPage={busTypePage} totalPage={busTypeTotalPage} loadPageFn={(newPage) => {
-                        setBusTypePage(newPage);
+                    <Pagination currentPage={stationSearchInput.page} totalPage={stationTotalPage} loadPageFn={(newPage) => {
+                        setStationSearchInput({
+                            ...stationSearchInput,
+                            page: newPage,
+                        });
+                        setStationSearchObj({
+                            ...stationSearchObj,
+                            page: newPage,
+                        });
                     }} />
                 </div>
             )}
@@ -206,27 +217,26 @@ export default function AdminManageBusTypePage() {
                 <Card onClick={(e) => e.stopPropagation()} className="max-w-lg min-w-lg">
                     <CardHeader>
                         <h1 className="text-text dark:text-text font-bold text-xl">
-                            Are you sure you want to delete this bus type?
+                            Are you sure you want to delete this station?
                         </h1>
-                        {deleteBusTypeError && (
-                            <div className="text-danger dark:text-danger font-bold mt-4">{deleteBusTypeError}</div>
+                        {deleteStationError && (
+                            <div className="text-danger dark:text-danger font-bold mt-4">{deleteStationError}</div>
                         )}
                     </CardHeader>
                     <CardBody className="text-text dark:text-text">
-                        <div>ID: {deletingBusType?.id}</div>
-                        <div>Name: {deletingBusType?.name}</div>
-                        <div>Price Multiplier: {deletingBusType?.priceMultiplier}</div>
+                        <div>ID: {deletingStation?.id}</div>
+                        <div>Name: {deletingStation?.name}</div>
                     </CardBody>
                     <CardFooter className="flex justify-between gap-6">
                         <Button variant="danger"
                             className="flex-1"
-                            disabled={deleteBusTypeMutation.isPending}
+                            disabled={deleteStationMutation.isPending}
                             onClick={() => {
-                                if (deletingBusType) {
-                                    deleteBusTypeMutation.mutate({ id: deletingBusType.id });
+                                if (deletingStation) {
+                                    deleteStationMutation.mutate({ id: deletingStation.id });
                                 }
                             }}>
-                            {deleteBusTypeMutation.isPending ? "Deleting..." : "Confirm"}
+                            {deleteStationMutation.isPending ? "Deleting..." : "Confirm"}
                         </Button>
                         <Button variant="primary"
                             className="flex-1"

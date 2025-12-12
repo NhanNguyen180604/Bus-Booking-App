@@ -37,11 +37,11 @@ export type UserRegisterDtoType = z.infer<typeof UserRegisterDto>;
 export const UserSearchDto = z.object({
     role: z.enum(["USER", "DRIVER"]).optional(),
     driverWithNoBus: z.boolean().optional(),
-    nameQuery: z.string().nonempty({ error: "Name must not be an empty string" }).optional(),
+    nameQuery: z.string().trim().optional(),
     nameSort: sortOptions,
-    phoneQuery: z.string().nonempty({ error: "Phone must not be an empty string" }).optional(),
+    phoneQuery: z.string().trim().optional(),
     phoneSort: sortOptions,
-    emailQuery: z.email().optional(),
+    emailQuery: z.email().trim().optional(),
     emailSort: sortOptions,
 }).extend(PaginationDto.shape);
 export type UserSearchDtoType = z.infer<typeof UserSearchDto>;
