@@ -1,6 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
-import { BookingCancelDtoType, BookingConfirmDtoType, BookingCreateOneDtoType, BookingLookUpDtoType, BookingUpdateDtoType, BookingUserSearchDtoType, GetBookingSeatsByTripDtoType, PaymentStatusEnum } from '@repo/shared';
+import { BookingCancelDtoType, BookingCreateOneDtoType, BookingLookUpDtoType, BookingUpdateDtoType, BookingUserSearchDtoType, GetBookingSeatsByTripDtoType, PaymentProviderEnum, PaymentStatusEnum } from '@repo/shared';
 import { TRPCError } from '@trpc/server';
 import { Booking } from 'src/entities/booking.entity';
 import { Payment } from 'src/entities/payment.entity';
@@ -8,18 +8,16 @@ import { Seat } from 'src/entities/seat.entity';
 import { Trip } from 'src/entities/trip.entity';
 import { User } from 'src/entities/users.entity';
 import { convertToMs } from 'src/utils/convert-to-ms';
-import { MyMailerService } from 'src/my-mailer/my-mailer.service';
 import { EntityManager } from 'typeorm';
 import crypto from 'crypto';
+import { StripeService } from 'src/stripe/stripe.service';
 
 @Injectable()
 export class BookingService {
-    private readonly logger = new Logger(BookingService.name);
-
     constructor(
         @InjectEntityManager()
         private readonly entityManager: EntityManager,
-        private readonly mailerService: MyMailerService,
+        private readonly stripeService: StripeService,
     ) { }
 
     createOne(dto: BookingCreateOneDtoType, user?: User) {
@@ -71,44 +69,30 @@ export class BookingService {
                 });
             }
 
-            const { isGuestPayment, guestPaymentProvider } = dto.paymentDetails;
-
-            // TODO: use this after integrate payment
-            // if ((user && !paymentMethodId) || (!user && !isGuestPayment)) {
-            //     const message = user && !paymentMethodId ?
-            //         'Payment method ID must be provided for registered users' :
-            //         'Guest payment details must be provided for guest users';
-            //     throw new TRPCError({
-            //         code: 'BAD_REQUEST',
-            //         message,
-            //         cause: 'Invalid payment details',
-            //     });
-            // }
-
             let payment = transactionalEntityManager
                 .getRepository(Payment)
                 .create({
                     amount: trip.basePrice * seats.length,
                     status: PaymentStatusEnum.PROCESSING,
+                    user,
                 });
 
-            payment.isGuestPayment = true;
-            payment.guestPaymentProvider = guestPaymentProvider!;
+            payment.paymentProvider = PaymentProviderEnum.STRIPE;
             payment = await transactionalEntityManager.save(payment);
 
             const expiresAt = new Date(Date.now() + convertToMs('30m'));
             const token = crypto.randomBytes(32).toString('hex');
+            const totalPrice = trip.basePrice * seats.length;
             const cancelToken = crypto.randomBytes(32).toString('hex');
             let booking = transactionalEntityManager
                 .getRepository(Booking)
                 .create({
                     trip,
                     seats,
-                    user,
                     fullName: dto.fullName,
                     phone: dto.phone,
                     email: dto.email,
-                    totalPrice: trip.basePrice * seats.length,
+                    totalPrice,
                     payment,
                     token,
                     cancelToken,
@@ -116,24 +100,57 @@ export class BookingService {
                 });
             booking = await transactionalEntityManager.save(booking);
 
-            return booking;
+            // only stripe for now
+            const paymentIntent = await this.stripeService.stripe.paymentIntents.create({
+                amount: totalPrice,
+                currency: 'VND',
+                payment_method_types: ['card'],
+                metadata: {
+                    bookingId: booking.id,
+                    userId: user?.id ?? 'guest',
+                },
+            });
+            payment.paymentTransactionId = paymentIntent.id;
+
+            payment = await transactionalEntityManager.save(payment);
+            booking.payment = payment;
+            return {
+                booking,
+                client_secret: paymentIntent.client_secret,
+            };
         });
     }
 
     /**
-     * Confirm payment and send e-ticket email
+     * Mark a booking and its payment as completed, called by the webhook
+     * @param paymentTransactionId
      */
-    async confirmBooking(dto: BookingConfirmDtoType) {
+    async confirmBooking(paymentTransactionId: string) {
+        const payment = await this.entityManager
+            .getRepository(Payment)
+            .findOne({
+                where: { paymentTransactionId },
+            });
+
+        if (!payment) {
+            throw new TRPCError({
+                code: "NOT_FOUND",
+                message: "Booking not found"
+            });
+        }
+
         const booking = await this.entityManager
             .getRepository(Booking)
             .findOne({
-                where: { token: dto.token },
+                where: {
+                    payment: { id: payment.id },
+                },
                 relations: {
                     payment: true,
                     trip: { route: { origin: true, destination: true } },
                     seats: true,
                 },
-            });
+            })
 
         if (!booking) {
             throw new TRPCError({
@@ -159,56 +176,11 @@ export class BookingService {
             });
         }
 
-        booking.payment.status = PaymentStatusEnum.COMPLETED;
-        await this.entityManager.save(booking.payment);
+        payment.status = PaymentStatusEnum.COMPLETED;
+        await this.entityManager.save(payment);
+        booking.payment = payment;
         booking.expiresAt = null;
-        const savedBooking = await this.entityManager.save(booking);
-
-        if (!booking.email || (booking.email.trim().length > 0)) {
-            return {
-                booking: savedBooking,
-            };
-        }
-
-        // email baby
-        try {
-            const departureDateTime = new Date(savedBooking.trip.departureTime).toLocaleString('vi-VN', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-            });
-
-            const totalPrice = new Intl.NumberFormat('de-DE', {
-                style: 'currency',
-                currency: 'VND',
-                currencyDisplay: 'code',
-            }).format(Math.ceil(Number(savedBooking.totalPrice)));
-
-            const seatCodes = savedBooking.seats.map(seat => seat.code);
-
-            await this.mailerService.sendETicket({
-                email: savedBooking.email,
-                fullName: savedBooking.fullName,
-                bookingCode: savedBooking.lookupCode,
-                origin: savedBooking.trip.route.origin.name,
-                destination: savedBooking.trip.route.destination.name,
-                departureDateTime,
-                seatCodes,
-                totalPrice,
-                token: savedBooking.token,
-            });
-        } catch (error) {
-            this.logger.error(
-                `Failed to send e-ticket for booking ${savedBooking.id}:`,
-                error instanceof Error ? error.message : 'Unknown error'
-            );
-        }
-
-        return {
-            booking: savedBooking,
-        };
+        return await this.entityManager.save(booking);
     }
 
     async findOneById(id: string) {
@@ -265,7 +237,6 @@ export class BookingService {
         const qb = this.entityManager
             .getRepository(Booking)
             .createQueryBuilder('booking')
-            .leftJoin('booking.user', 'user')
             .leftJoinAndSelect('booking.trip', 'trip')
             .leftJoinAndSelect('trip.bus', 'bus')
             .leftJoinAndSelect('trip.route', 'route')
@@ -274,6 +245,7 @@ export class BookingService {
             .leftJoinAndSelect('bus.type', 'busType')
             .leftJoinAndSelect('booking.seats', 'seats')
             .leftJoinAndSelect('booking.payment', 'payment')
+            .leftJoin('payment.user', 'user')
             .where('user.id = :userId', { userId: user.id });
 
         if (dto.sortDate) {
@@ -310,8 +282,8 @@ export class BookingService {
         const booking = await this.entityManager
             .getRepository(Booking)
             .createQueryBuilder('booking')
-            .leftJoinAndSelect('booking.user', 'user')
             .leftJoinAndSelect('booking.payment', 'payment')
+            .leftJoinAndSelect('payment.user', 'user')
             .where('booking.cancelToken = :cancelToken', { cancelToken: dto.cancelToken })
             .getOne();
 
@@ -323,7 +295,7 @@ export class BookingService {
             });
         }
 
-        if (booking.user?.id !== user?.id) {
+        if (booking.payment.user?.id !== user?.id) {
             throw new TRPCError({
                 code: "FORBIDDEN",
                 message: `You are not allowed to delete this booking`,
@@ -341,10 +313,13 @@ export class BookingService {
         return this.entityManager.transaction(async (transactionalEntityManager) => {
             const booking = await transactionalEntityManager
                 .getRepository(Booking)
-                .findOne({
-                    where: { id: dto.bookingId },
-                    relations: { user: true, trip: { bus: true }, seats: true },
-                });
+                .createQueryBuilder('booking')
+                .leftJoinAndSelect('booking.trip', 'trip')
+                .leftJoinAndSelect('trip.bus', 'bus')
+                .leftJoinAndSelect('booking.payment', 'payment')
+                .leftJoinAndSelect('payment.user', 'user')
+                .leftJoinAndSelect('booking.seats', 'seats')
+                .getOne();
 
             if (!booking) {
                 throw new TRPCError({
@@ -354,7 +329,7 @@ export class BookingService {
                 });
             }
 
-            if (booking.user?.id !== user?.id) {
+            if (booking.payment.user?.id !== user?.id) {
                 throw new TRPCError({
                     code: "FORBIDDEN",
                     message: `You are not allowed to edit this booking`,

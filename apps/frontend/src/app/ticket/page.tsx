@@ -18,14 +18,15 @@ export default function TicketPage() {
     const [currentPage, setCurrentPage] = useState(1);
 
     // Skip the query if user is not loaded yet or not authenticated
-    const bookingsQuery = useQuery(
-        trpc.booking.userSearchBookings.queryOptions(
+    const bookingsQuery = useQuery({
+        ...trpc.booking.userSearchBookings.queryOptions(
             user ? {
                 page: currentPage,
                 perPage: 10,
             } : skipToken
-        )
-    );
+        ),
+        staleTime: 5 * 60 * 60,
+    });
 
     if (userLoading) {
         return (
@@ -43,7 +44,7 @@ export default function TicketPage() {
     return (
         <div className="min-h-screen bg-background py-8 px-4">
             <div className="max-w-6xl mx-auto">
-                <h1 className="text-3xl font-bold text-text mb-8">My Tickets</h1>(
+                <h1 className="text-3xl font-bold text-text mb-8">My Tickets</h1>
                 {/* Booking History List */}
                 <div className="space-y-4">
                     {bookingsQuery.isLoading && (

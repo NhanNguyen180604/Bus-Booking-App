@@ -7,7 +7,9 @@ import { RootConfig } from './config/config';
 // import connectPgSimple from 'connect-pg-simple';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    bodyParser: false,
+  });
   const config = app.get(RootConfig);
 
   app.enableCors({

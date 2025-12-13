@@ -1,7 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { TrpcService } from "src/trpc/trpc.service";
 import { BookingService } from "./booking.service";
-import { BookingCancelDto, BookingConfirmDto, BookingCreateOneDto, BookingFindOneByIdDto, BookingLookUpDto, BookingUpdateDto, BookingUserSearchDto, GetBookingSeatsByTripDto } from "@repo/shared";
+import { BookingCancelDto, BookingCreateOneDto, BookingFindOneByIdDto, BookingLookUpDto, BookingUpdateDto, BookingUserSearchDto, GetBookingSeatsByTripDto } from "@repo/shared";
 import { User, UserRoleEnum } from "src/entities/users.entity";
 
 @Injectable()
@@ -20,12 +20,6 @@ export class BookingRouter {
                 .mutation(({ input, ctx }) => {
                     const { user } = ctx;
                     return this.bookingService.createOne(input, user);
-                }),
-            confirmBooking: this.trpcService
-                .roleGuardProcedure(UserRoleEnum.USER, UserRoleEnum.GUEST)
-                .input(BookingConfirmDto)
-                .mutation(({ input }) => {
-                    return this.bookingService.confirmBooking(input);
                 }),
             findOneById: this.trpcService
                 .roleGuardProcedure(UserRoleEnum.USER, UserRoleEnum.GUEST)

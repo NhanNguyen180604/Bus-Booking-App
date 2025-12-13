@@ -42,11 +42,7 @@ export default function CheckoutInfoComponent({ trip, selectedSeats, paymentForm
         defaultValues: {
             tripId: trip.id,
             seatIds: selectedSeats.map(s => s.id),
-            // all guest for now
-            paymentDetails: {
-                isGuestPayment: true,
-                guestPaymentProvider: PaymentProviderEnum.BANK,
-            },
+            paymentProvider: PaymentProviderEnum.STRIPE,
         },
         mode: 'all',
     });
@@ -75,10 +71,11 @@ export default function CheckoutInfoComponent({ trip, selectedSeats, paymentForm
         },
         onSuccess(data) {
             // Redirect to payment page with booking token
-            queryClient.setQueryData(trpc.booking.lookUpBooking.queryKey({ bookingCode: data.lookupCode, phone: data.phone }), data);
+            const { booking, client_secret } = data;
+            queryClient.setQueryData(trpc.booking.lookUpBooking.queryKey({ bookingCode: booking.lookupCode, phone: booking.phone }), booking);
             const oldBookedSeats = queryClient.getQueryData(trpc.booking.getBookingSeatsByTrip.queryKey({ tripId: trip.id }));
             queryClient.setQueryData(trpc.booking.getBookingSeatsByTrip.queryKey({ tripId: trip.id }), [...(oldBookedSeats ?? []), ...selectedSeats]);
-            router.push(`/checkout?token=${data.token}&bookingLookUpCode=${data.lookupCode}&phoneNumber=${data.phone}`);
+            router.push(`/checkout?bookingLookUpCode=${booking.lookupCode}&phoneNumber=${booking.phone}&client_secret=${client_secret}`);
         },
     });
 
@@ -95,10 +92,7 @@ export default function CheckoutInfoComponent({ trip, selectedSeats, paymentForm
         const formData = watch();
         createBookingMutation.mutate({
             ...formData,
-            paymentDetails: {
-                isGuestPayment: true,
-                guestPaymentProvider: paymentProvider,
-            },
+            paymentProvider,
         });
     };
 

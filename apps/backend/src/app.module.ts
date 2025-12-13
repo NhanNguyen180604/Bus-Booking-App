@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TrpcModule } from './trpc/trpc.module';
@@ -30,26 +30,18 @@ import { BusesModule } from './buses/buses.module';
 import { BusTypesModule } from './bus-types/bus-types.module';
 import { BookingModule } from './booking/booking.module';
 import { MyMailerModule } from './my-mailer/my-mailer.module';
-
-// TODO: actually set as production mode
-// const loader = process.env.NODE_ENV === 'production' ?
-//   dotenvLoader({
-//     separator: '__',
-//     envFilePath: '.env',
-//   }) : fileLoader({
-//     basename: '.env.development',
-//   });
-
-const loader = dotenvLoader({
-  separator: '__',
-  envFilePath: '.env',
-});
+import { StripeModule } from './stripe/stripe.module';
+import { WebhooksModule } from './webhooks/webhooks.module';
+import { RawBodyMiddleware } from './middlewares/raw-body.middleware';
 
 @Module({
   imports: [
     TypedConfigModule.forRoot({
       schema: RootConfig,
-      load: loader,
+      load: dotenvLoader({
+        separator: '__',
+        envFilePath: '.env',
+      }),
       isGlobal: true,
     }),
     TypeOrmModule.forRootAsync({
@@ -80,8 +72,18 @@ const loader = dotenvLoader({
     BusTypesModule,
     BookingModule,
     MyMailerModule,
+    StripeModule,
+    WebhooksModule,
   ],
   controllers: [AppController],
   providers: [AppService, AppRouter, JwtMiddleware],
 })
-export class AppModule { }
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(RawBodyMiddleware)
+      .forRoutes({
+        path: 'webhooks/stripe',
+        method: RequestMethod.POST,
+      })
+  }
+}

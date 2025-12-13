@@ -34,6 +34,7 @@
     "@repo/shared": "workspace:*",
     "@trpc/server": "^11.7.1",
     "bcryptjs": "^3.0.3",
+    "body-parser": "^2.2.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "connect-pg-simple": "^10.0.0",
@@ -50,6 +51,7 @@
     "qrcode": "^1.5.3",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "stripe": "^20.0.0",
     "typeorm": "^0.3.27",
     "zod": "^4.1.12"
   },

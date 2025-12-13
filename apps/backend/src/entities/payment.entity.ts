@@ -27,13 +27,11 @@ export class Payment {
     @JoinColumn()
     user: User;
 
-    // for guest user
-    @Column({ default: false })
-    isGuestPayment: boolean;
+    @Column({ type: 'enum', enum: PaymentProviderEnum })
+    paymentProvider: PaymentProviderEnum;
 
-    @Column({ nullable: true, type: 'enum', enum: PaymentProviderEnum })
-    guestPaymentProvider: PaymentProviderEnum;
-    // for guest user
+    @Column({ nullable: true })
+    paymentTransactionId: string;
 
     @Column({ type: 'decimal' })
     amount: number;

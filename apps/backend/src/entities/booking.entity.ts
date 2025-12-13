@@ -21,10 +21,6 @@ export class Booking {
     @JoinTable()
     seats: Seat[];
 
-    @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })  // null if the user is not logged in or deleted
-    @JoinColumn()
-    user: User;
-
     @Column()
     fullName: string;
 
@@ -44,7 +40,7 @@ export class Booking {
     @CreateDateColumn()
     createdAt: Date;
 
-    // confirm token, cant rename now cuz out of time
+    // no longer confirm token, but the token used to create qr code
     @Column()
     token: string;
 

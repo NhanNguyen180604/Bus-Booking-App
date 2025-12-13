@@ -76,6 +76,14 @@ export class SendMailConfig {
     public readonly app_password!: string;
 }
 
+export class StripeConfig {
+    @Allow()
+    public readonly secret!: string;
+
+    @Allow()
+    public readonly webhook_secret!: string;
+}
+
 export class RootConfig {
     @Allow()
     public readonly port!: number;
@@ -106,4 +114,8 @@ export class RootConfig {
     @Type(() => SendMailConfig)
     @Allow()
     public readonly send_mail!: SendMailConfig;
+
+    @Type(() => StripeConfig)
+    @Allow()
+    public readonly stripe!: StripeConfig;
 };

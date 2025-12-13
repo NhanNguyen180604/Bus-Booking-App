@@ -165,7 +165,7 @@ export default function LookupPage() {
                 {bookingQuery.data && (
                     <>
                         {/* Success Message */}
-                        {/* <Card className="border-success bg-success/10 dark:bg-success/10">
+                        <Card className="border-success bg-success/10 dark:bg-success/10">
                             <CardBody>
                                 <div className="flex items-center gap-3">
                                     <svg className="w-5 h-5 text-success shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -174,10 +174,10 @@ export default function LookupPage() {
                                     <p className="text-sm font-semibold text-success">Booking Found</p>
                                 </div>
                             </CardBody>
-                        </Card> */}
+                        </Card>
 
                         {/* Booking Summary */}
-                        {/* <Card>
+                        <Card>
                             <CardHeader>
                                 <h2 className="text-lg text-text dark:text-text font-semibold">Booking Details</h2>
                             </CardHeader>
@@ -209,10 +209,10 @@ export default function LookupPage() {
                                     </div>
                                 </div>
                             </CardBody>
-                        </Card> */}
+                        </Card>
 
                         {/* Trip Information */}
-                        {/* {bookingQuery.data.trip && (
+                        {bookingQuery.data.trip && (
                             <Card>
                                 <CardHeader>
                                     <h2 className="text-lg text-text font-semibold">Trip Information</h2>
@@ -240,10 +240,10 @@ export default function LookupPage() {
                                     </div>
                                 </CardBody>
                             </Card>
-                        )} */}
+                        )}
 
                         {/* Seats Information */}
-                        {/* {bookingQuery.data.seats && bookingQuery.data.seats.length > 0 && (
+                        {bookingQuery.data.seats && bookingQuery.data.seats.length > 0 && (
                             <Card>
                                 <CardHeader>
                                     <h2 className="text-lg text-text font-semibold">Booked Seats</h2>
@@ -260,10 +260,10 @@ export default function LookupPage() {
                                     </div>
                                 </CardBody>
                             </Card>
-                        )} */}
+                        )}
 
                         {/* Payment Information */}
-                        {/* {bookingQuery.data.payment && (
+                        {bookingQuery.data.payment && (
                             <Card>
                                 <CardHeader>
                                     <h2 className="text-lg text-text font-semibold">Payment Status</h2>
@@ -282,18 +282,16 @@ export default function LookupPage() {
                                         <span className="text-secondary-text dark:text-secondary-text">Amount</span>
                                         <span className="font-bold text-accent">{formatPrice(bookingQuery.data.payment.amount)}</span>
                                     </div>
-                                    {bookingQuery.data.payment.isGuestPayment && (
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-secondary-text dark:text-secondary-text">Payment Method</span>
-                                            <span className="font-semibold text-text">{bookingQuery.data.payment.guestPaymentProvider || 'N/A'}</span>
-                                        </div>
-                                    )}
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-secondary-text dark:text-secondary-text">Payment Method</span>
+                                        <span className="font-semibold text-text">{bookingQuery.data.payment.paymentProvider || 'N/A'}</span>
+                                    </div>
                                 </CardBody>
                             </Card>
-                        )} */}
+                        )}
 
                         {/* Booking Expiration */}
-                        {/* {bookingQuery.data.expiresAt && (
+                        {bookingQuery.data.expiresAt && (
                             <Card className="border-warning">
                                 <CardBody>
                                     <div className="flex items-start gap-3">
@@ -315,46 +313,7 @@ export default function LookupPage() {
                                     </div>
                                 </CardBody>
                             </Card>
-                        )} */}
-                        <Card key={bookingQuery.data.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => router.push('/ticket/details/' + bookingQuery.data.id)}>
-                            <CardBody>
-                                <div className="flex items-center justify-between gap-4">
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <h3 className="text-lg font-bold text-text">{bookingQuery.data.lookupCode}</h3>
-                                            <p className={`inline-block px-3 py-1 rounded-full font-semibold text-md ${new Date(bookingQuery.data.trip.departureTime) < new Date()
-                                                ? 'bg-secondary-text/20 text-secondary-text'
-                                                : 'bg-success/20 text-success'
-                                                }`}>
-                                                {new Date(bookingQuery.data.trip.departureTime) < new Date() ? 'Completed' : 'Upcoming'}
-                                            </p>
-                                        </div>
-                                        <div className="grid md:grid-cols-3 gap-4 text-sm">
-                                            <div>
-                                                <p className="text-secondary-text">Route</p>
-                                                <p className="font-semibold text-text">
-                                                    {bookingQuery.data.trip.route?.origin?.name || 'N/A'} → {bookingQuery.data.trip.route?.destination?.name || 'N/A'}
-                                                </p>
-                                            </div>
-                                            <div>
-                                                <p className="text-secondary-text">Departure</p>
-                                                <p className="font-semibold text-text">{formatVNWithAMPM(new Date(bookingQuery.data.trip.departureTime))}</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-secondary-text">Seats</p>
-                                                <p className="font-semibold text-text">{bookingQuery.data.seats.map(s => s.code).join(', ')}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-2xl font-bold text-accent">{formatPrice(bookingQuery.data.totalPrice)}</p>
-                                        <Button variant="accent" size="sm" className="mt-2">
-                                            View Ticket →
-                                        </Button>
-                                    </div>
-                                </div>
-                            </CardBody>
-                        </Card>
+                        )}
                     </>
                 )}
 
