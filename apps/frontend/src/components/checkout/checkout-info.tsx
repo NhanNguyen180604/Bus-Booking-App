@@ -75,10 +75,11 @@ export default function CheckoutInfoComponent({ trip, selectedSeats, paymentForm
         },
         onSuccess(data) {
             // Redirect to payment page with booking token
-            queryClient.setQueryData(trpc.booking.lookUpBooking.queryKey({ bookingCode: data.lookupCode, phone: data.phone }), data);
+            const { booking, client_secret } = data;
+            queryClient.setQueryData(trpc.booking.lookUpBooking.queryKey({ bookingCode: booking.lookupCode, phone: booking.phone }), booking);
             const oldBookedSeats = queryClient.getQueryData(trpc.booking.getBookingSeatsByTrip.queryKey({ tripId: trip.id }));
             queryClient.setQueryData(trpc.booking.getBookingSeatsByTrip.queryKey({ tripId: trip.id }), [...(oldBookedSeats ?? []), ...selectedSeats]);
-            router.push(`/checkout?token=${data.token}&bookingLookUpCode=${data.lookupCode}&phoneNumber=${data.phone}`);
+            router.push(`/checkout?bookingLookUpCode=${booking.lookupCode}&phoneNumber=${booking.phone}&client_secret=${client_secret}`);
         },
     });
 

@@ -1,6 +1,7 @@
 import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable, Logger } from '@nestjs/common';
 import QRCode from 'qrcode';
+import { Booking } from 'src/entities/booking.entity';
 
 interface ETicketData {
     email: string;
@@ -23,7 +24,33 @@ export class MyMailerService {
     /**
      * Send e-ticket email to customer after successful booking confirmation
      */
-    async sendETicket(data: ETicketData): Promise<void> {
+    async sendETicket(booking: Booking): Promise<void> {
+        const departureDateTime = new Date(booking.trip.departureTime).toLocaleString('vi-VN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+        });
+        const totalPrice = new Intl.NumberFormat('de-DE', {
+            style: 'currency',
+            currency: 'VND',
+            currencyDisplay: 'code',
+        }).format(Math.ceil(Number(booking.totalPrice)));
+        const seatCodes = booking.seats.map(seat => seat.code);
+
+        const data: ETicketData = {
+            email: booking.email,
+            fullName: booking.fullName,
+            bookingCode: booking.lookupCode,
+            origin: booking.trip.route.origin.name,
+            destination: booking.trip.route.destination.name,
+            departureDateTime,
+            seatCodes,
+            totalPrice,
+            token: booking.token,
+        };
+
         try {
             // Generate QR code from booking token
             const qrCodeDataUrl = await QRCode.toDataURL(data.token, {

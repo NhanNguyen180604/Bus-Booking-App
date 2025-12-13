@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TrpcModule } from './trpc/trpc.module';
@@ -30,6 +30,9 @@ import { BusesModule } from './buses/buses.module';
 import { BusTypesModule } from './bus-types/bus-types.module';
 import { BookingModule } from './booking/booking.module';
 import { MyMailerModule } from './my-mailer/my-mailer.module';
+import { StripeModule } from './stripe/stripe.module';
+import { WebhooksModule } from './webhooks/webhooks.module';
+import { RawBodyMiddleware } from './middlewares/raw-body.middleware';
 
 // TODO: actually set as production mode
 // const loader = process.env.NODE_ENV === 'production' ?
@@ -80,8 +83,18 @@ const loader = dotenvLoader({
     BusTypesModule,
     BookingModule,
     MyMailerModule,
+    StripeModule,
+    WebhooksModule,
   ],
   controllers: [AppController],
   providers: [AppService, AppRouter, JwtMiddleware],
 })
-export class AppModule { }
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(RawBodyMiddleware)
+      .forRoutes({
+        path: 'webhooks/stripe',
+        method: RequestMethod.POST,
+      })
+  }
+}

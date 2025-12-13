@@ -41,11 +41,6 @@ export const BookingCreateOneDto = z.object({
 });
 export type BookingCreateOneDtoType = z.infer<typeof BookingCreateOneDto>;
 
-export const BookingConfirmDto = z.object({
-    token: z.string(),
-});
-export type BookingConfirmDtoType = z.infer<typeof BookingConfirmDto>;
-
 export const BookingLookUpDto = z.object({
     bookingCode: z.string().trim().nonempty({ error: "Booking code is required" }),
     phone: z.string().trim().nonempty({ error: 'Phone number is required' }),
