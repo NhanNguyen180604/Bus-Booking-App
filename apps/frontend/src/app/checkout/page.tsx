@@ -6,7 +6,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { PaymentStatusEnum } from '@repo/shared';
 import { formatPrice } from '@/src/utils/format-price';
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect, FormEvent, useRef } from 'react';
 import { useElements, useStripe } from '@stripe/react-stripe-js';
 import {
     CardElement,
@@ -43,6 +43,11 @@ export function PaymentPage() {
         );
     }
 
+    const [confirmError, setConfirmError] = useState<string | null>(null);
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [paymentSuccess, setPaymentSuccess] = useState(false);
+    const [timeRemaining, setTimeRemaining] = useState<number>(0);
+
     const bookingQueryOpts = trpc.booking.lookUpBooking.queryOptions({
         bookingCode: bookingLookUpCode!,
         phone: phoneNumber!,
@@ -52,15 +57,33 @@ export function PaymentPage() {
         staleTime: 30 * 60 * 1000,
     });
 
+    const { data: pollingData } = useQuery({
+        ...bookingQueryOpts,
+        refetchInterval: (data) => data.state.data?.payment.status === PaymentStatusEnum.COMPLETED ? false : 1500,
+        refetchIntervalInBackground: true,
+    });
+
+    const hasNavigatedRef = useRef(false);
+
+    useEffect(() => {
+        if (pollingData && pollingData.payment.status === PaymentStatusEnum.COMPLETED && !hasNavigatedRef.current) {
+            hasNavigatedRef.current = true;
+            setIsProcessing(false);
+            setPaymentSuccess(true);
+            setTimeout(() => {
+                router.push(`/ticket?lookUpCode=${bookingData.lookupCode}&phoneNumber=${bookingData.phone}`);
+            }, 0);
+        }
+    }, [pollingData]);
+
     // this means the payment completed
-    if (bookingQuery.data && bookingQuery.data.payment.status === PaymentStatusEnum.COMPLETED) {
-        router.push(`/lookup?lookUpCode=${bookingQuery.data.lookupCode}&phoneNumber=${bookingQuery.data.phone}`);
+    if (bookingQuery.data && bookingQuery.data.payment.status === PaymentStatusEnum.COMPLETED && !hasNavigatedRef.current) {
+        hasNavigatedRef.current = true;
+        setIsProcessing(false);
+        setPaymentSuccess(true);
+        router.push(`/ticket?lookUpCode=${bookingQuery.data.lookupCode}&phoneNumber=${bookingQuery.data.phone}`);
         return;
     }
-
-    const [confirmError, setConfirmError] = useState<string | null>(null);
-    const [isProcessing, setIsProcessing] = useState(false);
-    const [timeRemaining, setTimeRemaining] = useState<number>(0);
 
     // Calculate initial time remaining when booking data loads
     useEffect(() => {
@@ -158,14 +181,11 @@ export function PaymentPage() {
                 setConfirmError(error.message || 'Payment failed. Please try again.');
             } else if (paymentIntent && paymentIntent.status === 'succeeded') {
                 setConfirmError(null);
-                router.push(`/ticket?lookUpCode=${bookingData.lookupCode}&phoneNumber=${bookingData.phone}`);
             } else {
                 setConfirmError('Payment processing failed. Please try again.');
             }
         } catch (err) {
             setConfirmError('An unexpected error occurred. Please try again.');
-        } finally {
-            setIsProcessing(false);
         }
     };
 
@@ -279,7 +299,7 @@ export function PaymentPage() {
                                 <Button
                                     type="submit"
                                     variant="accent"
-                                    disabled={!stripe || isExpired || isProcessing}
+                                    disabled={!stripe || isExpired || isProcessing || paymentSuccess}
                                     className="flex-1"
                                 >
                                     {isProcessing ? (
@@ -294,6 +314,22 @@ export function PaymentPage() {
                         </form>
                     </CardBody>
                 </Card>
+
+                {paymentSuccess && (
+                    <Card className="border-success dark:border-success bg-success/20 dark:bg-success/20">
+                        <CardBody>
+                            <div className="flex items-center gap-3">
+                                <svg className="w-5 h-5 text-success dark:text-success shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                </svg>
+                                <div>
+                                    <p className="text-sm font-semibold text-success dark:text-success">Payment Success</p>
+                                    <p className="text-xs text-secondary-text dark:text-secondary-text mt-1">Redirecting.</p>
+                                </div>
+                            </div>
+                        </CardBody>
+                    </Card>
+                )}
 
                 {isExpired && (
                     <Card className="border-danger dark:border-danger bg-danger/20 dark:bg-danger/20">

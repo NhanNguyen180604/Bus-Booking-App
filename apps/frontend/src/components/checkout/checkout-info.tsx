@@ -42,11 +42,7 @@ export default function CheckoutInfoComponent({ trip, selectedSeats, paymentForm
         defaultValues: {
             tripId: trip.id,
             seatIds: selectedSeats.map(s => s.id),
-            // all guest for now
-            paymentDetails: {
-                isGuestPayment: true,
-                guestPaymentProvider: PaymentProviderEnum.BANK,
-            },
+            paymentProvider: PaymentProviderEnum.STRIPE,
         },
         mode: 'all',
     });
@@ -96,10 +92,7 @@ export default function CheckoutInfoComponent({ trip, selectedSeats, paymentForm
         const formData = watch();
         createBookingMutation.mutate({
             ...formData,
-            paymentDetails: {
-                isGuestPayment: true,
-                guestPaymentProvider: paymentProvider,
-            },
+            paymentProvider,
         });
     };
 

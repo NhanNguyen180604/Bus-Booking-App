@@ -82,6 +82,7 @@ export class BookingService {
                 .create({
                     amount: trip.basePrice * seats.length,
                     status: PaymentStatusEnum.PROCESSING,
+                    user,
                 });
 
             payment.paymentProvider = PaymentProviderEnum.STRIPE;

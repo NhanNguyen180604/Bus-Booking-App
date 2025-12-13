@@ -282,12 +282,10 @@ export default function LookupPage() {
                                         <span className="text-secondary-text dark:text-secondary-text">Amount</span>
                                         <span className="font-bold text-accent">{formatPrice(bookingQuery.data.payment.amount)}</span>
                                     </div>
-                                    {bookingQuery.data.payment.isGuestPayment && (
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-secondary-text dark:text-secondary-text">Payment Method</span>
-                                            <span className="font-semibold text-text">{bookingQuery.data.payment.guestPaymentProvider || 'N/A'}</span>
-                                        </div>
-                                    )}
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-secondary-text dark:text-secondary-text">Payment Method</span>
+                                        <span className="font-semibold text-text">{bookingQuery.data.payment.paymentProvider || 'N/A'}</span>
+                                    </div>
                                 </CardBody>
                             </Card>
                         )}
