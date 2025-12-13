@@ -97,7 +97,7 @@ function DefaultHeader({ hideHeaderNav = false }: DefaultHeaderProps) {
         {!hideHeaderNav && (
           <nav className="flex items-center space-x-2">
             {navItems.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
               return (
                 <Link
                   key={item.href}

@@ -1,14 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
-import {
-    BookingCancelDtoType,
-    BookingCreateOneDtoType,
-    BookingLookUpDtoType,
-    BookingUserSearchDtoType,
-    GetBookingSeatsByTripDtoType,
-    PaymentProviderEnum,
-    PaymentStatusEnum
-} from '@repo/shared';
+import { BookingCancelDtoType, BookingCreateOneDtoType, BookingLookUpDtoType, BookingUpdateDtoType, BookingUserSearchDtoType, GetBookingSeatsByTripDtoType, PaymentProviderEnum, PaymentStatusEnum } from '@repo/shared';
 import { TRPCError } from '@trpc/server';
 import { Booking } from 'src/entities/booking.entity';
 import { Payment } from 'src/entities/payment.entity';
@@ -130,7 +122,7 @@ export class BookingService {
     }
 
     /**
-     * Mark a booking and its payment as completed
+     * Mark a booking and its payment as completed, called by the webhook
      * @param paymentTransactionId
      */
     async confirmBooking(paymentTransactionId: string) {
@@ -191,6 +183,28 @@ export class BookingService {
         return await this.entityManager.save(booking);
     }
 
+    async findOneById(id: string) {
+        const booking = await this.entityManager
+            .getRepository(Booking)
+            .findOne({
+                where: { id },
+                relations: {
+                    trip: { bus: { type: true }, route: { origin: true, destination: true } },
+                    seats: true,
+                    payment: true,
+                },
+            });
+        if (!booking) {
+            throw new TRPCError({
+                code: "NOT_FOUND",
+                message: `Booking with ID: ${id} was not found`,
+                cause: "Not found booking id",
+            });
+        }
+
+        return booking;
+    }
+
     async lookUpOneBooking(dto: BookingLookUpDtoType) {
         const booking = await this.entityManager
             .getRepository(Booking)
@@ -223,7 +237,6 @@ export class BookingService {
         const qb = this.entityManager
             .getRepository(Booking)
             .createQueryBuilder('booking')
-            .leftJoin('booking.user', 'user')
             .leftJoinAndSelect('booking.trip', 'trip')
             .leftJoinAndSelect('trip.bus', 'bus')
             .leftJoinAndSelect('trip.route', 'route')
@@ -232,6 +245,7 @@ export class BookingService {
             .leftJoinAndSelect('bus.type', 'busType')
             .leftJoinAndSelect('booking.seats', 'seats')
             .leftJoinAndSelect('booking.payment', 'payment')
+            .leftJoin('payment.user', 'user')
             .where('user.id = :userId', { userId: user.id });
 
         if (dto.sortDate) {
@@ -268,8 +282,8 @@ export class BookingService {
         const booking = await this.entityManager
             .getRepository(Booking)
             .createQueryBuilder('booking')
-            .leftJoinAndSelect('booking.user', 'user')
             .leftJoinAndSelect('booking.payment', 'payment')
+            .leftJoinAndSelect('payment.user', 'user')
             .where('booking.cancelToken = :cancelToken', { cancelToken: dto.cancelToken })
             .getOne();
 
@@ -293,6 +307,115 @@ export class BookingService {
         await this.entityManager
             .getRepository(Payment)
             .delete({ id: booking.payment.id });
+    }
+
+    async updateBooking(dto: BookingUpdateDtoType, user: User | undefined) {
+        return this.entityManager.transaction(async (transactionalEntityManager) => {
+            const booking = await transactionalEntityManager
+                .getRepository(Booking)
+                .createQueryBuilder('booking')
+                .leftJoinAndSelect('booking.trip', 'trip')
+                .leftJoinAndSelect('trip.bus', 'bus')
+                .leftJoinAndSelect('booking.payment', 'payment')
+                .leftJoinAndSelect('payment.user', 'user')
+                .leftJoinAndSelect('booking.seats', 'seats')
+                .getOne();
+
+            if (!booking) {
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: `Booking was not found`,
+                    cause: "Not found booking",
+                });
+            }
+
+            if (booking.payment.user?.id !== user?.id) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: `You are not allowed to edit this booking`,
+                    cause: "Not owner of the booking",
+                });
+            }
+
+            // Check if booking has expired or trip has departed
+            if (booking.expiresAt && new Date() > booking.expiresAt) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: `Cannot edit expired booking`,
+                    cause: "Booking expired",
+                });
+            }
+
+            if (new Date() > booking.trip.departureTime) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: `Cannot edit booking for completed trip`,
+                    cause: "Trip already completed",
+                });
+            }
+
+            // Update seats if provided
+            // if (dto.seatIds && dto.seatIds.length > 0) {
+            //     const newSeats = await transactionalEntityManager
+            //         .getRepository(Seat)
+            //         .createQueryBuilder('seat')
+            //         .setLock('pessimistic_read')
+            //         .leftJoin('seat.bus', 'bus')
+            //         .where('seat.id IN (:...seatIds)', { seatIds: dto.seatIds })
+            //         .andWhere('(seat.isActive OR seat.deactivateDate IS NULL OR seat.deactivateDate > NOW())')
+            //         .andWhere('bus.id = :tripBus', { tripBus: booking.trip.bus.id })
+            //         .getMany();
+
+            //     if (newSeats.length !== dto.seatIds.length) {
+            //         const notFoundSeatIds = dto.seatIds.filter(id => !newSeats.find(seat => seat.id === id));
+            //         throw new TRPCError({
+            //             code: 'NOT_FOUND',
+            //             message: `One or more seats were not found, IDs: ${notFoundSeatIds.join(', ')}`,
+            //             cause: 'Not found seat ids',
+            //         });
+            //     }
+
+            //     // Check if any of the new seats are already booked (excluding current booking)
+            //     const alreadyBookedSeats = await transactionalEntityManager
+            //         .getRepository(Booking)
+            //         .createQueryBuilder('booking')
+            //         .leftJoin("booking.trip", "trip")
+            //         .leftJoin("booking.seats", "seats")
+            //         .where("trip.id = :tripId", { tripId: booking.trip.id })
+            //         .andWhere("booking.id != :bookingId", { bookingId: booking.id })
+            //         .andWhere("NOW() < booking.expiresAt OR booking.expiresAt IS NULL")
+            //         .andWhere("seats.id IN (:...seatIds)", { seatIds: dto.seatIds })
+            //         .getMany();
+
+            //     if (alreadyBookedSeats.length) {
+            //         throw new TRPCError({
+            //             code: 'CONFLICT',
+            //             message: `One or more selected seats are already booked for this trip`,
+            //             cause: 'Seats already booked',
+            //         });
+            //     }
+            //     booking.seats = newSeats;
+            // }
+
+            // Update passenger details if provided
+            if (dto.fullName !== undefined) booking.fullName = dto.fullName;
+            if (dto.phone !== undefined) booking.phone = dto.phone;
+            if (dto.email !== undefined) booking.email = dto.email;
+
+            await transactionalEntityManager.save(booking);
+
+            // Return updated booking with relations
+            return await transactionalEntityManager
+                .getRepository(Booking)
+                .findOne({
+                    where: { id: booking.id },
+                    relations: {
+                        trip: { route: { origin: true, destination: true }, bus: { type: true } },
+                        seats: true,
+                        payment: true,
+                    },
+                });
+        });
     }
 
     async getBookingSeatsByTrip(dto: GetBookingSeatsByTripDtoType) {

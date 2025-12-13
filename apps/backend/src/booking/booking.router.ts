@@ -1,14 +1,8 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { TrpcService } from "src/trpc/trpc.service";
 import { BookingService } from "./booking.service";
-import {
-    BookingCancelDto,
-    BookingCreateOneDto,
-    BookingLookUpDto,
-    BookingUserSearchDto,
-    GetBookingSeatsByTripDto,
-} from "@repo/shared";
-import { UserRoleEnum } from "src/entities/users.entity";
+import { BookingCancelDto, BookingCreateOneDto, BookingFindOneByIdDto, BookingLookUpDto, BookingUpdateDto, BookingUserSearchDto, GetBookingSeatsByTripDto } from "@repo/shared";
+import { User, UserRoleEnum } from "src/entities/users.entity";
 
 @Injectable()
 export class BookingRouter {
@@ -26,6 +20,12 @@ export class BookingRouter {
                 .mutation(({ input, ctx }) => {
                     const { user } = ctx;
                     return this.bookingService.createOne(input, user);
+                }),
+            findOneById: this.trpcService
+                .roleGuardProcedure(UserRoleEnum.USER, UserRoleEnum.GUEST)
+                .input(BookingFindOneByIdDto)
+                .query(({ input }) => {
+                    return this.bookingService.findOneById(input.id);
                 }),
             lookUpBooking: this.trpcService
                 .roleGuardProcedure(UserRoleEnum.USER, UserRoleEnum.GUEST)
@@ -46,6 +46,13 @@ export class BookingRouter {
                 .mutation(({ input, ctx }) => {
                     const { user } = ctx;
                     return this.bookingService.userCancelBooking(input, user);
+                }),
+            updateBooking: this.trpcService
+                .roleGuardProcedure(UserRoleEnum.USER, UserRoleEnum.GUEST)
+                .input(BookingUpdateDto)
+                .mutation(({ input, ctx }) => {
+                    const { user } = ctx;
+                    return this.bookingService.updateBooking(input, user);
                 }),
             getBookingSeatsByTrip: this.trpcService
                 .roleGuardProcedure(UserRoleEnum.USER, UserRoleEnum.GUEST)

@@ -196,7 +196,7 @@ export function PaymentPage() {
                     if (window.history.state && window.history.state.idx > 0) {
                         router.back();
                     } else {
-                        router.push('/checkout/info');
+                        router.push('/');
                     }
                 }}
                 className="flex items-center gap-2 text-accent hover:text-accent/80 mb-6 cursor-pointer"
