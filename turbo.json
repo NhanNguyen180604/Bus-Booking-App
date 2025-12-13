@@ -24,7 +24,10 @@
     "oauth2__github__callback_url",
     "send_mail__user",
     "send_mail__app_password",
-    "NEXT_PUBLIC_BACKEND_URL"
+    "stripe__secret",
+    "stripe__webhook_secret",
+    "NEXT_PUBLIC_BACKEND_URL",
+    "NEXT_PUBLIC_STRIPE_KEY"
   ],
   "tasks": {
     "build": {
