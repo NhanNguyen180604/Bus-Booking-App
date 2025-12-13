@@ -97,11 +97,11 @@ export default function AdminManageTripPage() {
         onError(error) {
             setDeleteTripError(error.message);
         },
-        onSuccess(_, variables) {
-            onDeleteModalClose();
-            queryClient.removeQueries({ queryKey: trpc.trips.findOneById.queryKey({ id: variables.id }) });
+        onSuccess() {
+            queryClient.removeQueries({ queryKey: trpc.trips.findOneById.queryKey({ id: deletingTrip!.id }) });
             queryClient.invalidateQueries({ queryKey: trpc.trips.search.queryKey() });
             queryClient.invalidateQueries({ queryKey: trpc.trips.adminSearch.queryKey() });
+            onDeleteModalClose();
         },
     });
 
@@ -444,7 +444,7 @@ export default function AdminManageTripPage() {
 
                                 </Card>
                             ) : (
-                                <div className="text-text dark:text-text font-bold text-base text-center">No Data</div>
+                                <div className="text-text dark:text-text font-bold text-base text-center">No Trip Found</div>
                             )}
                         </>
                     ) : (

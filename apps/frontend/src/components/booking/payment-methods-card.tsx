@@ -202,7 +202,7 @@ export default function PaymentMethodsCard({ onPaymentConfirmClick, onCancelClic
                                 e.stopPropagation();
                                 onPaymentConfirmClick(selectedPaymentMethod);
                             }}>
-                            {isLoading ? 'Creating Booking...' : 'Proceed to Payment'}
+                            {isLoading ? 'Creating Booking...' : 'Create Booking'}
                         </Button>
                     </div>
                 </CardBody>

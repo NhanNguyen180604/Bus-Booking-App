@@ -1,5 +1,5 @@
 import z from 'zod';
-import { PaginationDto } from './common';
+import { PaginationDto, sortOptions } from './common';
 
 export const StationCreateDto = z.object({
     name: z.string().trim().nonempty({ error: "Name must not be empty" }),
@@ -35,6 +35,7 @@ export const StationUpdateOneDto = z.object({
 export type StationUpdateOneDtoType = z.infer<typeof StationUpdateOneDto>;
 
 export const StationSearchDto = z.object({
-    nameQuery: z.string().nonempty({ error: "Name query must not be empty" }).optional(),
+    nameQuery: z.string().trim().optional(),
+    sortName: sortOptions,
 }).extend(PaginationDto.shape);
 export type StationSearchDtoType = z.infer<typeof StationSearchDto>;

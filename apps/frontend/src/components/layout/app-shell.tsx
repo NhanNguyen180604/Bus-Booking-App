@@ -16,7 +16,7 @@ export interface AppShellProps {
   hideHeader?: boolean;
   hideNav?: boolean;
   hideFooter?: boolean;
-  isAdminPage?: boolean;
+  hideHeaderNav?: boolean;
 }
 
 export function AppShell({
@@ -27,11 +27,11 @@ export function AppShell({
   hideHeader = false,
   hideNav = false,
   hideFooter = false,
-  isAdminPage = false,
+  hideHeaderNav = false,
 }: AppShellProps) {
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      {!hideHeader && (header || <DefaultHeader isAdminPage={isAdminPage} />)}
+      {!hideHeader && (header || <DefaultHeader hideHeaderNav={hideHeaderNav} />)}
       <div className="flex flex-1 p-4">
         {!hideNav && (nav || <DefaultNav />)}
         <main className="flex-1 px-4 lg:px-16">{children}</main>
@@ -42,10 +42,10 @@ export function AppShell({
 }
 
 export interface DefaultHeaderProps {
-  isAdminPage?: boolean;
+  hideHeaderNav?: boolean;
 }
 
-function DefaultHeader({ isAdminPage = false }: DefaultHeaderProps) {
+function DefaultHeader({ hideHeaderNav = false }: DefaultHeaderProps) {
   const userQuery = useUser();
   const trpc = useTRPC();
   const pathname = usePathname();
@@ -94,7 +94,7 @@ function DefaultHeader({ isAdminPage = false }: DefaultHeaderProps) {
         </div>
 
         {/* Center: Nav */}
-        {!isAdminPage && (
+        {!hideHeaderNav && (
           <nav className="flex items-center space-x-2">
             {navItems.map((item) => {
               const isActive = pathname === item.href;

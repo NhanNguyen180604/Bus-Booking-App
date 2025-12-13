@@ -149,7 +149,7 @@ export default function AdminManageBusTypePage() {
                 <div className="text-text dark:text-text flex justify-center font-bold">Loading...</div>
             ) : (
                 <>
-                    {searchBusTypeQuery.isSuccess && searchBusTypeQuery.data ? (
+                    {searchBusTypeQuery.isSuccess && searchBusTypeQuery.data.total ? (
                         <Card className="flex overflow-hidden">
                             <Table
                                 data={searchBusTypeQuery.data.data}
@@ -190,7 +190,7 @@ export default function AdminManageBusTypePage() {
 
                         </Card>
                     ) : (
-                        <>Error Loading Route</>
+                        <div className="text-text dark:text-text font-bold text-base text-center">No Bus Type Found</div>
                     )}
                 </>
             )}

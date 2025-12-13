@@ -9,6 +9,7 @@ import { BusTypeUpdateOneDto, BusTypeUpdateOneDtoType } from "@repo/shared";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter, useParams } from "next/navigation";
 import { useEffect } from "react";
+import NotFoundPage from "@/src/components/status-pages/not-found-page";
 
 export default function AdminEditRoutePage() {
     const params = useParams<{ id: string }>();
@@ -67,6 +68,18 @@ export default function AdminEditRoutePage() {
 
     const onSubmit = (data: BusTypeUpdateOneDtoType) => {
         updateBusTypeMutation.mutate(data);
+    }
+
+    if (!busTypeQuery.isPending && !busTypeQuery.data) {
+        return (
+            <NotFoundPage
+                header='Bus Type Not Found'
+                message="The bus type you're looking for doesn't exist or has been removed."
+                returnBtnText="Go back"
+                redirectUrl="/admin/buses?tab=1"
+                routerGoBack
+            />
+        );
     }
 
     return (

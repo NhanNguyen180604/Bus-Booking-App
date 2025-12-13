@@ -24,7 +24,7 @@ export function BusSearchForm({ onSearch, isLoading }: BusSearchFormProps) {
   const trpc = useTRPC();
   const stationsQuery = useQuery({
     ...trpc.stations.findAll.queryOptions(),
-    staleTime: 5 * 60 * 60,
+    staleTime: 5 * 60 * 1000,
   });
 
   const {

@@ -1,4 +1,5 @@
 "use client";;
+import NotFoundPage from "@/src/components/status-pages/not-found-page";
 import { Button } from "@/src/components/ui/button";
 import { Card, CardBody, CardFooter } from "@/src/components/ui/card";
 import { FormField } from "@/src/components/ui/form-field";
@@ -29,6 +30,7 @@ export default function AdminEditTripPage() {
         ...tripQueryOpts,
         staleTime: 60 * 60 * 1000,
     });
+
     const [selectedRoute, setSelectedRoute] = useState<Route>();
     const [selectedBus, setSelectedBus] = useState<Bus>();
 
@@ -143,6 +145,18 @@ export default function AdminEditTripPage() {
 
     const onSubmit = (data: TripUpdateOneDtoType) => {
         updateTripMutation.mutate(data);
+    }
+
+    if (!tripQuery.isPending && !tripQuery.data) {
+        return (
+            <NotFoundPage
+                header='Trip Not Found'
+                message="The trip you're looking for doesn't exist or has been removed."
+                returnBtnText="Go back"
+                redirectUrl="/admin/trips"
+                routerGoBack
+            />
+        );
     }
 
     return (

@@ -1,3 +1,5 @@
+"use client"
+
 import Select, { type Props as ReactSelectProps, ClassNamesConfig } from "react-select";
 
 interface SelectDropdownProps extends ReactSelectProps {

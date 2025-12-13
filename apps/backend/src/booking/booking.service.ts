@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
-import { BookingConfirmDtoType, BookingCreateOneDtoType, BookingLookUpDtoType, BookingUserSearchDtoType, GetBookingSeatsByTripDtoType, PaymentStatusEnum } from '@repo/shared';
+import { BookingCancelDtoType, BookingConfirmDtoType, BookingCreateOneDtoType, BookingLookUpDtoType, BookingUserSearchDtoType, GetBookingSeatsByTripDtoType, PaymentStatusEnum } from '@repo/shared';
 import { TRPCError } from '@trpc/server';
 import { Booking } from 'src/entities/booking.entity';
 import { Payment } from 'src/entities/payment.entity';
@@ -8,15 +8,18 @@ import { Seat } from 'src/entities/seat.entity';
 import { Trip } from 'src/entities/trip.entity';
 import { User } from 'src/entities/users.entity';
 import { convertToMs } from 'src/utils/convert-to-ms';
+import { MyMailerService } from 'src/my-mailer/my-mailer.service';
 import { EntityManager } from 'typeorm';
 import crypto from 'crypto';
-import { PaymentMethod } from 'src/entities/payment-method.entity';
 
 @Injectable()
 export class BookingService {
+    private readonly logger = new Logger(BookingService.name);
+
     constructor(
         @InjectEntityManager()
         private readonly entityManager: EntityManager,
+        private readonly mailerService: MyMailerService,
     ) { }
 
     createOne(dto: BookingCreateOneDtoType, user?: User) {
@@ -38,6 +41,7 @@ export class BookingService {
                 .setLock('pessimistic_read')
                 .leftJoin('seat.bus', 'bus')
                 .where('seat.id IN (:...seatIds)', { seatIds: dto.seatIds })
+                .andWhere('(seat.isActive OR seat.deactivateDate IS NULL OR seat.deactivateDate > NOW())')
                 .andWhere('bus.id = :tripBus', { tripBus: trip.bus.id })
                 .getMany();
             if (seats.length !== dto.seatIds.length) {
@@ -67,7 +71,7 @@ export class BookingService {
                 });
             }
 
-            const { methodId: paymentMethodId, isGuestPayment, guestPaymentProvider } = dto.paymentDetails;
+            const { isGuestPayment, guestPaymentProvider } = dto.paymentDetails;
 
             // TODO: use this after integrate payment
             // if ((user && !paymentMethodId) || (!user && !isGuestPayment)) {
@@ -88,28 +92,13 @@ export class BookingService {
                     status: PaymentStatusEnum.PROCESSING,
                 });
 
-            if (paymentMethodId) {
-                const userPaymentMethod = await transactionalEntityManager
-                    .getRepository(PaymentMethod)
-                    .findOne({ where: { id: paymentMethodId } });
-                if (!userPaymentMethod) {
-                    throw new TRPCError({
-                        code: 'NOT_FOUND',
-                        message: `Payment method with ID: ${paymentMethodId} was not found`,
-                        cause: 'Not found payment method id',
-                    });
-                }
-                payment.method = userPaymentMethod;
-            }
-            else {
-                payment.isGuestPayment = true;
-                payment.guestPaymentProvider = guestPaymentProvider!;
-            }
-
+            payment.isGuestPayment = true;
+            payment.guestPaymentProvider = guestPaymentProvider!;
             payment = await transactionalEntityManager.save(payment);
 
             const expiresAt = new Date(Date.now() + convertToMs('30m'));
             const token = crypto.randomBytes(32).toString('hex');
+            const cancelToken = crypto.randomBytes(32).toString('hex');
             let booking = transactionalEntityManager
                 .getRepository(Booking)
                 .create({
@@ -122,30 +111,28 @@ export class BookingService {
                     totalPrice: trip.basePrice * seats.length,
                     payment,
                     token,
+                    cancelToken,
                     expiresAt,
                 });
             booking = await transactionalEntityManager.save(booking);
-            if (paymentMethodId) {
-                const currentPaymentMethod = booking.payment.method;
-                booking.payment.method = {
-                    ...currentPaymentMethod,
-                    token: '',  // nuh uh
-                }
-            }
 
             return booking;
         });
     }
 
     /**
-     * Confirm payment
+     * Confirm payment and send e-ticket email
      */
     async confirmBooking(dto: BookingConfirmDtoType) {
         const booking = await this.entityManager
             .getRepository(Booking)
             .findOne({
                 where: { token: dto.token },
-                relations: { payment: true },
+                relations: {
+                    payment: true,
+                    trip: { route: { origin: true, destination: true } },
+                    seats: true,
+                },
             });
 
         if (!booking) {
@@ -175,8 +162,52 @@ export class BookingService {
         booking.payment.status = PaymentStatusEnum.COMPLETED;
         await this.entityManager.save(booking.payment);
         booking.expiresAt = null;
+        const savedBooking = await this.entityManager.save(booking);
+
+        if (!booking.email || (booking.email.trim().length > 0)) {
+            return {
+                booking: savedBooking,
+            };
+        }
+
+        // email baby
+        try {
+            const departureDateTime = new Date(savedBooking.trip.departureTime).toLocaleString('vi-VN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+            });
+
+            const totalPrice = new Intl.NumberFormat('de-DE', {
+                style: 'currency',
+                currency: 'VND',
+                currencyDisplay: 'code',
+            }).format(Math.ceil(Number(savedBooking.totalPrice)));
+
+            const seatCodes = savedBooking.seats.map(seat => seat.code);
+
+            await this.mailerService.sendETicket({
+                email: savedBooking.email,
+                fullName: savedBooking.fullName,
+                bookingCode: savedBooking.lookupCode,
+                origin: savedBooking.trip.route.origin.name,
+                destination: savedBooking.trip.route.destination.name,
+                departureDateTime,
+                seatCodes,
+                totalPrice,
+                token: savedBooking.token,
+            });
+        } catch (error) {
+            this.logger.error(
+                `Failed to send e-ticket for booking ${savedBooking.id}:`,
+                error instanceof Error ? error.message : 'Unknown error'
+            );
+        }
+
         return {
-            booking: await this.entityManager.save(booking),
+            booking: savedBooking,
         };
     }
 
@@ -188,7 +219,7 @@ export class BookingService {
                 relations: {
                     trip: { bus: { type: true }, route: { origin: true, destination: true } },
                     seats: true,
-                    payment: { method: true },
+                    payment: true,
                 },
             });
         if (!booking) {
@@ -205,13 +236,6 @@ export class BookingService {
             });
         }
 
-        if (booking.payment.method) {
-            const currentPaymentMethod = booking.payment.method;
-            booking.payment.method = {
-                ...currentPaymentMethod,
-                token: '',  // nuh uh
-            }
-        }
         return booking;
     }
 
@@ -222,6 +246,9 @@ export class BookingService {
             .leftJoin('booking.user', 'user')
             .leftJoinAndSelect('booking.trip', 'trip')
             .leftJoinAndSelect('trip.bus', 'bus')
+            .leftJoinAndSelect('trip.route', 'route')
+            .leftJoinAndSelect('route.origin', 'origin')
+            .leftJoinAndSelect('route.destination', 'destination')
             .leftJoinAndSelect('bus.type', 'busType')
             .leftJoinAndSelect('booking.seats', 'seats')
             .leftJoinAndSelect('booking.payment', 'payment')
@@ -232,6 +259,13 @@ export class BookingService {
         }
         if (dto.sortPrice) {
             qb.addOrderBy('booking.totalPrice', dto.sortPrice.toUpperCase() as "ASC" | "DESC");
+        }
+
+        if (dto.upcoming) {
+            qb.andWhere('trip.departureTime > NOW()');
+        }
+        else if (dto.completed) {
+            qb.andWhere('trip.arrivalTime < NOW()');
         }
 
         qb.skip((dto.page - 1) * dto.perPage)
@@ -248,6 +282,37 @@ export class BookingService {
             total: count,
             totalPage,
         };
+    }
+
+    async userCancelBooking(dto: BookingCancelDtoType, user: User | undefined) {
+        const booking = await this.entityManager
+            .getRepository(Booking)
+            .createQueryBuilder('booking')
+            .leftJoinAndSelect('booking.user', 'user')
+            .leftJoinAndSelect('booking.payment', 'payment')
+            .where('booking.cancelToken = :cancelToken', { cancelToken: dto.cancelToken })
+            .getOne();
+
+        if (!booking) {
+            throw new TRPCError({
+                code: "NOT_FOUND",
+                message: `Booking was not found`,
+                cause: "Not found booking",
+            });
+        }
+
+        if (booking.user?.id !== user?.id) {
+            throw new TRPCError({
+                code: "FORBIDDEN",
+                message: `You are not allowed to delete this booking`,
+                cause: "Not owner of the booking",
+            });
+        }
+
+        // this has cascade
+        await this.entityManager
+            .getRepository(Payment)
+            .delete({ id: booking.payment.id });
     }
 
     async getBookingSeatsByTrip(dto: GetBookingSeatsByTripDtoType) {
