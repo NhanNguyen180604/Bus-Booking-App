@@ -23,6 +23,6 @@ export type BusTypeGetOneByIdDtoType = z.infer<typeof BusTypeGetOneByIdDto>;
 
 export const BusTypeFindDto = z.object({
     sortName: sortOptions,
-    nameQuery: z.string().trim().nonempty({ error: "Name query must not be emtpy" }).optional(),
+    nameQuery: z.string().trim().optional(),
 }).extend(PaginationDto.shape)
 export type BusTypeFindDtoType = z.infer<typeof BusTypeFindDto>;

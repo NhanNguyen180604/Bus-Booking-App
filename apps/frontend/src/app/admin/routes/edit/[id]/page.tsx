@@ -12,6 +12,7 @@ import { useForm, Controller } from "react-hook-form";
 import { RouteUpdateOneDto, RouteUpdateOneDtoType } from "@repo/shared";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter, useParams } from "next/navigation";
+import NotFoundPage from "@/src/components/status-pages/not-found-page";
 
 // bro what the hell
 type Station = RouterOutputsType["stations"]["search"]['data'][number];
@@ -109,6 +110,18 @@ export default function AdminEditRoutePage() {
 
     const onSubmit = (data: RouteUpdateOneDtoType) => {
         updateRouteMutation.mutate(data);
+    }
+
+    if (!routeQuery.isPending && !routeQuery.data) {
+        return (
+            <NotFoundPage
+                header='Route Not Found'
+                message="The route you're looking for doesn't exist or has been removed."
+                returnBtnText="Go back"
+                redirectUrl="/admin/routes"
+                routerGoBack
+            />
+        );
     }
 
     return (

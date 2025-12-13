@@ -172,7 +172,7 @@ export default function AdminManageRoutePage() {
                 <div className="text-text dark:text-text flex justify-center font-bold">Loading...</div>
             ) : (
                 <>
-                    {searchRoutesQuery.isSuccess && searchRoutesQuery.data ? (
+                    {searchRoutesQuery.isSuccess && searchRoutesQuery.data.total ? (
                         <Card className="flex overflow-hidden">
                             <Table
                                 data={searchRoutesQuery.data.data}
@@ -223,7 +223,7 @@ export default function AdminManageRoutePage() {
 
                         </Card>
                     ) : (
-                        <>Error Loading Route</>
+                        <div className="text-text dark:text-text font-bold text-base text-center">No Route Found</div>
                     )}
                 </>
             )}

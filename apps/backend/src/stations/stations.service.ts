@@ -76,7 +76,7 @@ export class StationsService {
 
         const [stations, count] = await this.stationRepo.findAndCount({
             where,
-            order: { name: "asc" },
+            order: { name: dto.sortName ?? "asc" },
             skip: (dto.page - 1) * dto.perPage,
             take: dto.perPage,
         });

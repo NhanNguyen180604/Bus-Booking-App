@@ -444,7 +444,7 @@ export default function AdminManageTripPage() {
 
                                 </Card>
                             ) : (
-                                <div className="text-text dark:text-text font-bold text-base text-center">No Data</div>
+                                <div className="text-text dark:text-text font-bold text-base text-center">No Trip Found</div>
                             )}
                         </>
                     ) : (
