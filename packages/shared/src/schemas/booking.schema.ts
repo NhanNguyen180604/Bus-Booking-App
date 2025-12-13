@@ -71,3 +71,20 @@ export const BookingCancelDto = z.object({
     cancelToken: z.string().trim().nonempty(),
 });
 export type BookingCancelDtoType = z.infer<typeof BookingCancelDto>;
+
+export const BookingUpdateDto = z.object({
+    bookingId: z.uuid({ error: 'Booking ID must be a UUID string' }),
+    seatIds: z.array(z.uuid({ error: 'Seat ID must be a UUID string' })).min(1, { error: 'At least one seat must be selected' }).optional(),
+    fullName: z.string().trim().nonempty({ error: 'Full name is required' }).optional(),
+    phone: z.string().trim().nonempty({ error: 'Phone number is required' }).optional(),
+    email: z.union([
+        z.literal(''),
+        z.email({ error: 'Invalid email address' }),
+    ]).optional(),
+});
+export type BookingUpdateDtoType = z.infer<typeof BookingUpdateDto>;
+
+export const BookingFindOneByIdDto = z.object({
+    id: z.uuid({ error: 'Booking ID must be a UUID string' }),
+});
+export type BookingFindOneByIdDtoType = z.infer<typeof BookingFindOneByIdDto>;
