@@ -1,18 +1,23 @@
-import { Injectable } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Injectable, Logger } from '@nestjs/common';
+import { Cron, CronExpression, Timeout } from '@nestjs/schedule';
 import { InjectEntityManager } from '@nestjs/typeorm';
 import { Booking } from 'src/entities/booking.entity';
 import { MyMailerService } from 'src/my-mailer/my-mailer.service';
 import { EntityManager } from 'typeorm';
 import { Notification, NotificationTypeEnum } from 'src/entities/notification.entity';
-import { TripStatusEnum } from '@repo/shared';
+import { PaymentProviderEnum, PaymentStatusEnum, TripStatusEnum } from '@repo/shared';
+import { StripeService } from 'src/stripe/stripe.service';
+import { Payment } from 'src/entities/payment.entity';
 
 @Injectable()
 export class TasksService {
+    logger: Logger = new Logger(TasksService.name);
+
     constructor(
         @InjectEntityManager()
         private readonly entityManager: EntityManager,
         private readonly mailerService: MyMailerService,
+        private readonly stripeService: StripeService,
     ) { }
 
     @Cron(CronExpression.EVERY_DAY_AT_7AM)
@@ -139,6 +144,48 @@ export class TasksService {
             }
 
             await transactionalEntityManager.save(newNotifications);
+        });
+    }
+
+    @Cron(CronExpression.EVERY_30_MINUTES)
+    /**
+     * Mark all expired payment as EXPIRED, cancel/refund their stripe PaymentIntent
+     */
+    clearExpiredPayments() {
+        this.entityManager.transaction(async (transactionalEntityManager) => {
+            const expiredPayments = await transactionalEntityManager
+                .getRepository(Payment)
+                .createQueryBuilder('payment')
+                .leftJoin(Booking, 'booking', 'booking.paymentId = payment.id')
+                .where('booking.expiresAt IS NOT NULL AND booking.expiresAt < NOW()')
+                .getMany();
+
+            for (const payment of expiredPayments) {
+                // all stripe
+                if (payment.paymentProvider === PaymentProviderEnum.STRIPE) {
+                    try {
+                        const paymentIntent = await this.stripeService.stripe.paymentIntents.retrieve(payment.paymentTransactionId);
+                        if (paymentIntent.status == 'succeeded') {
+                            await this.stripeService.stripe.refunds.create({
+                                payment_intent: paymentIntent.id,
+                                reason: 'requested_by_customer',
+                            });
+                        }
+                        else {
+                            await this.stripeService.stripe.paymentIntents.cancel(paymentIntent.id, {
+                                cancellation_reason: 'abandoned',
+                            });
+                        }
+                        payment.status = PaymentStatusEnum.EXPIRED;
+                    }
+                    catch (error) {
+                        this.logger.error(`Failed to cancel stripe payment intent ${payment.paymentTransactionId}`);
+                        this.logger.error(`Reason: ${error.message}`);
+                    }
+                }
+            }
+
+            await transactionalEntityManager.save(expiredPayments);
         });
     }
 }

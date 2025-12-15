@@ -9,6 +9,7 @@ export enum PaymentProviderEnum {
 export enum PaymentStatusEnum {
     PROCESSING = 'PROCESSING',
     COMPLETED = 'COMPLETED',
+    EXPIRED = 'EXPIRED',
 }
 
 export const BookingCreateOneDto = z.object({
