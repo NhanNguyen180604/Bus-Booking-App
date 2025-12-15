@@ -123,6 +123,10 @@ export class TripsService {
             trip.basePrice = dto.basePrice;
         }
 
+        if (dto.status && dto.status !== trip.status) {
+            trip.status = dto.status;
+        }
+
         // find trips with this bus in overlapping time
         const overlappingTimeTripCount = await this.tripRepo.count({
             where: {

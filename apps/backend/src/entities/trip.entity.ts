@@ -1,6 +1,7 @@
 import { BeforeInsert, BeforeUpdate, Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Route } from "./route.entity";
 import { Bus } from "./bus.entity";
+import { TripStatusEnum } from "@repo/shared";
 
 @Entity()
 export class Trip {
@@ -25,6 +26,9 @@ export class Trip {
     // total price = number of seats ordered * basePrice * bus type's price multiplier
     @Column({ type: 'decimal' })
     basePrice: number;
+
+    @Column({ type: 'enum', enum: TripStatusEnum, default: TripStatusEnum.UPCOMING })
+    status: TripStatusEnum;
 
     @BeforeInsert()
     @BeforeUpdate()
