@@ -125,7 +125,7 @@ export class BookingService {
      * Mark a booking and its payment as completed, called by the webhook
      * @param paymentTransactionId
      */
-    async confirmBooking(paymentTransactionId: string) {
+    async confirmBooking(paymentTransactionId: string): Promise<Booking | null> {
         const payment = await this.entityManager
             .getRepository(Payment)
             .findOne({
@@ -167,13 +167,9 @@ export class BookingService {
         }
 
         if (booking.expiresAt && booking.expiresAt < new Date()) {
-            await this.entityManager
-                .getRepository(Booking)
-                .delete({ id: booking.id });
-            throw new TRPCError({
-                code: "BAD_REQUEST",
-                message: "Booking expired"
-            });
+            payment.status = PaymentStatusEnum.EXPIRED;
+            await this.entityManager.save(payment);
+            return null;
         }
 
         payment.status = PaymentStatusEnum.COMPLETED;

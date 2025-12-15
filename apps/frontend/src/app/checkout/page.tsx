@@ -149,7 +149,8 @@ export function PaymentPage() {
     const bookingData = bookingQuery.data;
 
     const expiresAt = bookingData?.expiresAt ? new Date(bookingData.expiresAt) : null;
-    const isExpired = timeRemaining <= 0 || (expiresAt ? new Date() > expiresAt : false);
+    const isExpired = timeRemaining <= 0 || (expiresAt ? new Date() > expiresAt : false) ||
+        (pollingData && pollingData.payment.status === PaymentStatusEnum.EXPIRED);
     const minutes = Math.floor(timeRemaining / 60);
     const seconds = timeRemaining % 60;
 
@@ -260,33 +261,37 @@ export function PaymentPage() {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="block text-sm font-medium text-text dark:text-text">
-                                    Card Information
-                                </label>
-                                <div className="rounded-lg p-4 bg-primary dark:bg-primary">
-                                    <CardElement
-                                        options={{
-                                            style: {
-                                                base: {
-                                                    fontSize: '16px',
-                                                    color: getCssVar('--color-text'),
-                                                    fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                                                    '::placeholder': {
-                                                        color: getCssVar('--color-secondary-text'),
+                                {!isExpired && (
+                                    <>
+                                        <label className="block text-sm font-medium text-text dark:text-text">
+                                            Card Information
+                                        </label>
+                                        <div className="rounded-lg p-4 bg-primary dark:bg-primary">
+                                            <CardElement
+                                                options={{
+                                                    style: {
+                                                        base: {
+                                                            fontSize: '16px',
+                                                            color: getCssVar('--color-text'),
+                                                            fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                                                            '::placeholder': {
+                                                                color: getCssVar('--color-secondary-text'),
+                                                            },
+                                                        },
+                                                        invalid: {
+                                                            color: getCssVar('--color--danger'),
+                                                        },
                                                     },
-                                                },
-                                                invalid: {
-                                                    color: getCssVar('--color--danger'),
-                                                },
-                                            },
-                                            hidePostalCode: true,
-                                        }}
-                                        className="w-full"
-                                    />
-                                </div>
-                                <p className="text-xs text-secondary-text dark:text-secondary-text">
-                                    Your card information is encrypted and secure
-                                </p>
+                                                    hidePostalCode: true,
+                                                }}
+                                                className="w-full"
+                                            />
+                                        </div>
+                                        <p className="text-xs text-secondary-text dark:text-secondary-text">
+                                            Your card information is encrypted and secure
+                                        </p>
+                                    </>
+                                )}
                             </div>
 
                             <div className="flex gap-4">
