@@ -392,10 +392,6 @@ export default function AdminManageTripPage() {
                                                 render: trip => trip.route.destination.name,
                                             },
                                             {
-                                                header: "Bus Number",
-                                                render: trip => trip.bus.plateNumber,
-                                            },
-                                            {
                                                 header: "Departure Time",
                                                 render: trip => {
                                                     const date = new Date(trip.departureTime);
@@ -412,6 +408,10 @@ export default function AdminManageTripPage() {
                                                         style: "currency", currency: "VND", currencyDisplay: "code"
                                                     }).format(price);
                                                 },
+                                            },
+                                            {
+                                                header: "Status",
+                                                render: trip => trip.status,
                                             },
                                             {
                                                 header: "Actions",

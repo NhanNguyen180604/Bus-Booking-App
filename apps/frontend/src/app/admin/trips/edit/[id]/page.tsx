@@ -3,10 +3,11 @@ import NotFoundPage from "@/src/components/status-pages/not-found-page";
 import { Button } from "@/src/components/ui/button";
 import { Card, CardBody, CardFooter } from "@/src/components/ui/card";
 import { FormField } from "@/src/components/ui/form-field";
+import Loading from "@/src/components/ui/loading";
 import { OptionType, SelectDropdown } from "@/src/components/ui/select-dropdown";
 import { useTRPC } from "@/src/utils/trpc";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { TripCreateOneDto, TripCreateOneDtoType, TripUpdateOneDto, TripUpdateOneDtoType } from "@repo/shared";
+import { TripCreateOneDto, TripCreateOneDtoType, TripStatusEnum, TripUpdateOneDto, TripUpdateOneDtoType } from "@repo/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RouterOutputsType } from "backend";
 import { useParams, useRouter } from "next/navigation";
@@ -85,11 +86,14 @@ export default function AdminEditTripPage() {
         handleSubmit,
         control,
         formState: { errors: formErrors, isValid },
+        watch,
         reset,
         setError,
     } = useForm<TripUpdateOneDtoType>({
         resolver: zodResolver(TripUpdateOneDto)
     });
+
+    const currentStatus = watch('status');
 
     useEffect(() => {
         const formatDateTimeLocal = (date: Date) => {
@@ -147,7 +151,11 @@ export default function AdminEditTripPage() {
         updateTripMutation.mutate(data);
     }
 
-    if (!tripQuery.isPending && !tripQuery.data) {
+    if (tripQuery.isPending) {
+        return <Loading />;
+    }
+
+    if (!tripQuery.data) {
         return (
             <NotFoundPage
                 header='Trip Not Found'
@@ -266,6 +274,27 @@ export default function AdminEditTripPage() {
                                 placeholder="290000"
                                 {...register("basePrice", { valueAsNumber: true })}
                                 error={formErrors.basePrice?.message}
+                            />
+                        </div>
+                        <div className="flex-1">
+                            <Controller control={control}
+                                name="status"
+                                render={({ field: { onChange } }) => (
+                                    <SelectDropdown label="Status" required
+                                        value={currentStatus ? { value: currentStatus, label: currentStatus } : { value: tripQuery.data?.status, label: tripQuery.data?.status }}
+                                        options={Object.keys(TripStatusEnum).map(k => ({
+                                            value: k,
+                                            label: k,
+                                        }))}
+                                        onChange={(newValue, _) => {
+                                            const newVal: OptionType<string> = newValue as OptionType<string>;
+                                            onChange(newVal ? newVal.value : "");
+                                        }}
+                                        errorMessage={formErrors.status?.message}
+                                        menuPortalTarget={document.body}
+                                        menuPosition="fixed"
+                                    />
+                                )}
                             />
                         </div>
                     </CardBody>
