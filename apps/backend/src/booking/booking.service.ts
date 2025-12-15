@@ -319,6 +319,7 @@ export class BookingService {
                 .leftJoinAndSelect('booking.payment', 'payment')
                 .leftJoinAndSelect('payment.user', 'user')
                 .leftJoinAndSelect('booking.seats', 'seats')
+                .where('booking.id = :bookingId', { bookingId: dto.bookingId })
                 .getOne();
 
             if (!booking) {
@@ -355,47 +356,47 @@ export class BookingService {
             }
 
             // Update seats if provided
-            // if (dto.seatIds && dto.seatIds.length > 0) {
-            //     const newSeats = await transactionalEntityManager
-            //         .getRepository(Seat)
-            //         .createQueryBuilder('seat')
-            //         .setLock('pessimistic_read')
-            //         .leftJoin('seat.bus', 'bus')
-            //         .where('seat.id IN (:...seatIds)', { seatIds: dto.seatIds })
-            //         .andWhere('(seat.isActive OR seat.deactivateDate IS NULL OR seat.deactivateDate > NOW())')
-            //         .andWhere('bus.id = :tripBus', { tripBus: booking.trip.bus.id })
-            //         .getMany();
+            if (dto.seatIds && dto.seatIds.length > 0) {
+                const newSeats = await transactionalEntityManager
+                    .getRepository(Seat)
+                    .createQueryBuilder('seat')
+                    .setLock('pessimistic_read')
+                    .leftJoin('seat.bus', 'bus')
+                    .where('seat.id IN (:...seatIds)', { seatIds: dto.seatIds })
+                    .andWhere('(seat.isActive OR seat.deactivateDate IS NULL OR seat.deactivateDate > NOW())')
+                    .andWhere('bus.id = :tripBus', { tripBus: booking.trip.bus.id })
+                    .getMany();
 
-            //     if (newSeats.length !== dto.seatIds.length) {
-            //         const notFoundSeatIds = dto.seatIds.filter(id => !newSeats.find(seat => seat.id === id));
-            //         throw new TRPCError({
-            //             code: 'NOT_FOUND',
-            //             message: `One or more seats were not found, IDs: ${notFoundSeatIds.join(', ')}`,
-            //             cause: 'Not found seat ids',
-            //         });
-            //     }
+                if (newSeats.length !== dto.seatIds.length) {
+                    const notFoundSeatIds = dto.seatIds.filter(id => !newSeats.find(seat => seat.id === id));
+                    throw new TRPCError({
+                        code: 'NOT_FOUND',
+                        message: `One or more seats were not found, IDs: ${notFoundSeatIds.join(', ')}`,
+                        cause: 'Not found seat ids',
+                    });
+                }
 
-            //     // Check if any of the new seats are already booked (excluding current booking)
-            //     const alreadyBookedSeats = await transactionalEntityManager
-            //         .getRepository(Booking)
-            //         .createQueryBuilder('booking')
-            //         .leftJoin("booking.trip", "trip")
-            //         .leftJoin("booking.seats", "seats")
-            //         .where("trip.id = :tripId", { tripId: booking.trip.id })
-            //         .andWhere("booking.id != :bookingId", { bookingId: booking.id })
-            //         .andWhere("NOW() < booking.expiresAt OR booking.expiresAt IS NULL")
-            //         .andWhere("seats.id IN (:...seatIds)", { seatIds: dto.seatIds })
-            //         .getMany();
+                // Check if any of the new seats are already booked (excluding current booking)
+                const alreadyBookedSeats = await transactionalEntityManager
+                    .getRepository(Booking)
+                    .createQueryBuilder('booking')
+                    .leftJoin("booking.trip", "trip")
+                    .leftJoin("booking.seats", "seats")
+                    .where("trip.id = :tripId", { tripId: booking.trip.id })
+                    .andWhere("booking.id != :bookingId", { bookingId: booking.id })
+                    .andWhere("NOW() < booking.expiresAt OR booking.expiresAt IS NULL")
+                    .andWhere("seats.id IN (:...seatIds)", { seatIds: dto.seatIds })
+                    .getMany();
 
-            //     if (alreadyBookedSeats.length) {
-            //         throw new TRPCError({
-            //             code: 'CONFLICT',
-            //             message: `One or more selected seats are already booked for this trip`,
-            //             cause: 'Seats already booked',
-            //         });
-            //     }
-            //     booking.seats = newSeats;
-            // }
+                if (alreadyBookedSeats.length) {
+                    throw new TRPCError({
+                        code: 'CONFLICT',
+                        message: `One or more selected seats are already booked for this trip`,
+                        cause: 'Seats already booked',
+                    });
+                }
+                booking.seats = newSeats;
+            }
 
             // Update passenger details if provided
             if (dto.fullName !== undefined) booking.fullName = dto.fullName;

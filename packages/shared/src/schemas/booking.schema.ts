@@ -57,10 +57,7 @@ export const BookingUpdateDto = z.object({
     seatIds: z.array(z.uuid({ error: 'Seat ID must be a UUID string' })).min(1, { error: 'At least one seat must be selected' }).optional(),
     fullName: z.string().trim().nonempty({ error: 'Full name is required' }).optional(),
     phone: z.string().trim().nonempty({ error: 'Phone number is required' }).optional(),
-    email: z.union([
-        z.literal(''),
-        z.email({ error: 'Invalid email address' }),
-    ]).optional(),
+    email: z.email({ error: 'Invalid email address' }).trim().nonempty({ error: 'Email is required' }).optional(),
 });
 export type BookingUpdateDtoType = z.infer<typeof BookingUpdateDto>;
 
