@@ -20,7 +20,6 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
                         pass: config.send_mail.app_password,
                     },
                 },
-                preview: true,
                 defaults: {
                     from: `"Bus Booking App" <${config.send_mail.user}>`,
                 },

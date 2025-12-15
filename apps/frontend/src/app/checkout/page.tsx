@@ -13,6 +13,7 @@ import {
 } from '@stripe/react-stripe-js';
 import StripeProvider from '@/src/utils/stripe-provider';
 import UnauthorizedPage from '@/src/components/status-pages/unauthorized-page';
+import useUser from '@/src/hooks/useUser';
 
 export default function PaymentPageWrapper() {
     return (
@@ -29,6 +30,7 @@ export function PaymentPage() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const trpc = useTRPC();
+    const userQuery = useUser();
 
     const bookingLookUpCode = searchParams.get('bookingLookUpCode');
     const phoneNumber = searchParams.get('phoneNumber');
@@ -71,7 +73,7 @@ export function PaymentPage() {
             setIsProcessing(false);
             setPaymentSuccess(true);
             setTimeout(() => {
-                router.push(`/ticket?lookUpCode=${bookingData.lookupCode}&phoneNumber=${bookingData.phone}`);
+                router.push(userQuery.data ? `/ticket/details/${bookingData.id}` : `/ticket/guest?lookUpCode=${bookingData.lookupCode}&phoneNumber=${bookingData.phone}`);
             }, 0);
         }
     }, [pollingData]);
@@ -81,7 +83,7 @@ export function PaymentPage() {
         hasNavigatedRef.current = true;
         setIsProcessing(false);
         setPaymentSuccess(true);
-        router.push(`/ticket?lookUpCode=${bookingQuery.data.lookupCode}&phoneNumber=${bookingQuery.data.phone}`);
+        router.push(userQuery.data ? `/ticket/details/${bookingQuery.data.id}` : `/ticket/guest?lookUpCode=${bookingQuery.data.lookupCode}&phoneNumber=${bookingQuery.data.phone}`);
         return;
     }
 
