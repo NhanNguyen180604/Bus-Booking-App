@@ -20,7 +20,6 @@ export class WebhooksController {
     @Post('stripe')
     @HttpCode(200)
     async handleStripeWebhook(@Req() req: Request, @Res() res: Response, @Headers("stripe-signature") signature: string) {
-        const webhookSecret = this.config.stripe.webhook_secret;
         const event = await this.stripeService.stripe.webhooks.constructEventAsync(
             req.body as Buffer,
             signature,
@@ -31,6 +30,17 @@ export class WebhooksController {
             case "payment_intent.succeeded": {
                 const paymentIntent = event.data.object;
                 const booking = await this.bookingService.confirmBooking(paymentIntent.id);
+
+                if (!booking) {
+                    await this.stripeService.stripe.refunds.create({
+                        payment_intent: paymentIntent.id,
+                        reason: 'requested_by_customer',
+                        metadata: {
+                            message: 'Refund due to late payment',
+                        },
+                    });
+                    return;
+                }
 
                 if (booking.email && booking.email.trim().length) {
                     try {

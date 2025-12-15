@@ -21,7 +21,6 @@ import { Seat } from './entities/seat.entity';
 import { BusType } from './entities/bus-type.entity';
 import { Booking } from './entities/booking.entity';
 import { Payment } from './entities/payment.entity';
-import { NotificationTemplate } from './entities/notification-template.entity';
 import { Notification } from './entities/notification.entity';
 import { StationsModule } from './stations/stations.module';
 import { RoutesModule } from './routes/routes.module';
@@ -33,6 +32,8 @@ import { MyMailerModule } from './my-mailer/my-mailer.module';
 import { StripeModule } from './stripe/stripe.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { RawBodyMiddleware } from './middlewares/raw-body.middleware';
+import { TasksModule } from './tasks/tasks.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -55,7 +56,7 @@ import { RawBodyMiddleware } from './middlewares/raw-body.middleware';
           Station, Route, Trip,
           Booking,
           Payment,
-          Notification, NotificationTemplate,
+          Notification,
         ],
         synchronize: true,
       }),
@@ -74,6 +75,8 @@ import { RawBodyMiddleware } from './middlewares/raw-body.middleware';
     MyMailerModule,
     StripeModule,
     WebhooksModule,
+    TasksModule,
+    ScheduleModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [AppService, AppRouter, JwtMiddleware],
