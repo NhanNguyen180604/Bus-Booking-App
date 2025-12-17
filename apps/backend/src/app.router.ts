@@ -11,6 +11,7 @@ import { BusTypesRouter } from "./bus-types/bus-types.router";
 import { inferRouterOutputs } from "@trpc/server";
 import { TripsRouter } from "./trips/trips.router";
 import { BookingRouter } from "./booking/booking.router";
+import { ReportsRouter } from "./reports/reports.router";
 
 @Injectable()
 export class AppRouter {
@@ -24,6 +25,7 @@ export class AppRouter {
         private readonly busTypesRouter: BusTypesRouter,
         private readonly tripsRouter: TripsRouter,
         private readonly bookingRouter: BookingRouter,
+        private readonly reportsRouter: ReportsRouter,
     ) {
         this.appRouter = this.apply();
     }
@@ -37,6 +39,7 @@ export class AppRouter {
             busTypes: this.busTypesRouter.apply(),
             trips: this.tripsRouter.apply(),
             booking: this.bookingRouter.apply(),
+            reports: this.reportsRouter.apply(),
         });
     }
 

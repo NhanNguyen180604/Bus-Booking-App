@@ -33,6 +33,7 @@ import { MyMailerModule } from './my-mailer/my-mailer.module';
 import { StripeModule } from './stripe/stripe.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { RawBodyMiddleware } from './middlewares/raw-body.middleware';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
@@ -74,6 +75,7 @@ import { RawBodyMiddleware } from './middlewares/raw-body.middleware';
     MyMailerModule,
     StripeModule,
     WebhooksModule,
+    ReportsModule,
   ],
   controllers: [AppController],
   providers: [AppService, AppRouter, JwtMiddleware],

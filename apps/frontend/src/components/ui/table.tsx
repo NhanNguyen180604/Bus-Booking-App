@@ -4,6 +4,7 @@ interface Column<T> {
     header: string;
     render: (item: T) => React.ReactNode;
     className?: string;
+    headerClassName?: string;
 }
 
 interface TableProps<T> {
@@ -28,7 +29,7 @@ export function Table<T>({
             <thead className={headClassName}>
                 <tr>
                     {columns.map((col, i) => (
-                        <th key={i} className="py-2">
+                        <th key={i} className={col.headerClassName ?? "py-2"}>
                             {col.header}
                         </th>
                     ))}
