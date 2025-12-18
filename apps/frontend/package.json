@@ -24,6 +24,7 @@
     "react-hook-form": "^7.68.0",
     "react-range-slider-input": "^3.3.2",
     "react-select": "^5.10.2",
+    "recharts": "^3.6.0",
     "tailwind-merge": "^3.4.0",
     "tailwind-variants": "^3.2.2",
     "zod": "^4.1.13"

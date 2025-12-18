@@ -32,6 +32,8 @@ import { MyMailerModule } from './my-mailer/my-mailer.module';
 import { StripeModule } from './stripe/stripe.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { RawBodyMiddleware } from './middlewares/raw-body.middleware';
+import { ReportsModule } from './reports/reports.module';
+import { PaymentsModule } from './payments/payments.module';
 import { TasksModule } from './tasks/tasks.module';
 import { ScheduleModule } from '@nestjs/schedule';
 
@@ -75,6 +77,8 @@ import { ScheduleModule } from '@nestjs/schedule';
     MyMailerModule,
     StripeModule,
     WebhooksModule,
+    ReportsModule,
+    PaymentsModule,
     TasksModule,
     ScheduleModule.forRoot(),
   ],
