@@ -195,7 +195,7 @@ export default function AdminManageRoutePage() {
                                         render: route => {
                                             const hours = Math.floor(route.estimatedMinutes / 60);
                                             const minutes = route.estimatedMinutes % 60;
-                                            return `${hours} hour${hours > 1 && "s"}, ${minutes} minute${minutes > 1 && "s"}`;
+                                            return `${hours} hour${hours > 1 ? "s" : ''}, ${minutes} minute${minutes > 1 ? "s" : ''}`;
                                         }
                                     },
                                     {

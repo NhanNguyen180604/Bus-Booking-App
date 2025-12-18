@@ -1,6 +1,12 @@
 import z from "zod";
 import { DepartureTimeRange, PaginationDto, sortOptions } from "./common";
 
+export enum TripStatusEnum {
+    UPCOMING = 'UPCOMING',
+    DEPARTED = 'DEPARTED',
+    ARRIVED = 'ARRIVED',
+};
+
 export const TripCreateOneDto = z.object({
     routeId: z.uuid({ error: "Origin must be an UUID string" }),
     busId: z.uuid({ error: "Destination must be an UUID string" }),
@@ -28,10 +34,13 @@ export type TripCreateOneDtoType = z.infer<typeof TripCreateOneDto>;
 
 export const TripUpdateOneDto = z.object({
     id: z.uuid({ error: "ID must be an UUID string" }),
+    status: z.enum(TripStatusEnum).optional(),
 })
     .extend(TripCreateOneDto.partial().shape)
     .refine(
-        (data) => data.routeId !== undefined || data.busId !== undefined || data.departureTime !== undefined || data.arrivalTime !== undefined,
+        (data) => data.routeId !== undefined || data.busId !== undefined ||
+            data.departureTime !== undefined || data.arrivalTime !== undefined ||
+            data.status !== undefined,
         {
             error: "At least 1 field must be provided",
         }

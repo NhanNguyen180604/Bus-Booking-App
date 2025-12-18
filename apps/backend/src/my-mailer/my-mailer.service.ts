@@ -1,4 +1,4 @@
-import { MailerService } from '@nestjs-modules/mailer';
+import { ISendMailOptions, MailerService } from '@nestjs-modules/mailer';
 import { Injectable, Logger } from '@nestjs/common';
 import QRCode from 'qrcode';
 import { Booking } from 'src/entities/booking.entity';
@@ -94,6 +94,19 @@ export class MyMailerService {
         } catch (error) {
             this.logger.error(
                 `Failed to send e-ticket to ${data.email}:`,
+                error instanceof Error ? error.message : 'Unknown error'
+            );
+            throw error;
+        }
+    }
+
+    async sendGenericMail(sendMailOptions: ISendMailOptions) {
+        try {
+            await this.mailerService.sendMail(sendMailOptions);
+        }
+        catch (error) {
+            this.logger.error(
+                `Failed to send e-ticket to ${sendMailOptions.to}:`,
                 error instanceof Error ? error.message : 'Unknown error'
             );
             throw error;

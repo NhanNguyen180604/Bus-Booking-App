@@ -74,6 +74,8 @@ export class PaymentsService {
         // Pagination
         const total = await queryBuilder.getCount();
         const totalPage = Math.ceil(total / dto.perPage);
+        const page = Math.min(dto.page, totalPage);
+        const perPage = Math.min(dto.perPage, total);
 
         const data = await queryBuilder
             .skip((dto.page - 1) * dto.perPage)
@@ -83,8 +85,8 @@ export class PaymentsService {
         return {
             data,
             total,
-            page: dto.page,
-            perPage: dto.perPage,
+            page,
+            perPage,
             totalPage,
         };
     }

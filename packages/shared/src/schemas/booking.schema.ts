@@ -9,6 +9,7 @@ export enum PaymentProviderEnum {
 export enum PaymentStatusEnum {
     PROCESSING = 'PROCESSING',
     COMPLETED = 'COMPLETED',
+    EXPIRED = 'EXPIRED',
 }
 
 export const BookingCreateOneDto = z.object({
@@ -18,10 +19,7 @@ export const BookingCreateOneDto = z.object({
     phone: z.string().trim().nonempty({ error: 'Phone number is required' }),
     // https://github.com/colinhacks/zod/issues/2513#issuecomment-1732405993
     // what in the hell
-    email: z.union([
-        z.literal(''),
-        z.email({ error: 'Invalid email address' }),
-    ]),
+    email: z.email(),
     paymentProvider: z.enum(PaymentProviderEnum),
 });
 export type BookingCreateOneDtoType = z.infer<typeof BookingCreateOneDto>;

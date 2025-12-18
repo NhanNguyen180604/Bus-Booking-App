@@ -119,7 +119,7 @@ export default function CheckoutInfoComponent({ trip, selectedSeats, paymentForm
                                 error={formErrors.phone?.message}
                             />
                             <FormField
-                                label='Email'
+                                label='Email' required
                                 {...register('email')}
                                 placeholder='Your email'
                                 error={formErrors.email?.message}
