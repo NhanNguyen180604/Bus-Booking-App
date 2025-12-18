@@ -1,3 +1,4 @@
+import { ArrayContains } from "typeorm";
 import { RootConfig } from "../../config/config";
 import { LoginProviderEnum } from "../../entities/users.entity";
 import { UsersService } from "../../users/users.service";
@@ -24,7 +25,7 @@ export class GitHubStrategy extends PassportStrategy(Strategy, 'github') {
 
         const foundUser = await this.usersService.findOneBy({
             providerId: id,
-            provider: LoginProviderEnum.GITHUB,
+            provider: ArrayContains([LoginProviderEnum.GITHUB]),
         });
         if (foundUser) {
             return done(null, foundUser);
@@ -32,7 +33,7 @@ export class GitHubStrategy extends PassportStrategy(Strategy, 'github') {
 
         const newUser = await this.usersService.createOne({
             providerId: id,
-            provider: LoginProviderEnum.GITHUB,
+            provider: [LoginProviderEnum.GITHUB],
             name: displayName,
             verified: true,
         });

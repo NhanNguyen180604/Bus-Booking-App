@@ -28,18 +28,19 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
         if (foundUser) {
             if (!foundUser.verified) {
                 foundUser.verified = true;
-                foundUser = await this.usersService.createOne(foundUser);  // update
             }
+            foundUser.provider.push(LoginProviderEnum.GOOGLE);
+            foundUser = await this.usersService.createOne(foundUser);  // update
             return done(null, foundUser);
         }
 
         const newUser = await this.usersService.createOne({
             providerId: id,
-            provider: LoginProviderEnum.GOOGLE,
+            provider: [LoginProviderEnum.GOOGLE],
             name: name?.givenName + ' ' + name?.familyName,
             email,
             verified: true,
         });
         return done(null, newUser);
     }
-} 
+}

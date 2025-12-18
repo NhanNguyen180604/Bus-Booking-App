@@ -87,7 +87,7 @@ export class UsersService {
     }
 
     async sendEmailVerification(user: User) {
-        if (user.provider !== LoginProviderEnum.LOCAL && user.provider !== LoginProviderEnum.GOOGLE) {
+        if (user.provider.includes(LoginProviderEnum.LOCAL) && user.provider.includes(LoginProviderEnum.GOOGLE)) {
             return false;
         }
 

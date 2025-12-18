@@ -4,6 +4,8 @@ import { UsersService } from "../../users/users.service";
 import { Inject, Injectable } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { Profile, Strategy } from 'passport-facebook';
+import { } from '@nestjs/typeorm';
+import { ArrayContains } from "typeorm";
 
 @Injectable()
 export class FacebookStrategy extends PassportStrategy(Strategy, 'facebook') {
@@ -25,7 +27,7 @@ export class FacebookStrategy extends PassportStrategy(Strategy, 'facebook') {
 
         const foundUser = await this.usersService.findOneBy({
             providerId: id,
-            provider: LoginProviderEnum.FACEBOOK,
+            provider: ArrayContains([LoginProviderEnum.FACEBOOK]),
         });
         if (foundUser) {
             return done(null, foundUser);
@@ -33,7 +35,7 @@ export class FacebookStrategy extends PassportStrategy(Strategy, 'facebook') {
 
         const newUser = await this.usersService.createOne({
             providerId: id,
-            provider: LoginProviderEnum.FACEBOOK,
+            provider: [LoginProviderEnum.FACEBOOK],
             name: name?.givenName + ' ' + name?.familyName,
             verified: true,
         });
