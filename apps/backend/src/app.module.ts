@@ -34,6 +34,7 @@ import { StripeModule } from './stripe/stripe.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { RawBodyMiddleware } from './middlewares/raw-body.middleware';
 import { ReportsModule } from './reports/reports.module';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [
@@ -76,6 +77,7 @@ import { ReportsModule } from './reports/reports.module';
     StripeModule,
     WebhooksModule,
     ReportsModule,
+    PaymentsModule,
   ],
   controllers: [AppController],
   providers: [AppService, AppRouter, JwtMiddleware],

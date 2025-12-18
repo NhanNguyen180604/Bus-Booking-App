@@ -1,20 +1,46 @@
 "use client";
 
-import { Card, CardBody, CardHeader } from "@/src/components/ui/card";
+import { Button } from "@/src/components/ui/button";
+import { Card, CardBody, CardFooter, CardHeader } from "@/src/components/ui/card";
+import { FormField } from "@/src/components/ui/form-field";
+import Pagination from "@/src/components/ui/pagination";
+import { OptionType, SelectDropdown } from "@/src/components/ui/select-dropdown";
 import { Table } from "@/src/components/ui/table";
+import { formatPrice } from "@/src/utils/format-price";
+import { formatVNWithAMPM } from "@/src/utils/format-time";
 import { useTRPC } from "@/src/utils/trpc";
+import { PaymentProviderEnum, PaymentSearchDtoType, PaymentStatusEnum } from "@repo/shared";
 import { useQuery } from "@tanstack/react-query";
-import Image from "next/image";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { RouterOutputsType } from "backend";
+import { useState } from "react";
 
-export default function AdminReportsPage() {
+type Payment = RouterOutputsType['payments']['search']['data'][number];
+
+export default function AdminRevenuePage() {
     const trpc = useTRPC();
+    const perPage = 20;
+
+    const [page, setPage] = useState(1);
+    const [totalPage, setTotalPage] = useState(1);
     
-    const overviewQueryOpts = trpc.reports.getOverview.queryOptions();
-    const overviewQuery = useQuery({
-        ...overviewQueryOpts,
-        staleTime: 5 * 60 * 1000, // 5 minutes
+    const [searchInput, setSearchInput] = useState<PaymentSearchDtoType>({
+        page: 1,
+        perPage,
     });
+    
+    const [searchObj, setSearchObj] = useState<PaymentSearchDtoType>(searchInput);
+
+    const searchPaymentsOpts = trpc.payments.search.queryOptions(searchObj);
+    const searchPaymentsQuery = useQuery({
+        ...searchPaymentsOpts,
+        staleTime: 60 * 60 * 1000,
+    });
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        setSearchObj({ ...searchInput, page: 1 });
+        setPage(1);
+    };
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('vi-VN', {
@@ -25,230 +51,270 @@ export default function AdminReportsPage() {
         }).format(amount).replace('₫', 'VND');
     };
 
-    if (overviewQuery.isLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-[60vh]">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
-            </div>
-        );
-    }
-
-    if (overviewQuery.isError) {
-        return (
-            <div className="flex items-center justify-center min-h-[60vh]">
-                <p className="text-danger">Failed to load reports data</p>
-            </div>
-        );
-    }
-
-    const data = overviewQuery.data;
-
     return (
         <div className="space-y-6">
-            <h1 className="text-[2rem] text-text font-bold">Overview</h1>
+            <h1 className="text-[2rem] text-text font-bold">Revenue Management</h1>
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Today Revenue */}
+            {/* Filter and Sort */}
+            <form onSubmit={handleSearch}>
                 <Card>
-                    <CardBody className="p-6">
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <p className="text-sm text-secondary-text mb-1">Total Revenue</p>
-                                <p className="text-xs text-secondary-text mb-3">Today</p>
-                                <p className="text-2xl font-bold text-text">{formatCurrency(data!.todayRevenue)}</p>
-                            </div>
-                            <div className="p-3 bg-accent/10 rounded-lg">
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="32"
-                                    height="32"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    className="text-accent"
-                                >
-                                    <rect width="20" height="14" x="2" y="5" rx="2" />
-                                    <line x1="2" x2="22" y1="10" y2="10" />
-                                </svg>
-                            </div>
-                        </div>
-                    </CardBody>
-                </Card>
-
-                {/* Last 30 Days Revenue */}
-                <Card>
-                    <CardBody className="p-6">
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <p className="text-sm text-secondary-text mb-1">Total Revenue</p>
-                                <p className="text-xs text-secondary-text mb-3">Last 30 days</p>
-                                <p className="text-2xl font-bold text-text">{formatCurrency(data!.last30DaysRevenue)}</p>
-                            </div>
-                            <div className="p-3 bg-accent/10 rounded-lg">
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="32"
-                                    height="32"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    className="text-accent"
-                                >
-                                    <rect width="20" height="14" x="2" y="5" rx="2" />
-                                    <line x1="2" x2="22" y1="10" y2="10" />
-                                </svg>
-                            </div>
-                        </div>
-                    </CardBody>
-                </Card>
-
-                {/* Total Bookings */}
-                <Card>
-                    <CardBody className="p-6">
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <p className="text-sm text-secondary-text mb-1">Total Bookings</p>
-                                <p className="text-xs text-secondary-text mb-3">Last 30 days</p>
-                                <p className="text-2xl font-bold text-text">{data!.last30DaysBookings.toLocaleString()}</p>
-                            </div>
-                            <div className="p-3 bg-accent/10 rounded-lg">
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="32"
-                                    height="32"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    className="text-accent"
-                                >
-                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                                    <circle cx="9" cy="7" r="4" />
-                                    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                                </svg>
-                            </div>
-                        </div>
-                    </CardBody>
-                </Card>
-            </div>
-
-            {/* Chart and Top Routes Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Line Chart */}
-                <Card className="lg:col-span-2">
-                    <CardHeader className="px-6 pt-6 pb-4">
-                        <h2 className="text-xl font-bold text-text">Revenue Last 30 Days</h2>
+                    <CardHeader className="text-text text-[20px] font-bold">
+                        FILTER AND SORT PAYMENTS
                     </CardHeader>
-                    <CardBody className="p-6">
-                        {data!.dailyRevenue && data!.dailyRevenue.length > 0 ? (
-                            <ResponsiveContainer width="100%" height={350}>
-                                <LineChart data={data!.dailyRevenue}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                                    <XAxis 
-                                        dataKey="date" 
-                                        stroke="#9ca3af"
-                                        tick={{ fill: '#9ca3af' }}
-                                        tickFormatter={(value) => {
-                                            const date = new Date(value);
-                                            return `${date.getMonth() + 1}/${date.getDate()}`;
-                                        }}
-                                    />
-                                    <YAxis 
-                                        stroke="#9ca3af"
-                                        tick={{ fill: '#9ca3af' }}
-                                        tickFormatter={(value) => {
-                                            return (value / 1000000).toFixed(2) + 'M';
-                                        }}
-                                    />
-                                    <Tooltip 
-                                        contentStyle={{
-                                            backgroundColor: '#1f2937',
-                                            border: '1px solid #374151',
-                                            borderRadius: '8px',
-                                            color: '#f3f4f6'
-                                        }}
-                                        labelFormatter={(value) => {
-                                            const date = new Date(value);
-                                            return date.toLocaleDateString('vi-VN');
-                                        }}
-                                        formatter={(value: number | undefined) => [
-                                            new Intl.NumberFormat('vi-VN').format(value ?? 0) + ' VND',
-                                            'Revenue'
-                                        ]}
-                                    />
-                                    <Line 
-                                        type="monotone" 
-                                        dataKey="revenue" 
-                                        stroke="#3b82f6" 
-                                        strokeWidth={2}
-                                        dot={{ fill: '#3b82f6', r: 3 }}
-                                        activeDot={{ r: 5 }}
-                                    />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        ) : (
-                            <div className="flex items-center justify-center h-[350px]">
-                                <p className="text-secondary-text">No revenue data available</p>
-                            </div>
-                        )}
-                    </CardBody>
-                </Card>
 
-                {/* Top 5 Routes */}
-                <Card>
-                    <CardHeader className="px-6 pt-6 pb-4">
-                        <h2 className="text-xl font-bold text-text">Top 5 Routes</h2>
-                    </CardHeader>
-                    <CardBody className="p-0">
-                        {data!.topRoutes.length > 0 ? (
-                            <Table
-                                data={data!.topRoutes}
-                                rowKey={(route) => `route-${route.id}`}
-                                tableClassName="w-full"
-                                headClassName="bg-primary/50 text-secondary-text text-sm"
-                                bodyClassName="text-sm"
-                                columns={[
-                                    {
-                                        header: "Start",
-                                        render: (route) => route.start,
-                                        className: "py-3 px-4 text-left text-text",
-                                        headerClassName: "py-3 px-4 text-left"
-                                    },
-                                    {
-                                        header: "Destination",
-                                        render: (route) => route.destination,
-                                        className: "py-3 px-4 text-left text-text",
-                                        headerClassName: "py-3 px-4 text-left"
-                                    },
-                                    {
-                                        header: "Revenue",
-                                        render: (route) => {
-                                            const revenue = (route.revenue / 1000000).toFixed(2);
-                                            return revenue + 'M VND';
-                                        },
-                                        className: "py-3 px-4 text-right text-text font-semibold",
-                                        headerClassName: "py-3 px-4 text-right"
-                                    },
-                                ]}
-                            />
-                        ) : (
-                            <div className="p-6 text-center text-secondary-text">
-                                No route data available
+                    <CardBody className="flex flex-col gap-4 px-6 pb-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {/* Status Filter */}
+                            <div>
+                                <SelectDropdown
+                                    label="Payment Status"
+                                    id="status"
+                                    name="status"
+                                    isClearable
+                                    value={searchInput.status ? { value: searchInput.status, label: searchInput.status } : null}
+                                    options={Object.values(PaymentStatusEnum).map(status => ({
+                                        value: status,
+                                        label: status
+                                    }))}
+                                    onChange={(newValue) => {
+                                        const val = newValue as OptionType<string>;
+                                        setSearchInput({
+                                            ...searchInput,
+                                            status: val ? val.value as PaymentStatusEnum : undefined
+                                        });
+                                    }}
+                                    menuPortalTarget={document.body}
+                                    menuPosition="fixed"
+                                />
                             </div>
-                        )}
+
+                            {/* Provider Filter */}
+                            <div>
+                                <SelectDropdown
+                                    label="Payment Provider"
+                                    id="provider"
+                                    name="provider"
+                                    isClearable
+                                    value={searchInput.paymentProvider ? { value: searchInput.paymentProvider, label: searchInput.paymentProvider } : null}
+                                    options={Object.values(PaymentProviderEnum).map(provider => ({
+                                        value: provider,
+                                        label: provider
+                                    }))}
+                                    onChange={(newValue) => {
+                                        const val = newValue as OptionType<string>;
+                                        setSearchInput({
+                                            ...searchInput,
+                                            paymentProvider: val ? val.value as PaymentProviderEnum : undefined
+                                        });
+                                    }}
+                                    menuPortalTarget={document.body}
+                                    menuPosition="fixed"
+                                />
+                            </div>
+
+                            {/* Creation Date */}
+                            <div>
+                                <FormField
+                                    label="Creation Date"
+                                    type="date"
+                                    value={searchInput.createdAt || ''}
+                                    onChange={(e) => setSearchInput({
+                                        ...searchInput,
+                                        createdAt: e.target.value || undefined
+                                    })}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {/* Transaction ID Search */}
+                            <div>
+                                <FormField
+                                    label="Transaction ID"
+                                    placeholder="Search by transaction ID"
+                                    value={searchInput.transactionId || ''}
+                                    onChange={(e) => setSearchInput({
+                                        ...searchInput,
+                                        transactionId: e.target.value || undefined
+                                    })}
+                                />
+                            </div>
+
+                            {/* Sort By */}
+                            <div>
+                                <SelectDropdown
+                                    label="Sort By"
+                                    id="sortBy"
+                                    name="sortBy"
+                                    isClearable
+                                    value={searchInput.sortBy ? { 
+                                        value: searchInput.sortBy, 
+                                        label: searchInput.sortBy === 'createdAt' ? 'Date' : 
+                                               searchInput.sortBy === 'amount' ? 'Amount' : 'Status'
+                                    } : null}
+                                    options={[
+                                        { value: 'createdAt', label: 'Date' },
+                                        { value: 'amount', label: 'Amount' },
+                                        { value: 'status', label: 'Status' }
+                                    ]}
+                                    onChange={(newValue) => {
+                                        const val = newValue as OptionType<string>;
+                                        setSearchInput({
+                                            ...searchInput,
+                                            sortBy: val ? val.value as 'createdAt' | 'amount' | 'status' : undefined,
+                                            sortOrder: val ? 'asc' : undefined
+                                        });
+                                    }}
+                                    menuPortalTarget={document.body}
+                                    menuPosition="fixed"
+                                />
+                            </div>
+
+                            {/* Sort Order */}
+                            <div>
+                                <SelectDropdown
+                                    label="Sort Order"
+                                    id="sortOrder"
+                                    name="sortOrder"
+                                    isClearable
+                                    value={searchInput.sortOrder ? { value: searchInput.sortOrder, label: searchInput.sortOrder === 'asc' ? 'Ascending' : 'Descending' } : null}
+                                    options={[
+                                        { value: 'asc', label: 'Ascending' },
+                                        { value: 'desc', label: 'Descending' }
+                                    ]}
+                                    onChange={(newValue) => {
+                                        const val = newValue as OptionType<string>;
+                                        setSearchInput({
+                                            ...searchInput,
+                                            sortOrder: val ? val.value as 'asc' | 'desc' : undefined
+                                        });
+                                    }}
+                                    menuPortalTarget={document.body}
+                                    menuPosition="fixed"
+                                />
+                            </div>
+                        </div>
+                    </CardBody>
+
+                    <CardFooter className="px-6 pb-6">
+                        <Button
+                            type="submit"
+                            variant="accent"
+                            className="flex items-center gap-2"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            >
+                                <circle cx="11" cy="11" r="8" />
+                                <path d="m21 21-4.35-4.35" />
+                            </svg>
+                            Search Payments
+                        </Button>
+                    </CardFooter>
+                </Card>
+            </form>
+
+            {/* Results */}
+            {searchPaymentsQuery.isLoading ? (
+                <div className="flex justify-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
+                </div>
+            ) : searchPaymentsQuery.isError ? (
+                <Card>
+                    <CardBody className="py-12 text-center text-danger">
+                        Failed to load payments
                     </CardBody>
                 </Card>
-            </div>
+            ) : searchPaymentsQuery.data && searchPaymentsQuery.data.data.length > 0 ? (
+                <>
+                    <Card>
+                        <Table
+                            data={searchPaymentsQuery.data.data}
+                            rowKey={(payment) => `payment-${payment.id}`}
+                            tableClassName="w-full"
+                            headClassName="bg-primary/50 text-secondary-text text-sm"
+                            bodyClassName="text-sm"
+                            columns={[
+                                {
+                                    header: "Transaction ID",
+                                    render: (payment) => payment.paymentTransactionId || 'N/A',
+                                    className: "py-3 px-4 text-left text-text font-mono text-xs",
+                                    headerClassName: "py-3 px-4 text-left"
+                                },
+                                {
+                                    header: "Booking Code",
+                                    render: (payment) => payment.booking?.lookupCode || 'N/A',
+                                    className: "py-3 px-4 text-left text-text font-semibold",
+                                    headerClassName: "py-3 px-4 text-left"
+                                },
+                                {
+                                    header: "Customer",
+                                    render: (payment) => payment.user?.name || 'Guest',
+                                    className: "py-3 px-4 text-left text-text",
+                                    headerClassName: "py-3 px-4 text-left"
+                                },
+                                {
+                                    header: "Amount",
+                                    render: (payment) => formatCurrency(Number(payment.amount)),
+                                    className: "py-3 px-4 text-left text-text font-semibold",
+                                    headerClassName: "py-3 px-4 text-left"
+                                },
+                                {
+                                    header: "Provider",
+                                    render: (payment) => payment.paymentProvider,
+                                    className: "py-3 px-4 text-left text-text",
+                                    headerClassName: "py-3 px-4 text-left"
+                                },
+                                {
+                                    header: "Status",
+                                    render: (payment) => (
+                                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                            payment.status === 'COMPLETED'
+                                                ? 'bg-success/20 text-success'
+                                                : 'bg-warning/20 text-warning'
+                                        }`}>
+                                            {payment.status}
+                                        </span>
+                                    ),
+                                    className: "py-3 px-4 text-left",
+                                    headerClassName: "py-3 px-4 text-left"
+                                },
+                                {
+                                    header: "Date",
+                                    render: (payment) => formatVNWithAMPM(new Date(payment.createdAt)),
+                                    className: "py-3 px-4 text-left text-text text-sm",
+                                    headerClassName: "py-3 px-4 text-left"
+                                },
+                            ]}
+                        />
+                    </Card>
+
+                    <div className="flex justify-center">
+                        <Pagination
+                            currentPage={searchObj.page}
+                            totalPage={searchPaymentsQuery.data.totalPage}
+                            loadPageFn={(newPage) => {
+                                setSearchObj({ ...searchObj, page: newPage });
+                                setPage(newPage);
+                            }}
+                        />
+                    </div>
+                </>
+            ) : (
+                <Card>
+                    <CardBody className="py-12 text-center text-secondary-text">
+                        No payments found
+                    </CardBody>
+                </Card>
+            )}
         </div>
     );
 }
