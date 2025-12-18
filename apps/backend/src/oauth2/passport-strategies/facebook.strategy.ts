@@ -35,6 +35,7 @@ export class FacebookStrategy extends PassportStrategy(Strategy, 'facebook') {
             providerId: id,
             provider: LoginProviderEnum.FACEBOOK,
             name: name?.givenName + ' ' + name?.familyName,
+            verified: true,
         });
         return done(null, newUser);
     }

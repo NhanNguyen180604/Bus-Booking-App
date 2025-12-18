@@ -50,4 +50,7 @@ export class User {
 
     @CreateDateColumn()
     createdAt: Date;
+
+    @Column({ default: false })
+    verified: boolean;
 }

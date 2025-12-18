@@ -36,8 +36,8 @@ export default function LoginPage() {
   const loginMutationOptions = trpc.users.postLoginLocal.mutationOptions();
   const loginMutation = useMutation({
     ...loginMutationOptions,
-    onSuccess: () => {
-      router.push("/");
+    onSuccess: (data) => {
+      router.push(data.verified ? "/" : "/users/verify");
     },
     onError: (error: any) => {
       setError("root", {

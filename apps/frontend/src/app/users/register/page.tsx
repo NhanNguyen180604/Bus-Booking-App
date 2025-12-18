@@ -36,7 +36,7 @@ export default function RegisterPage() {
   const registerMutation = useMutation({
     ...registerMutationOptions,
     onSuccess: () => {
-      router.push("/");
+      router.push("/users/verify?register=true");
     },
     onError: (error: any) => {
       if (error.data?.zodError) {

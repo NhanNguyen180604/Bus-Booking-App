@@ -34,6 +34,7 @@ export class GitHubStrategy extends PassportStrategy(Strategy, 'github') {
             providerId: id,
             provider: LoginProviderEnum.GITHUB,
             name: displayName,
+            verified: true,
         });
         return done(null, newUser);
     }

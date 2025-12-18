@@ -9,6 +9,7 @@ import { type Request } from 'express';
 import { RootConfig } from '../config/config';
 import { convertToMs } from '../utils/convert-to-ms';
 import { AccessTokenPayload } from '../types/token-payload';
+import { EMAIL_VERIFICATION_JWT } from 'src/jwt/email-verification-jwt.provider';
 
 @Injectable()
 export class TokenService {
@@ -19,6 +20,8 @@ export class TokenService {
         private readonly accessJwtService: JwtService,
         @Inject('REFRESH_JWT')
         private readonly refreshJwtService: JwtService,
+        @Inject(EMAIL_VERIFICATION_JWT)
+        private readonly emailVerificationJwtService: JwtService,
         @InjectRepository(RefreshToken)
         private readonly tokenRepo: Repository<RefreshToken>,
         @Inject(RootConfig)
@@ -88,5 +91,18 @@ export class TokenService {
         }
 
         return result;
+    }
+
+    async createOneEmailVerificationToken(user: string | User) {
+        if (typeof (user) === 'string') {
+            user = (await this.usersService.findOneBy({ id: user }))!;
+        }
+        const payload: AccessTokenPayload = { sub: user.id, email: user.email };
+        const email_verification_token = await this.emailVerificationJwtService.signAsync(payload);
+        return email_verification_token;
+    }
+
+    verifyEmailVerificationToken(token: string) {
+        return this.emailVerificationJwtService.verifyAsync<AccessTokenPayload>(token);
     }
 }

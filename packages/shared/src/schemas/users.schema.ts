@@ -45,3 +45,8 @@ export const UserSearchDto = z.object({
     emailSort: sortOptions,
 }).extend(PaginationDto.shape);
 export type UserSearchDtoType = z.infer<typeof UserSearchDto>;
+
+export const UserVerifyEmailDto = z.object({
+    token: z.string().trim().nonempty(),
+});
+export type UserVerifyEmailDtoType = z.infer<typeof UserVerifyEmailDto>;

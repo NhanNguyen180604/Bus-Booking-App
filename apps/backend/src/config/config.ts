@@ -17,6 +17,10 @@ export class JwtConfig {
     @Type(() => TokenConfig)
     @ValidateNested()
     public readonly refresh_token!: TokenConfig;
+
+    @Type(() => TokenConfig)
+    @ValidateNested()
+    public readonly email_verification_token!: TokenConfig;
 };
 
 export class CookieConfig {
