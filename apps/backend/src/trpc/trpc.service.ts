@@ -25,25 +25,22 @@ export class TrpcService {
         return this.trpc.procedure;
     }
 
-    roleGuardProcedure(...allowedRoles: UserRoleEnum[]) {
-        const procedure = this.trpc.procedure.use(async (opts) => {
-            if (allowedRoles.includes(UserRoleEnum.GUEST)) {
-                return opts.next();
-            }
-
+    // if allowedRoles is [], allow all logged in users
+    // if specified, only allow those roles, so if there is only GUEST inside allowedRoles, only guests are allowed
+    roleGuardMiddleware(...allowedRoles: UserRoleEnum[]) {
+        return this.trpc.middleware((opts) => {
             const user = opts.ctx.user;
+            const isGuestAllowed = allowedRoles.includes(UserRoleEnum.GUEST);
+
             if (!user) {
+                if (isGuestAllowed) return opts.next();
                 throw new TRPCError({
                     code: 'UNAUTHORIZED',
                     message: 'No token',
                 });
             }
 
-            if (allowedRoles.length === 0) {
-                return opts.next();
-            }
-
-            if (!allowedRoles.includes(user.role)) {
+            if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
                 throw new TRPCError({
                     code: 'FORBIDDEN',
                     message: 'You are not allowed for this action',
@@ -51,6 +48,18 @@ export class TrpcService {
             }
             return opts.next();
         });
-        return procedure;
+    }
+
+    accountVerifiedGuardMiddleware() {
+        return this.trpc.middleware((opts) => {
+            const user = opts.ctx.user;
+            if (user && !user.verified) {
+                throw new TRPCError({
+                    code: 'FORBIDDEN',
+                    message: 'Please verify your email to perform this action',
+                });
+            }
+            return opts.next();
+        });
     }
 }

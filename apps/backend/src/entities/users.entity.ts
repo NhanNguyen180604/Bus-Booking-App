@@ -30,10 +30,11 @@ export class User {
 
     @Column({
         type: 'enum',
+        array: true,
         enum: LoginProviderEnum,
-        default: LoginProviderEnum.LOCAL,
+        default: [LoginProviderEnum.LOCAL],
     })
-    provider: LoginProviderEnum;
+    provider: LoginProviderEnum[];  // i wont change the name to plural, I DONT WANT TO DEAL WITH THIS ANYMORE AAGJHSD
 
     @Column({ nullable: true })
     providerId: string;  // null if provider is local
@@ -50,4 +51,7 @@ export class User {
 
     @CreateDateColumn()
     createdAt: Date;
+
+    @Column({ default: false })
+    verified: boolean;
 }

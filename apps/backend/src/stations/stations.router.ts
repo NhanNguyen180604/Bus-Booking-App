@@ -14,26 +14,26 @@ export class StationsRouter {
     apply() {
         Logger.log('Initialized paths /trpc/stations', 'StationsRouter');
         return this.trpcService.router({
-            createOne: this.trpcService
-                .roleGuardProcedure(UserRoleEnum.ADMIN)
+            createOne: this.trpcService.procedure
+                .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.ADMIN))
                 .input(StationCreateDto)
                 .mutation(({ input }) => {
                     return this.stationsService.createOne(input);
                 }),
-            deleteOne: this.trpcService
-                .roleGuardProcedure(UserRoleEnum.ADMIN)
+            deleteOne: this.trpcService.procedure
+                .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.ADMIN))
                 .input(StationDeleteDto)
                 .mutation(({ input }) => {
                     return this.stationsService.deleteOne(input);
                 }),
-            findOne: this.trpcService
-                .roleGuardProcedure(UserRoleEnum.ADMIN)
+            findOne: this.trpcService.procedure
+                .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.ADMIN))
                 .input(StationFindOneDto)
                 .query(({ input }) => {
                     return this.stationsService.findOne(input);
                 }),
-            updateOne: this.trpcService
-                .roleGuardProcedure(UserRoleEnum.ADMIN)
+            updateOne: this.trpcService.procedure
+                .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.ADMIN))
                 .input(StationUpdateOneDto)
                 .mutation(({ input }) => {
                     return this.stationsService.updateOne(input);

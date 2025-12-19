@@ -1,9 +1,11 @@
 import { TrpcService } from "../trpc/trpc.service";
 import { Inject, Injectable, Logger } from "@nestjs/common";
-import { UserLoginDto, UserRegisterDto, UserSearchDto } from "@repo/shared";
+import { UserLoginDto, UserRegisterDto, UserSearchDto, UserVerifyEmailDto } from "@repo/shared";
 import { UsersService } from "./users.service";
 import { RootConfig } from "../config/config";
 import { CookieOptions, Request, Response } from "express";
+import { UserRoleEnum } from "src/entities/users.entity";
+import { TRPCError } from "@trpc/server";
 
 @Injectable()
 export class UsersRouter {
@@ -30,7 +32,7 @@ export class UsersRouter {
                 .mutation(async ({ input, ctx }) => {
                     const req: Request = ctx.req;
                     const res: Response = ctx.res;
-                    const { access_token, refresh_token } = await this.usersService.loginLocal(input, req);
+                    const { access_token, refresh_token, verified } = await this.usersService.loginLocal(input, req);
                     res.cookie('access_token', access_token, {
                         ...this.cookieOptions,
                         maxAge: this.config.cookie.access_token_max_age,
@@ -41,7 +43,10 @@ export class UsersRouter {
                             maxAge: this.config.cookie.refresh_token_max_age,
                         });
                     }
-                    return 'Login success';
+                    return {
+                        message: "Login Success",
+                        verified,
+                    };
                 }),
             postRegisterLocal: this.trpcService
                 .publicProcedure()
@@ -73,8 +78,8 @@ export class UsersRouter {
                     res.clearCookie('refresh_token', this.cookieOptions);
                     return 'Logout success';
                 }),
-            getMe: this.trpcService
-                .roleGuardProcedure()
+            getMe: this.trpcService.procedure
+                .use(this.trpcService.roleGuardMiddleware())
                 .query(async ({ ctx }) => {
                     const user = ctx.user!;
                     return {
@@ -84,13 +89,39 @@ export class UsersRouter {
                         phone: user.phone,
                         provider: user.provider,
                         role: user.role.toString(),
+                        verified: user.verified,
                     }
                 }),
-            search: this.trpcService
-                .roleGuardProcedure()
+            search: this.trpcService.procedure
+                .use(this.trpcService.roleGuardMiddleware())
                 .input(UserSearchDto)
                 .query(({ input }) => {
                     return this.usersService.search(input);
+                }),
+            verifyEmail: this.trpcService.procedure
+                .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.USER))
+                .input(UserVerifyEmailDto)
+                .query(({ input, ctx }) => {
+                    const { user } = ctx;
+                    if (user?.verified) {
+                        throw new TRPCError({
+                            code: "FORBIDDEN",
+                            message: "You are already verified",
+                        });
+                    }
+                    return this.usersService.verifyEmail(user!, input.token);
+                }),
+            requestEmailVerification: this.trpcService.procedure
+                .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.USER))
+                .mutation(({ ctx }) => {
+                    const { user } = ctx;
+                    if (user?.verified) {
+                        throw new TRPCError({
+                            code: "FORBIDDEN",
+                            message: "You are already verified",
+                        });
+                    }
+                    return this.usersService.sendEmailVerification(user!);
                 }),
         });
     }

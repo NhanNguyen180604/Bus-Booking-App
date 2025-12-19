@@ -21,21 +21,26 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     }
 
     async validate(access_token: string, refresh_token: string, profile: Profile, done: VerifyCallback) {
-        const { id, name } = profile;
+        const { id, name, emails } = profile;
+        const email = emails![0].value;
 
-        const foundUser = await this.usersService.findOneBy({
-            providerId: id,
-            provider: LoginProviderEnum.GOOGLE,
-        });
+        let foundUser = await this.usersService.findOneBy({ email });
         if (foundUser) {
+            if (!foundUser.verified) {
+                foundUser.verified = true;
+            }
+            foundUser.provider.push(LoginProviderEnum.GOOGLE);
+            foundUser = await this.usersService.createOne(foundUser);  // update
             return done(null, foundUser);
         }
 
         const newUser = await this.usersService.createOne({
             providerId: id,
-            provider: LoginProviderEnum.GOOGLE,
+            provider: [LoginProviderEnum.GOOGLE],
             name: name?.givenName + ' ' + name?.familyName,
+            email,
+            verified: true,
         });
         return done(null, newUser);
     }
-} 
+}

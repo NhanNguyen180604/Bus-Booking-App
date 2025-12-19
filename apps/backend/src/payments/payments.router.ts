@@ -14,8 +14,8 @@ export class PaymentsRouter {
     apply() {
         Logger.log('Initialized paths /trpc/payments', 'PaymentsRouter');
         return this.trpcService.router({
-            search: this.trpcService
-                .roleGuardProcedure(UserRoleEnum.ADMIN)
+            search: this.trpcService.procedure
+                .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.ADMIN))
                 .input(PaymentSearchDto)
                 .query(({ input }) => {
                     return this.paymentsService.searchPayments(input);

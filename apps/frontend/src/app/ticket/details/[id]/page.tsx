@@ -1,8 +1,12 @@
 "use client";
 
+import ForbiddenPage from "@/src/components/status-pages/forbidden-page";
+import UnauthorizedPage from "@/src/components/status-pages/unauthorized-page";
 import { Button } from "@/src/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/src/components/ui/card";
 import { FormField } from "@/src/components/ui/form-field";
+import Loading from "@/src/components/ui/loading";
+import useUser from "@/src/hooks/useUser";
 import { formatPrice } from "@/src/utils/format-price";
 import { formatVNWithAMPM } from "@/src/utils/format-time";
 import { useTRPC } from "@/src/utils/trpc";
@@ -19,6 +23,8 @@ type Booking = RouterOutputsType["booking"]["userSearchBookings"]["data"][number
 type Seat = RouterOutputsType["buses"]["getSeatsByBus"][number];
 
 export default function TicketDetailsPage() {
+    const userQuery = useUser();
+
     const params = useParams();
     const id = params.id as string;
     const [showCancelModal, setShowCancelModal] = useState(false);
@@ -31,7 +37,8 @@ export default function TicketDetailsPage() {
     const trpc = useTRPC();
     const findOneBookingById = trpc.booking.findOneById.queryOptions({ id });
     const bookingQuery = useQuery({
-        ...findOneBookingById
+        ...findOneBookingById,
+        retry: false,
     })
     const selectedBooking = bookingQuery.data;
 
@@ -80,6 +87,37 @@ export default function TicketDetailsPage() {
         resolver: zodResolver(BookingUpdateDto.omit({ bookingId: true })),
         mode: 'onChange',
     });
+
+    if (bookingQuery.isPending || userQuery.isPending) {
+        return <Loading />
+    }
+
+    if (!userQuery.data) {
+        return <UnauthorizedPage routerGoBack />;
+    }
+
+    if (!userQuery.data.verified) {
+        return <ForbiddenPage
+            header="Account Not Verified"
+            message="Please verify your account to perform this action"
+            routerGoBack
+        />
+    }
+
+    if (bookingQuery.error && bookingQuery.error.data?.code === "FORBIDDEN") {
+        return <ForbiddenPage
+            message="You are not allowed to view other user's ticket"
+            routerGoBack
+        />
+    }
+
+    if (bookingQuery.data && bookingQuery.data.payment.user.id !== userQuery.data.id && userQuery.data.role !== 'ADMIN') {
+        return <ForbiddenPage
+            message="You are not allowed to view other user's ticket"
+            routerGoBack
+        />
+    }
+
 
     const handleCancelClick = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -524,6 +562,7 @@ export default function TicketDetailsPage() {
         </body>
         </html>`;
     };
+
     return (
         <div className="max-w-6xl mx-auto">
             <h1 className="text-3xl font-bold text-text mb-8">My Tickets</h1>

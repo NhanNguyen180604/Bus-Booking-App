@@ -1,13 +1,16 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { UserLoginDtoType, UserRegisterDtoType, UserSearchDtoType } from '@repo/shared';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User, UserRoleEnum } from '../entities/users.entity';
+import { LoginProviderEnum, User, UserRoleEnum } from '../entities/users.entity';
 import { DeepPartial, FindOptionsOrder, FindOptionsWhere, ILike, Repository } from 'typeorm';
 import bcryptjs from 'bcryptjs';
 import { TRPCError } from '@trpc/server';
 import { TokenService } from '../token/token.service';
 import { Request } from 'express';
 import { Bus } from 'src/entities/bus.entity';
+import { MyMailerService } from 'src/my-mailer/my-mailer.service';
+import { AccessTokenPayload } from 'src/types/token-payload';
+import { RootConfig } from 'src/config/config';
 
 @Injectable()
 export class UsersService {
@@ -16,6 +19,9 @@ export class UsersService {
         private readonly userRepo: Repository<User>,
         @Inject(forwardRef(() => TokenService))
         private readonly tokenService: TokenService,
+        private readonly mailerService: MyMailerService,
+        @Inject(RootConfig)
+        private readonly config: RootConfig,
     ) { }
 
     findOneBy(where: FindOptionsWhere<User> | FindOptionsWhere<User>[]) {
@@ -27,7 +33,7 @@ export class UsersService {
         return await this.userRepo.save(user) as User;
     }
 
-    async loginLocal(dto: UserLoginDtoType, req: Request): Promise<{ access_token: string, refresh_token?: string }> {
+    async loginLocal(dto: UserLoginDtoType, req: Request) {
         const foundUser = await this.findOneBy({ email: dto.email });
         if (!foundUser || !bcryptjs.compareSync(dto.password, foundUser.password)) {
             throw new TRPCError({
@@ -42,7 +48,13 @@ export class UsersService {
             await this.tokenService.deleteOneRefreshTokenByUser(foundUser);
         }
 
-        return this.createTokens(foundUser, dto.rememberMe);
+        const { verified } = foundUser;
+        const newTokens: { access_token: string, refresh_token?: string } = await this.createTokens(foundUser, dto.rememberMe);
+
+        return {
+            ...newTokens,
+            verified,
+        };
     }
 
     async registerLocal(dto: UserRegisterDtoType): Promise<{ access_token: string, refresh_token?: string }> {
@@ -67,9 +79,61 @@ export class UsersService {
         let newUser = await this.createOne({
             ...dto,
             password: hashedPassword,
+            verified: false,
         });
 
+        await this.sendEmailVerification(newUser);
         return this.createTokens(newUser, dto.rememberMe);
+    }
+
+    async sendEmailVerification(user: User) {
+        if (user.provider.includes(LoginProviderEnum.LOCAL) && user.provider.includes(LoginProviderEnum.GOOGLE)) {
+            return false;
+        }
+
+        const token = await this.tokenService.createOneEmailVerificationToken(user);
+        const verificationLink = `${this.config.frontend_url}/users/verify-email?token=${token}`;
+        await this.mailerService.sendGenericMail({
+            to: user.email,
+            subject: 'BusBus - Email Verification',
+            template: 'email-verification',
+            context: {
+                headline: `Hi ${user.name},`,
+                body: `Here is your email verification link. This will expire in 1 hour.`,
+                link: verificationLink,
+            },
+        });
+
+        return true;
+    }
+
+    async verifyEmail(user: User, token: string) {
+        let payload: AccessTokenPayload;
+        try {
+            payload = await this.tokenService.verifyEmailVerificationToken(token);
+        }
+        catch (error: any) {
+            if (error.name === "TokenExpiredError") {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: "Email verification link expired",
+                });
+            }
+            else throw error;
+        }
+
+        if (payload.sub !== user.id) {
+            throw new TRPCError({
+                code: "FORBIDDEN",
+                message: 'You are not allowed to verify another user\'s email',
+            });
+        }
+
+        user.verified = true;
+        await this.userRepo.save(user);
+        return {
+            success: true,
+        };
     }
 
     logout(user: User) {
