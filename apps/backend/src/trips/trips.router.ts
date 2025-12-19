@@ -14,20 +14,20 @@ export class TripsRouter {
     apply() {
         Logger.log('Initialized paths /trpc/trips', 'TripsRouter');
         return this.trpcService.router({
-            createOne: this.trpcService
-                .roleGuardProcedure(UserRoleEnum.ADMIN)
+            createOne: this.trpcService.procedure
+                .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.ADMIN))
                 .input(TripCreateOneDto)
                 .mutation(({ input }) => {
                     return this.tripsService.createOne(input);
                 }),
-            updateOne: this.trpcService
-                .roleGuardProcedure(UserRoleEnum.ADMIN)
+            updateOne: this.trpcService.procedure
+                .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.ADMIN))
                 .input(TripUpdateOneDto)
                 .mutation(({ input }) => {
                     return this.tripsService.updateOne(input);
                 }),
-            deleteOne: this.trpcService
-                .roleGuardProcedure(UserRoleEnum.ADMIN)
+            deleteOne: this.trpcService.procedure
+                .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.ADMIN))
                 .input(TripDeleteOneDto)
                 .mutation(({ input }) => {
                     return this.tripsService.deleteOne(input);
@@ -47,8 +47,8 @@ export class TripsRouter {
                 .query(({ input }) => {
                     return this.tripsService.findMany(input);
                 }),
-            adminSearch: this.trpcService
-                .roleGuardProcedure(UserRoleEnum.ADMIN)
+            adminSearch: this.trpcService.procedure
+                .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.ADMIN))
                 .input(TripAdminSearchDto)
                 .query(({ input }) => {
                     return this.tripsService.adminSearch(input);

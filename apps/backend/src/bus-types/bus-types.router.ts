@@ -14,20 +14,20 @@ export class BusTypesRouter {
     apply() {
         Logger.log('Initialized paths /trpc/busTypes', 'BusesRouter');
         return this.trpcService.router({
-            createOne: this.trpcService
-                .roleGuardProcedure(UserRoleEnum.ADMIN)
+            createOne: this.trpcService.procedure
+                .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.ADMIN))
                 .input(BusTypeCreateOneDto)
                 .mutation(({ input }) => {
                     return this.busTypesService.createOne(input);
                 }),
-            updateOne: this.trpcService
-                .roleGuardProcedure(UserRoleEnum.ADMIN)
+            updateOne: this.trpcService.procedure
+                .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.ADMIN))
                 .input(BusTypeUpdateOneDto)
                 .mutation(({ input }) => {
                     return this.busTypesService.updateOne(input);
                 }),
-            deleteOne: this.trpcService
-                .roleGuardProcedure(UserRoleEnum.ADMIN)
+            deleteOne: this.trpcService.procedure
+                .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.ADMIN))
                 .input(BusTypeDeleteOneDto)
                 .mutation(({ input }) => {
                     return this.busTypesService.deleteOne(input);
@@ -35,7 +35,7 @@ export class BusTypesRouter {
             getOneById: this.trpcService
                 .publicProcedure()
                 .input(BusTypeGetOneByIdDto)
-                .query(({input})=>{
+                .query(({ input }) => {
                     return this.busTypesService.getOneById(input);
                 }),
             search: this.trpcService

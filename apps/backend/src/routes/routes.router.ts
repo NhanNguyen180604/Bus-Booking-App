@@ -14,20 +14,20 @@ export class RoutesRouter {
     apply() {
         Logger.log('Initialized paths /trpc/routes', 'RoutesRouter');
         return this.trpcService.router({
-            createOne: this.trpcService
-                .roleGuardProcedure(UserRoleEnum.ADMIN)
+            createOne: this.trpcService.procedure
+                .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.ADMIN))
                 .input(RouteCreateOneDto)
                 .mutation(({ input }) => {
                     return this.routesService.createOne(input);
                 }),
-            updateOne: this.trpcService
-                .roleGuardProcedure(UserRoleEnum.ADMIN)
+            updateOne: this.trpcService.procedure
+                .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.ADMIN))
                 .input(RouteUpdateOneDto)
                 .mutation(({ input }) => {
                     return this.routesService.updateOne(input);
                 }),
-            deleteOne: this.trpcService
-                .roleGuardProcedure(UserRoleEnum.ADMIN)
+            deleteOne: this.trpcService.procedure
+                .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.ADMIN))
                 .input(RouteDeleteOneDto)
                 .mutation(({ input }) => {
                     return this.routesService.deleteOne(input);

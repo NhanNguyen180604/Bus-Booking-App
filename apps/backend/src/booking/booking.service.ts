@@ -291,6 +291,7 @@ export class BookingService {
             });
         }
 
+        // TODO: allow admin to cancel in user's place
         if (booking.payment.user?.id !== user?.id) {
             throw new TRPCError({
                 code: "FORBIDDEN",
@@ -326,6 +327,7 @@ export class BookingService {
                 });
             }
 
+            // TODO: allow admin to update in user's place
             if (booking.payment.user?.id !== user?.id) {
                 throw new TRPCError({
                     code: "FORBIDDEN",

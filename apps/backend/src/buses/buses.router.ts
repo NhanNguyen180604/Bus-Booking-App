@@ -14,14 +14,14 @@ export class BusesRouter {
     apply() {
         Logger.log('Initialized paths /trpc/buses', 'BusesRouter');
         return this.trpcService.router({
-            createOne: this.trpcService
-                .roleGuardProcedure(UserRoleEnum.ADMIN)
+            createOne: this.trpcService.procedure
+                .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.ADMIN))
                 .input(BusCreateOneDto)
                 .mutation(({ input }) => {
                     return this.busesService.createOne(input);
                 }),
-            createOneWithSeats: this.trpcService
-                .roleGuardProcedure(UserRoleEnum.ADMIN)
+            createOneWithSeats: this.trpcService.procedure
+                .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.ADMIN))
                 .input(BusCreateOneWithSeatsDto)
                 .mutation(({ input }) => {
                     return this.busesService.createOneWithSeats(input);
@@ -32,14 +32,14 @@ export class BusesRouter {
                 .query(({ input }) => {
                     return this.busesService.getOneBusById(input);
                 }),
-            deleteOne: this.trpcService
-                .roleGuardProcedure(UserRoleEnum.ADMIN)
+            deleteOne: this.trpcService.procedure
+                .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.ADMIN))
                 .input(BusDeleteOneDto)
                 .mutation(({ input }) => {
                     return this.busesService.deleteOne(input);
                 }),
-            addSeats: this.trpcService
-                .roleGuardProcedure(UserRoleEnum.ADMIN)
+            addSeats: this.trpcService.procedure
+                .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.ADMIN))
                 .input(BusAddSeatsDto)
                 .mutation(({ input }) => {
                     return this.busesService.addSeats(input);
