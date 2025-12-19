@@ -6,10 +6,12 @@ import {
     Entity,
     JoinColumn,
     ManyToOne,
+    OneToOne,
     PrimaryGeneratedColumn,
 } from "typeorm";
 import { PaymentProviderEnum, PaymentStatusEnum } from "@repo/shared";
 import { User } from "./users.entity";
+import { Booking } from "./booking.entity";
 
 @Entity()
 export class Payment {
@@ -26,6 +28,9 @@ export class Payment {
     @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
     @JoinColumn()
     user: User;
+
+    @OneToOne(() => Booking, booking => booking.payment, { nullable: true })
+    booking: Booking;
 
     @Column({ type: 'enum', enum: PaymentProviderEnum })
     paymentProvider: PaymentProviderEnum;

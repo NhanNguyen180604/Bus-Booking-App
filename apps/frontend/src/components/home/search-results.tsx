@@ -120,8 +120,9 @@ export function SearchResults({
             <Card
               key={trip.id}
               variant="default"
-              className={`transition-all hover:shadow-md ${isSelected ? "ring-2 ring-accent" : ""
+              className={`transition-all hover:shadow-md hover:cursor-pointer ${isSelected ? "ring-2 ring-accent" : ""
                 }`}
+              onClick={() => router.push(`/trips/${trip.id}`)}
             >
               <CardBody padding="md">
                 <div className="flex flex-col gap-4">
@@ -186,7 +187,7 @@ export function SearchResults({
                       </div>
 
                       {/* Bus Details */}
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+                      <div className="flex flex-wrap items-end gap-x-4 text-sm h-full">
                         <div className="flex items-center gap-1.5 text-secondary-text">
                           <Image src={"/icons/bus-ic.svg"} alt={`bus icon`} width={24} height={24} />
                           <span className="font-medium text-text">{trip.bus.type.name}</span>
@@ -216,6 +217,7 @@ export function SearchResults({
                         variant="accent"
                         size="lg"
                         fullWidth
+                        className="mt-0"
                         onClick={() => router.push(`/trips/${trip.id}`)}
                       >
                         Booking
