@@ -2,9 +2,11 @@
 import { CancelIcon } from "@/src/components/icons/cancel-ic";
 import { CheckIcon } from "@/src/components/icons/check-ic";
 import { AppShell } from "@/src/components/layout/app-shell";
+import ForbiddenPage from "@/src/components/status-pages/forbidden-page";
 import UnauthorizedPage from "@/src/components/status-pages/unauthorized-page";
 import { Card, CardBody, CardHeader } from "@/src/components/ui/card";
 import Loading from "@/src/components/ui/loading";
+import useUser from "@/src/hooks/useUser";
 import { useTRPC } from "@/src/utils/trpc";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -14,6 +16,7 @@ export default function UserVerifyEmailPage() {
     const searchParams = useSearchParams();
     const token = searchParams.get("token");
     const trpc = useTRPC();
+    const user = useUser();
 
     if (!token) {
         return <UnauthorizedPage
@@ -30,8 +33,18 @@ export default function UserVerifyEmailPage() {
         retry: false,
     });
 
-    if (verifyEmailQuery.isPending) {
+    if (user.isPending || verifyEmailQuery.isPending) {
         return <Loading />;
+    }
+
+    if (user.isError) {
+        return <UnauthorizedPage message="You are not logged in" />
+    }
+
+    if (user.data && user.data.verified) {
+        return <ForbiddenPage
+            message="Your account is already verified"
+        />
     }
 
     if (verifyEmailQuery.isError) {

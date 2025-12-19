@@ -1,7 +1,11 @@
 "use client";
 import { AppShell } from "@/src/components/layout/app-shell";
+import ForbiddenPage from "@/src/components/status-pages/forbidden-page";
+import UnauthorizedPage from "@/src/components/status-pages/unauthorized-page";
 import { Button } from "@/src/components/ui/button";
 import { Card, CardHeader, CardBody, CardFooter } from "@/src/components/ui/card";
+import Loading from "@/src/components/ui/loading";
+import useUser from "@/src/hooks/useUser";
 import { useTRPC } from "@/src/utils/trpc";
 import { useMutation } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
@@ -11,16 +15,31 @@ export default function UserSendVerificationPage() {
     const trpc = useTRPC();
     const params = useSearchParams();
     const register = params.get("register") === 'true';
+    const user = useUser();
 
     const requestEmailVerificationMutation = useMutation({
         ...trpc.users.requestEmailVerification.mutationOptions()
     });
 
     useEffect(() => {
-        if (register) {
+        if (user.data?.verified === false && register) {
             requestEmailVerificationMutation.mutate();
         }
-    }, []);
+    }, [user.data]);
+
+    if (user.isPending) {
+        return <Loading />
+    }
+
+    if (user.isError) {
+        return <UnauthorizedPage message="You are not logged in" />
+    }
+
+    if (user.data && user.data.verified) {
+        return <ForbiddenPage
+            message="Your account is already verified"
+        />
+    }
 
     return (
         <AppShell hideNav hideFooter>

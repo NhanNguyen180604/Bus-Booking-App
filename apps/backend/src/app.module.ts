@@ -58,6 +58,7 @@ import { ScheduleModule } from '@nestjs/schedule';
           Payment,
           Notification,
         ],
+        // TODO: set this as false when deployed
         synchronize: true,
       }),
     }),

@@ -3,6 +3,7 @@ import { TrpcService } from "src/trpc/trpc.service";
 import { BookingService } from "./booking.service";
 import { BookingCancelDto, BookingCreateOneDto, BookingFindOneByIdDto, BookingLookUpDto, BookingUpdateDto, BookingUserSearchDto, GetBookingSeatsByTripDto } from "@repo/shared";
 import { User, UserRoleEnum } from "src/entities/users.entity";
+import { TRPCError } from "@trpc/server";
 
 @Injectable()
 export class BookingRouter {
@@ -26,9 +27,31 @@ export class BookingRouter {
                 .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.USER, UserRoleEnum.ADMIN))
                 .use(this.trpcService.accountVerifiedGuardMiddleware())
                 .input(BookingFindOneByIdDto)
-                .query(({ input }) => {
-                    // TODO: verify owner of booking here
-                    return this.bookingService.findOneById(input.id);
+                .query(async ({ input, ctx }) => {
+                    const user = ctx.user!;
+                    const booking = await this.bookingService.findOneById(input.id);
+                    if (!booking.payment.user) {
+                        throw new TRPCError({
+                            code: "INTERNAL_SERVER_ERROR",
+                            message: "Could not find owner of the ticket",
+                        });
+                    }
+                    if (booking.payment.user.id !== user.id && user.role !== UserRoleEnum.ADMIN) {
+                        throw new TRPCError({
+                            code: "FORBIDDEN",
+                            message: "You are not allowed to view other user's ticket",
+                        });
+                    }
+
+                    booking.payment.user = {
+                        ...user,
+                        password: '',
+                        providerId: '',
+                        email: '',
+                        name: '',
+                        phone: '',
+                    };
+                    return booking;
                 }),
             lookUpBooking: this.trpcService.procedure
                 .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.USER, UserRoleEnum.GUEST))

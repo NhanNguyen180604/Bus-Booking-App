@@ -187,7 +187,7 @@ export class BookingService {
                 relations: {
                     trip: { bus: { type: true }, route: { origin: true, destination: true } },
                     seats: true,
-                    payment: true,
+                    payment: { user: true },
                 },
             });
         if (!booking) {
