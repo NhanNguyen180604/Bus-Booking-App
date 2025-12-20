@@ -1,6 +1,7 @@
 import { Check, Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { User } from "./users.entity";
 import { BusType } from "./bus-type.entity";
+import { BusStatusEnum } from "@repo/shared";
 
 @Entity()
 @Check('"rows" > 0')
@@ -30,4 +31,7 @@ export class Bus {
 
     @Column()
     floors: number;
+
+    @Column({ type: 'enum', enum: BusStatusEnum, default: BusStatusEnum.ACTIVE })
+    status: BusStatusEnum;
 };

@@ -6,6 +6,12 @@ export enum SeatTypeEnum {
     PASSENGER = 'PASSENGER',
 };
 
+export enum BusStatusEnum {
+    ACTIVE = 'ACTIVE',
+    MAINTENANCE = 'MAINTENANCE',
+    RESERVED = 'RESERVED',
+};
+
 // create bus without seat
 export const BusCreateOneDto = z.object({
     driverId: z.uuid({ error: "Driver ID must be an UUID string" }).optional(),
@@ -14,6 +20,7 @@ export const BusCreateOneDto = z.object({
     rows: z.int().gt(0, { error: "Rows must be greater than 0" }),
     cols: z.int().gt(0, { error: "Cols must be greater than 0" }),
     floors: z.int().gt(0, { error: "Floors must be greater than 0" }),
+    status: z.enum(BusStatusEnum),
 });
 export type BusCreateOneDtoType = z.infer<typeof BusCreateOneDto>;
 

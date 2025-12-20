@@ -5,7 +5,7 @@ import { Card, CardBody, CardFooter, CardHeader } from "@/src/components/ui/card
 import { FormField } from "@/src/components/ui/form-field";
 import { useTRPC } from "@/src/utils/trpc";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { BusCreateOneWithSeatsDto, BusCreateOneWithSeatsDtoType, SeatTypeEnum } from "@repo/shared";
+import { BusCreateOneWithSeatsDto, BusCreateOneWithSeatsDtoType, BusStatusEnum, SeatTypeEnum } from "@repo/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -96,6 +96,7 @@ export function AdminCreateBusPage() {
                 floors: 1,
                 rows: 0,
                 cols: 0,
+                status: BusStatusEnum.ACTIVE,
             },
         }
     });
@@ -464,23 +465,41 @@ export function AdminCreateBusPage() {
                             )}
                         />
                         <Controller control={busForm.control}
+                            name="bus.status"
+                            render={({ field: { onChange } }) => (
+                                <SelectDropdown label="Bus Status" required
+                                    {...busForm.register('bus.status')}
+                                    options={Object.entries(BusStatusEnum).map((key_val) => ({
+                                        label: key_val[1],
+                                        value: key_val[0],
+                                    }))}
+                                    onChange={(newValue) => {
+                                        const newVal = newValue as OptionType<string>;
+                                        onChange(newVal ? newVal.value : BusStatusEnum.ACTIVE);
+                                    }}
+                                />
+                            )}
+                        />
+                        <Controller control={busForm.control}
                             name="bus.driverId"
                             render={({ field: { onChange } }) => (
-                                <SelectDropdown label="Driver" isClearable
-                                    options={drivers.map(driver => ({ value: driver.id, label: `${driver.name} - ${driver.email} - ${driver.phone}` }))}
-                                    onChange={(newValue, _) => {
-                                        const newVal: OptionType<string> = newValue as OptionType<string>;
-                                        onChange(newVal ? newVal.value : "");
-                                    }}
-                                    errorMessage={busForm.formState.errors.bus?.driverId?.message}
-                                    onMenuScrollToBottom={(_) => {
-                                        if (driverPage < driverTotalPageNumber.current) {
-                                            setDriverPage(driverPage + 1);
-                                        }
-                                    }}
-                                    menuPortalTarget={document.body}
-                                    menuPosition="fixed"
-                                />
+                                <div className="col-span-3">
+                                    <SelectDropdown label="Driver" isClearable
+                                        options={drivers.map(driver => ({ value: driver.id, label: `${driver.name} - ${driver.email} - ${driver.phone}` }))}
+                                        onChange={(newValue, _) => {
+                                            const newVal: OptionType<string> = newValue as OptionType<string>;
+                                            onChange(newVal ? newVal.value : "");
+                                        }}
+                                        errorMessage={busForm.formState.errors.bus?.driverId?.message}
+                                        onMenuScrollToBottom={(_) => {
+                                            if (driverPage < driverTotalPageNumber.current) {
+                                                setDriverPage(driverPage + 1);
+                                            }
+                                        }}
+                                        menuPortalTarget={document.body}
+                                        menuPosition="fixed"
+                                    />
+                                </div>
                             )}
                         />
 
