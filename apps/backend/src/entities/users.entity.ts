@@ -1,11 +1,5 @@
+import { UserRoleEnum } from "@repo/shared";
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
-
-export enum UserRoleEnum {
-    USER = 'USER',
-    ADMIN = 'ADMIN',
-    DRIVER = 'DRIVER',
-    GUEST = 'GUEST',  // do not use this for account role
-};
 
 export enum LoginProviderEnum {
     LOCAL = 'LOCAL',

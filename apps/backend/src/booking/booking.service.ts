@@ -1,6 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
-import { BookingCancelDtoType, BookingCreateOneDtoType, BookingLookUpDtoType, BookingUpdateDtoType, BookingUserSearchDtoType, GetBookingSeatsByTripDtoType, PaymentProviderEnum, PaymentStatusEnum } from '@repo/shared';
+import {
+    BookingCancelDtoType,
+    BookingCreateOneDtoType,
+    BookingLookUpDtoType,
+    BookingUpdateDtoType,
+    BookingUserSearchDtoType,
+    GetBookingSeatsByTripDtoType,
+    PaymentProviderEnum,
+    PaymentStatusEnum,
+    TripStatusEnum,
+    UserRoleEnum
+} from '@repo/shared';
 import { TRPCError } from '@trpc/server';
 import { Booking } from 'src/entities/booking.entity';
 import { Payment } from 'src/entities/payment.entity';
@@ -274,12 +285,13 @@ export class BookingService {
         };
     }
 
-    async userCancelBooking(dto: BookingCancelDtoType, user: User | undefined) {
+    async userCancelBooking(dto: BookingCancelDtoType, user: User) {
         const booking = await this.entityManager
             .getRepository(Booking)
             .createQueryBuilder('booking')
             .leftJoinAndSelect('booking.payment', 'payment')
             .leftJoinAndSelect('payment.user', 'user')
+            .leftJoinAndSelect('booking.trip', 'trip')
             .where('booking.cancelToken = :cancelToken', { cancelToken: dto.cancelToken })
             .getOne();
 
@@ -291,8 +303,7 @@ export class BookingService {
             });
         }
 
-        // TODO: allow admin to cancel in user's place
-        if (booking.payment.user?.id !== user?.id) {
+        if (booking.payment.user.id !== user.id && user.role !== UserRoleEnum.ADMIN) {
             throw new TRPCError({
                 code: "FORBIDDEN",
                 message: `You are not allowed to delete this booking`,
@@ -300,10 +311,32 @@ export class BookingService {
             });
         }
 
-        // this has cascade
+        if (booking.payment.status === PaymentStatusEnum.REFUNDED) {
+            throw new TRPCError({
+                code: "BAD_REQUEST",
+                message: 'Booking already cancelled and refunded',
+            });
+        }
+
+        if (booking.trip.status !== TripStatusEnum.UPCOMING) {
+            throw new TRPCError({
+                code: "BAD_REQUEST",
+                message: `Cannot refund because the trip is in progress or has completed`,
+            });
+        }
+
         await this.entityManager
             .getRepository(Payment)
-            .delete({ id: booking.payment.id });
+            .update({
+                id: booking.payment.id
+            }, {
+                status: PaymentStatusEnum.REFUNDED,
+                cancellationReason: dto.cancelReason,
+            });
+        await this.stripeService.stripe.refunds.create({
+            payment_intent: booking.payment.paymentTransactionId,
+            reason: 'requested_by_customer',
+        });
     }
 
     async updateBooking(dto: BookingUpdateDtoType, user: User | undefined) {
@@ -380,9 +413,11 @@ export class BookingService {
                     .createQueryBuilder('booking')
                     .leftJoin("booking.trip", "trip")
                     .leftJoin("booking.seats", "seats")
+                    .leftJoin("booking.payment", "payment")
                     .where("trip.id = :tripId", { tripId: booking.trip.id })
                     .andWhere("booking.id != :bookingId", { bookingId: booking.id })
                     .andWhere("NOW() < booking.expiresAt OR booking.expiresAt IS NULL")
+                    .andWhere("(payment.status = 'PROCESSING' OR payment.status = 'COMPLETED')")
                     .andWhere("seats.id IN (:...seatIds)", { seatIds: dto.seatIds })
                     .getMany();
 
@@ -423,8 +458,13 @@ export class BookingService {
             .createQueryBuilder('booking')
             .leftJoin('booking.trip', 'trip')
             .leftJoin('booking.seats', 'seats')
+            .leftJoin('booking.payment', 'payment')
             .where('trip.id = :tripId', { tripId: dto.tripId })
             .andWhere('NOW() < booking.expiresAt OR booking.expiresAt IS NULL')
+            .andWhere("(payment.status = :processing OR payment.status = :completed)", {
+                processing: PaymentStatusEnum.PROCESSING,
+                completed: PaymentStatusEnum.COMPLETED,
+            })
             .select(['booking.id', 'seats.id'])
             .getMany();
         return bookings.map(booking => booking.seats).flat();

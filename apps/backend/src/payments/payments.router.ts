@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { TrpcService } from 'src/trpc/trpc.service';
 import { PaymentsService } from './payments.service';
-import { UserRoleEnum } from 'src/entities/users.entity';
+import { UserRoleEnum } from '@repo/shared';
 import { PaymentSearchDto } from '@repo/shared';
 
 @Injectable()

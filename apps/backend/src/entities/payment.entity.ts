@@ -9,7 +9,7 @@ import {
     OneToOne,
     PrimaryGeneratedColumn,
 } from "typeorm";
-import { PaymentProviderEnum, PaymentStatusEnum } from "@repo/shared";
+import { PaymentCancelReason, type PaymentCancelReasonType, PaymentProviderEnum, PaymentStatusEnum } from "@repo/shared";
 import { User } from "./users.entity";
 import { Booking } from "./booking.entity";
 
@@ -40,6 +40,9 @@ export class Payment {
 
     @Column({ type: 'decimal' })
     amount: number;
+
+    @Column({ nullable: true, type: 'enum', enum: PaymentCancelReason })
+    cancellationReason?: PaymentCancelReasonType;
 
     @CreateDateColumn()
     createdAt: Date;

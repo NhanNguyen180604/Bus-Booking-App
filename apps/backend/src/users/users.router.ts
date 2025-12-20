@@ -4,7 +4,7 @@ import { UserLoginDto, UserRegisterDto, UserSearchDto, UserVerifyEmailDto } from
 import { UsersService } from "./users.service";
 import { RootConfig } from "../config/config";
 import { CookieOptions, Request, Response } from "express";
-import { UserRoleEnum } from "src/entities/users.entity";
+import { UserRoleEnum } from "@repo/shared";
 import { TRPCError } from "@trpc/server";
 
 @Injectable()
@@ -88,7 +88,7 @@ export class UsersRouter {
                         name: user.name,
                         phone: user.phone,
                         provider: user.provider,
-                        role: user.role.toString(),
+                        role: user.role,
                         verified: user.verified,
                     }
                 }),
