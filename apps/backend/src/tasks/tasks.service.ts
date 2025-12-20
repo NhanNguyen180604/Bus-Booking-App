@@ -158,6 +158,7 @@ export class TasksService {
                 .createQueryBuilder('payment')
                 .leftJoin(Booking, 'booking', 'booking.paymentId = payment.id')
                 .where('booking.expiresAt IS NOT NULL AND booking.expiresAt < NOW()')
+                .andWhere("payment.status != 'EXPIRED' AND payment.status != 'REFUNDED'")
                 .getMany();
 
             for (const payment of expiredPayments) {
