@@ -460,7 +460,10 @@ export class BookingService {
             .leftJoin('booking.payment', 'payment')
             .where('trip.id = :tripId', { tripId: dto.tripId })
             .andWhere('NOW() < booking.expiresAt OR booking.expiresAt IS NULL')
-            .andWhere("(payment.status = 'PROCESSING' OR payment.status = 'COMPLETED')")
+            .andWhere("(payment.status = :processing OR payment.status = :completed)", {
+                processing: PaymentStatusEnum.PROCESSING,
+                completed: PaymentStatusEnum.COMPLETED,
+            })
             .select(['booking.id', 'seats.id'])
             .getMany();
         return bookings.map(booking => booking.seats).flat();

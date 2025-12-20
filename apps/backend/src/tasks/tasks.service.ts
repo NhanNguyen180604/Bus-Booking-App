@@ -42,11 +42,13 @@ export class TasksService {
                 .createQueryBuilder('booking')
                 .leftJoin(Notification, 'notification', '(booking.id = notification.bookingId) AND (notification.type = :type)'
                     , { type: NotificationTypeEnum.UPCOMING_TRIP_REMINDER })
+                .leftJoin('booking.payment', 'payment')
                 .leftJoinAndSelect('booking.trip', 'trip')
                 .leftJoinAndSelect('trip.route', 'route')
                 .leftJoinAndSelect('route.origin', 'origin')
                 .leftJoinAndSelect('route.destination', 'destination')
-                .where('trip.departureTime >= :start', { start: startOfTomorrowUTC })
+                .where("payment.status = :status", { status: PaymentStatusEnum.COMPLETED })
+                .andWhere('trip.departureTime >= :start', { start: startOfTomorrowUTC })
                 .andWhere('trip.departureTime < :end', { end: startOf3DaysLaterUTC })
                 .andWhere('notification.id IS NULL')
                 .getMany();
@@ -105,11 +107,13 @@ export class TasksService {
                 .createQueryBuilder('booking')
                 .leftJoin(Notification, 'notification', '(booking.id = notification.bookingId) AND (notification.type = :type)'
                     , { type: NotificationTypeEnum.POST_TRIP_THANK_YOU })
+                .leftJoin('booking.payment', 'payment')
                 .leftJoinAndSelect('booking.trip', 'trip')
                 .leftJoinAndSelect('trip.route', 'route')
                 .leftJoinAndSelect('route.origin', 'origin')
                 .leftJoinAndSelect('route.destination', 'destination')
-                .where('trip.arrivalTime >= :start', { start: startOfTodayUTC })
+                .where("payment.status = :status", { status: PaymentStatusEnum.COMPLETED })
+                .andWhere('trip.arrivalTime >= :start', { start: startOfTodayUTC })
                 .andWhere('trip.arrivalTime <= :end', { end: pm7UTC })
                 .andWhere('trip.status = :tripStatus', { tripStatus: TripStatusEnum.ARRIVED })
                 .andWhere('notification.id IS NULL')
@@ -158,7 +162,10 @@ export class TasksService {
                 .createQueryBuilder('payment')
                 .leftJoin(Booking, 'booking', 'booking.paymentId = payment.id')
                 .where('booking.expiresAt IS NOT NULL AND booking.expiresAt < NOW()')
-                .andWhere("payment.status != 'EXPIRED' AND payment.status != 'REFUNDED'")
+                .andWhere("payment.status != :expired AND payment.status != :refunded", {
+                    expired: PaymentStatusEnum.EXPIRED,
+                    refunded: PaymentStatusEnum.REFUNDED,
+                })
                 .getMany();
 
             for (const payment of expiredPayments) {
