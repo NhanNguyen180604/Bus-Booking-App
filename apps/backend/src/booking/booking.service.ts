@@ -9,14 +9,15 @@ import {
     GetBookingSeatsByTripDtoType,
     PaymentProviderEnum,
     PaymentStatusEnum,
-    TripStatusEnum
+    TripStatusEnum,
+    UserRoleEnum
 } from '@repo/shared';
 import { TRPCError } from '@trpc/server';
 import { Booking } from 'src/entities/booking.entity';
 import { Payment } from 'src/entities/payment.entity';
 import { Seat } from 'src/entities/seat.entity';
 import { Trip } from 'src/entities/trip.entity';
-import { User, UserRoleEnum } from 'src/entities/users.entity';
+import { User } from 'src/entities/users.entity';
 import { convertToMs } from 'src/utils/convert-to-ms';
 import { EntityManager } from 'typeorm';
 import crypto from 'crypto';

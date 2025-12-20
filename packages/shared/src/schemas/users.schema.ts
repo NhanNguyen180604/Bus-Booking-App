@@ -1,6 +1,13 @@
 import z from "zod";
 import { PaginationDto, sortOptions } from "./common";
 
+export enum UserRoleEnum {
+    USER = 'USER',
+    ADMIN = 'ADMIN',
+    DRIVER = 'DRIVER',
+    GUEST = 'GUEST',  // do not use this for account role
+};
+
 // local login
 export const UserLoginDto = z.object({
     email: z.email(),

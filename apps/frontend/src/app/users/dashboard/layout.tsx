@@ -4,6 +4,7 @@ import { AppShell } from "@/src/components/layout/app-shell";
 import Loading from "@/src/components/ui/loading";
 import useUser from "@/src/hooks/useUser";
 import UnauthorizedPage from "@/src/components/status-pages/unauthorized-page";
+import { UserRoleEnum } from "@repo/shared";
 
 export default function UserDashboardLayout({ children }: { children: React.ReactNode }) {
     const userQuery = useUser();
@@ -11,7 +12,7 @@ export default function UserDashboardLayout({ children }: { children: React.Reac
         return <Loading />;
     }
 
-    if (userQuery.isSuccess && userQuery.data.role !== "USER" || userQuery.isError) {
+    if (userQuery.isSuccess && userQuery.data.role !== UserRoleEnum.USER || userQuery.isError) {
         //TODO: real 401 page
         console.log(userQuery.data?.role);
         return (

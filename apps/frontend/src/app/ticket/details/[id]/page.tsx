@@ -20,7 +20,8 @@ import {
     PaymentCancelReason,
     type PaymentCancelReasonType,
     PaymentStatusEnum,
-    SeatTypeEnum
+    SeatTypeEnum,
+    UserRoleEnum
 } from "@repo/shared";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { type RouterOutputsType } from "backend";
@@ -123,7 +124,7 @@ export default function TicketDetailsPage() {
         />
     }
 
-    if (bookingQuery.data && bookingQuery.data.payment.user.id !== userQuery.data.id && userQuery.data.role !== 'ADMIN') {
+    if (bookingQuery.data && bookingQuery.data.payment.user.id !== userQuery.data.id && userQuery.data.role !== UserRoleEnum.ADMIN) {
         return <ForbiddenPage
             message="You are not allowed to view other user's ticket"
             routerGoBack

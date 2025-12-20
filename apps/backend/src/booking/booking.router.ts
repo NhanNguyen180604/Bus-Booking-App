@@ -1,8 +1,8 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { TrpcService } from "src/trpc/trpc.service";
 import { BookingService } from "./booking.service";
-import { BookingCancelDto, BookingCreateOneDto, BookingFindOneByIdDto, BookingLookUpDto, BookingUpdateDto, BookingUserSearchDto, GetBookingSeatsByTripDto } from "@repo/shared";
-import { User, UserRoleEnum } from "src/entities/users.entity";
+import { BookingCancelDto, BookingCreateOneDto, BookingFindOneByIdDto, BookingLookUpDto, BookingUpdateDto, BookingUserSearchDto, GetBookingSeatsByTripDto, UserRoleEnum } from "@repo/shared";
+import { User } from "src/entities/users.entity";
 import { TRPCError } from "@trpc/server";
 
 @Injectable()
