@@ -6,12 +6,22 @@ import { Button } from "@/src/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/src/components/ui/card";
 import { FormField } from "@/src/components/ui/form-field";
 import Loading from "@/src/components/ui/loading";
+import { OptionType, SelectDropdown } from "@/src/components/ui/select-dropdown";
 import useUser from "@/src/hooks/useUser";
 import { formatPrice } from "@/src/utils/format-price";
 import { formatVNWithAMPM } from "@/src/utils/format-time";
+import { getStatusColor } from "@/src/utils/get-status-color";
 import { useTRPC } from "@/src/utils/trpc";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { BookingUpdateDto, BookingUpdateDtoType, generateSeatCode, SeatTypeEnum } from "@repo/shared";
+import {
+    BookingUpdateDto,
+    BookingUpdateDtoType,
+    generateSeatCode,
+    PaymentCancelReason,
+    type PaymentCancelReasonType,
+    PaymentStatusEnum,
+    SeatTypeEnum
+} from "@repo/shared";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { type RouterOutputsType } from "backend";
 import Image from "next/image";
@@ -41,6 +51,7 @@ export default function TicketDetailsPage() {
         retry: false,
     })
     const selectedBooking = bookingQuery.data;
+    console.log(selectedBooking);
 
     // Fetch seats for the trip when editing
     const getSeatsQueryOptions = trpc.buses.getSeatsByBus.queryOptions({
@@ -87,6 +98,7 @@ export default function TicketDetailsPage() {
         resolver: zodResolver(BookingUpdateDto.omit({ bookingId: true })),
         mode: 'onChange',
     });
+    const [bookingCancelReason, setBookingCancelReason] = useState<PaymentCancelReasonType>('Other');
 
     if (bookingQuery.isPending || userQuery.isPending) {
         return <Loading />
@@ -161,7 +173,10 @@ export default function TicketDetailsPage() {
 
     const handleConfirmCancel = () => {
         if (selectedBooking?.cancelToken) {
-            cancelBookingMutation.mutate({ cancelToken: selectedBooking.cancelToken });
+            cancelBookingMutation.mutate({
+                cancelToken: selectedBooking.cancelToken,
+                cancelReason: bookingCancelReason,
+            });
         }
     };
 
@@ -642,29 +657,42 @@ export default function TicketDetailsPage() {
                             </svg>
                             Tickets
                         </button>
-                        <Button
-                            variant='primary'
-                            onClick={() => handleDownloadTicket(selectedBooking)}
-                            className='flex items-center gap-1'
-                        >
-                            <Image src="/icons/download-ic.svg" alt="Download" width={24} height={24} />
-                            Download Ticket
-                        </Button>
+                        {selectedBooking.payment.status === PaymentStatusEnum.COMPLETED && (
+                            <Button
+                                variant='primary'
+                                onClick={() => handleDownloadTicket(selectedBooking)}
+                                className='flex items-center gap-1'
+                            >
+                                <Image src="/icons/download-ic.svg" alt="Download" width={24} height={24} />
+                                Download Ticket
+                            </Button>
+                        )}
                     </div>
                     <Card>
                         <CardHeader>
                             <div className="flex items-center justify-between">
                                 <div className='flex gap-2'>
                                     <h2 className="text-2xl font-bold text-text">Ticket Details</h2>
-                                    <p className={`inline-block px-3 py-1 rounded-full font-semibold text-lg ${new Date(selectedBooking.trip.departureTime) < new Date()
-                                        ? 'bg-secondary-text/20 text-secondary-text'
-                                        : 'bg-success/20 text-success'
-                                        }`}>
-                                        {new Date(selectedBooking.trip.departureTime) < new Date() ? 'Completed' : 'Upcoming'}
-                                    </p>
+                                    {selectedBooking.payment.status !== PaymentStatusEnum.COMPLETED ? (
+                                        <p className={`
+                                            inline-block px-3 py-1 rounded-full font-semibold text-lg 
+                                            bg-${getStatusColor(selectedBooking.payment.status)}/20 text-${getStatusColor(selectedBooking.payment.status)}
+                                            `
+                                        }>
+                                            {selectedBooking.payment.status}
+                                        </p>
+                                    ) : (
+                                        <p className={`inline-block px-3 py-1 rounded-full font-semibold text-lg ${new Date(selectedBooking.trip.departureTime) < new Date()
+                                            ? 'bg-secondary-text/20 text-secondary-text'
+                                            : 'bg-success/20 text-success'
+                                            }`}>
+                                            {new Date(selectedBooking.trip.departureTime) < new Date() ? 'Completed' : 'Upcoming'}
+                                        </p>
+                                    )}
+
                                 </div>
                                 <div className="flex gap-2">
-                                    {new Date(selectedBooking.trip.departureTime) > new Date() && selectedBooking.cancelToken && (
+                                    {new Date(selectedBooking.trip.departureTime) > new Date() && selectedBooking.cancelToken && selectedBooking.payment.status === PaymentStatusEnum.COMPLETED && (
                                         <>
                                             <Button
                                                 variant="accent"
@@ -779,10 +807,9 @@ export default function TicketDetailsPage() {
                                     </div>
                                     <div>
                                         <p className="text-xs text-secondary-text uppercase font-semibold">Status</p>
-                                        <p className={`inline-block px-3 py-1 rounded-full font-semibold text-sm mt-1 ${selectedBooking.payment.status === 'COMPLETED'
-                                            ? 'bg-success/20 text-success'
-                                            : 'bg-warning/20 text-warning'
-                                            }`}>
+                                        <p className={`inline-block px-3 py-1 rounded-full font-semibold text-sm mt-1 
+                                            bg-${getStatusColor(selectedBooking.payment.status)}/20 text-${getStatusColor(selectedBooking.payment.status)}
+                                        `}>
                                             {selectedBooking.payment.status}
                                         </p>
                                     </div>
@@ -827,9 +854,14 @@ export default function TicketDetailsPage() {
                             <svg className="w-9 h-9 text-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                             </svg>
-                            <p className="text-sm text-text font-semibold">
-                                This action cannot be undone. Your booking will be permanently deleted.
-                            </p>
+                            <div>
+                                <p className="text-sm text-text font-semibold">
+                                    This action cannot be undone.
+                                </p>
+                                <p className="text-sm text-text font-semibold">
+                                    Your booking will be canceled and refunded.
+                                </p>
+                            </div>
                         </div>
                         {cancelBookingMutation.isError && (
                             <div className="mb-4 p-3 bg-danger/10 border border-danger/20 rounded-lg">
@@ -838,6 +870,22 @@ export default function TicketDetailsPage() {
                                 </p>
                             </div>
                         )}
+
+                        <div className="mb-4">
+                            <SelectDropdown
+                                value={{ value: bookingCancelReason, label: bookingCancelReason }}
+                                options={PaymentCancelReason.filter(reason => reason !== 'Requested by customer').map(reason => ({
+                                    value: reason,
+                                    label: reason,
+                                }))}
+                                onChange={(newValue) => {
+                                    const newVal = newValue as OptionType<string>;
+                                    if (newVal) {
+                                        setBookingCancelReason(newVal.value as PaymentCancelReasonType);
+                                    }
+                                }}
+                            />
+                        </div>
 
                         <div className="flex gap-3 justify-end">
                             <Button
@@ -848,10 +896,9 @@ export default function TicketDetailsPage() {
                                 Keep Booking
                             </Button>
                             <Button
-                                variant="accent"
+                                variant="danger"
                                 onClick={handleConfirmCancel}
                                 disabled={cancelBookingMutation.isPending}
-                                className="bg-danger hover:bg-danger/90"
                             >
                                 {cancelBookingMutation.isPending ? (
                                     <>

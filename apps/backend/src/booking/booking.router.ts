@@ -73,7 +73,7 @@ export class BookingRouter {
                 .input(BookingCancelDto)
                 .mutation(({ input, ctx }) => {
                     const { user } = ctx;
-                    return this.bookingService.userCancelBooking(input, user);
+                    return this.bookingService.userCancelBooking(input, user!);
                 }),
             updateBooking: this.trpcService.procedure
                 .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.USER, UserRoleEnum.ADMIN))
