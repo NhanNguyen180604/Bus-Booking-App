@@ -39,21 +39,6 @@ export function AdminNavBar() {
     );
 }
 
-export function UserNavBar() {
-    return (
-        <Card className="w-72 flex flex-col gap-8 p-4 sticky top-20 h-[calc(100vh-6rem)] overflow-y-auto">
-            <div className="flex flex-col gap-2">
-                <NavTab name="Bookings" url="/users/dashboard/bookings" icon={BookingIcon} />
-                <NavTab name="Trips" url="/users/dashboard/trips" icon={TripIcon} />
-                <NavTab name="Payments" url="/users/dashboard/payments" icon={PaymentIcon} />
-            </div>
-            <div className="flex flex-col gap-2">
-                <NavTab name="Settings" url="/users/dashboard/settings" icon={SettingsIcon} />
-            </div>
-        </Card>
-    );
-}
-
 interface NavTabProps {
     name: string;
     icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
