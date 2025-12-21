@@ -25,38 +25,38 @@ interface TripDetailProps extends React.HTMLAttributes<HTMLDivElement> {
 export function TripDetail({ trip, onSelectSeat, selectedSeats, seatList, className = "" }: TripDetailProps) {
     const trpc = useTRPC();
 
-   const getBookingSeatsQueryOptions = trpc.booking.getBookingSeatsByTrip.queryOptions({ tripId: trip!.id });
-   const getBookingSeatsQuery = useQuery({
-      ...getBookingSeatsQueryOptions,
-      staleTime: 10 * 60 * 1000, // 10 minutes
-   });
+    const getBookingSeatsQueryOptions = trpc.booking.getBookingSeatsByTrip.queryOptions({ tripId: trip!.id });
+    const getBookingSeatsQuery = useQuery({
+        ...getBookingSeatsQueryOptions,
+        staleTime: 10 * 60 * 1000, // 10 minutes
+    });
 
-   const router = useRouter();
-   const [selectedFloor, setSelectedFloor] = useState(0);
+    const router = useRouter();
+    const [selectedFloor, setSelectedFloor] = useState(0);
 
-   const formatTime = (date: string) => {
-      return new Date(date).toLocaleTimeString("en-US", {
-         hour: "2-digit",
-         minute: "2-digit",
-         hour12: true,
-      });
-   };
+    const formatTime = (date: string) => {
+        return new Date(date).toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+        });
+    };
 
-   const formatDate = (date: string) => {
-      return new Date(date).toLocaleDateString("en-US", {
-         weekday: "short",
-         month: "short",
-         day: "numeric",
-         year: "numeric",
-      });
-   };
+    const formatDate = (date: string) => {
+        return new Date(date).toLocaleDateString("en-US", {
+            weekday: "short",
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+        });
+    };
 
-   const calculateDuration = (start: string, end: string) => {
-      const diff = new Date(end).getTime() - new Date(start).getTime();
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      return `${hours}h ${minutes}m`;
-   };
+    const calculateDuration = (start: string, end: string) => {
+        const diff = new Date(end).getTime() - new Date(start).getTime();
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        return `${hours}h ${minutes}m`;
+    };
 
     const totalPrice = trip!.basePrice;
     const totalSeats = seatList.length;
@@ -73,37 +73,38 @@ export function TripDetail({ trip, onSelectSeat, selectedSeats, seatList, classN
         seatMap.set(generateSeatCode(s.row, s.col, s.floor), s);
     })
 
-   const toggleSeat = (seat: Seat) => {
-      onSelectSeat(seat);
-   };
+    const toggleSeat = (seat: Seat) => {
+        onSelectSeat(seat);
+    };
 
-    type SeatStatus = "driver" | "selected" | "booked" | "available" | "aisle";
+    type SeatStatus = "driver" | "selected" | "booked" | "available" | "unavailable" | "aisle";
     const getSeatStatus: (seat: Seat) => SeatStatus = (seat: Seat) => {
         if (seat.seatType == SeatTypeEnum.DRIVER) return "driver";
         if (selectedSeats.includes(seat)) return "selected";
         if (getBookingSeatsQuery.data?.some((bookedSeat) => bookedSeat.id === seat.id)) return "booked";
-        // TODO: merge then add check for disabled seat
-        return "available";
+        return seat.isActive ? "available" : "unavailable";
     };
 
     const getSeatClassName = (status: SeatStatus) => {
         const base = "w-12 h-12 rounded-lg transition-all flex items-center justify-center text-xs font-semibold border-2";
 
-      switch (status) {
-         case "available":
-            return `${base} bg-primary hover:bg-accent/10 border-text/10 text-text hover:border-accent cursor-pointer hover:scale-105`;
-         case "selected":
-            return `${base} bg-accent text-white border-accent scale-105 cursor-pointer shadow-lg`;
-         case "booked":
-            return `${base} bg-text/10 text-text border-text cursor-not-allowed opacity-50`;
-         case "driver":
-            return `${base} bg-text/10 text-text border-text border-dashed cursor-not-allowed`;
-         case "aisle":
-            return "w-12 h-12";
-         default:
-            return base;
-      }
-   };
+        switch (status) {
+            case "available":
+                return `${base} bg-primary hover:bg-accent/10 border-text/10 text-text hover:border-accent cursor-pointer hover:scale-105`;
+            case "unavailable":
+                return `${base} bg-danger/10 dark:bg-danger/10 text-danger dark:text-danger border-danger cursor-not-allowed`;
+            case "selected":
+                return `${base} bg-accent text-white border-accent scale-105 cursor-pointer shadow-lg`;
+            case "booked":
+                return `${base} bg-text/10 text-text border-text cursor-not-allowed opacity-50`;
+            case "driver":
+                return `${base} bg-text/10 text-text border-text border-dashed cursor-not-allowed`;
+            case "aisle":
+                return "w-12 h-12";
+            default:
+                return base;
+        }
+    };
 
     return (
         <>
@@ -228,6 +229,10 @@ export function TripDetail({ trip, onSelectSeat, selectedSeats, seatList, classN
                             <div className="flex items-center gap-2">
                                 <div className="w-8 h-8 rounded bg-primary border-2 border-text/10"></div>
                                 <span className="text-sm text-secondary-text">Available</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 rounded bg-danger/10 border-2 border-danger"></div>
+                                <span className="text-sm text-secondary-text">Unavailable</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className="w-8 h-8 rounded bg-accent"></div>

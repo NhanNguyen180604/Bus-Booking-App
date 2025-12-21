@@ -12,11 +12,13 @@ export enum BusStatusEnum {
     RESERVED = 'RESERVED',
 };
 
+export const NO_DRIVER = "NO_DRIVER";
+
 // create bus without seat
 export const BusCreateOneDto = z.object({
     driverId: z.union([
         z.uuid({ error: "Driver ID must be an UUID string" }),
-        z.literal(''),
+        z.literal(NO_DRIVER),
     ]),
     plateNumber: z.string().trim().nonempty({ error: "Plate number must not be empty" }),
     busTypeId: z.uuid({ error: "Bus type ID must be an UUID string" }),
@@ -112,7 +114,6 @@ export const BusSeatsGetManyByIdsDto = z.object({
 });
 export type BusSeatsGetManyByIdsDtoType = z.infer<typeof BusSeatsGetManyByIdsDto>;
 
-export const NO_DRIVER = "NO_DRIVER";
 export const BusUpdateOneDto = z.object({
     id: z.uuid(),
     bus: z.object({

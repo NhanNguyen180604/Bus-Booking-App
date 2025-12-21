@@ -5,7 +5,7 @@ import { Card, CardBody, CardFooter, CardHeader } from "@/src/components/ui/card
 import { FormField } from "@/src/components/ui/form-field";
 import { useTRPC } from "@/src/utils/trpc";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { BusCreateOneWithSeatsDto, BusCreateOneWithSeatsDtoType, BusStatusEnum, SeatTypeEnum } from "@repo/shared";
+import { BusCreateOneWithSeatsDto, BusCreateOneWithSeatsDtoType, BusStatusEnum, NO_DRIVER, SeatTypeEnum } from "@repo/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -469,7 +469,6 @@ export function AdminCreateBusPage() {
                             name="bus.status"
                             render={({ field }) => (
                                 <SelectDropdown label="Bus Status" required
-                                    {...busForm.register('bus.status')}
                                     options={Object.entries(BusStatusEnum).map((key_val) => ({
                                         label: key_val[1],
                                         value: key_val[0],
@@ -488,13 +487,29 @@ export function AdminCreateBusPage() {
                         />
                         <Controller control={busForm.control}
                             name="bus.driverId"
-                            render={({ field: { onChange } }) => (
+                            render={({ field: { onChange, value } }) => (
                                 <div className="col-span-3">
                                     <SelectDropdown label="Driver" isClearable
-                                        options={drivers.map(driver => ({ value: driver.id, label: `${driver.name} - ${driver.email} - ${driver.phone}` }))}
+                                        value={(() => {
+                                            const driverId = value;
+                                            if (driverId && driverId !== NO_DRIVER) {
+                                                const driver = drivers.find(d => d.id === driverId);
+                                                if (driver) {
+                                                    return {
+                                                        label: `${driver.name} - ${driver.email} - ${driver.phone}`,
+                                                        value: driverId,
+                                                    };
+                                                }
+                                            }
+                                            return { value: NO_DRIVER, label: 'No driver' };
+                                        })()}
+                                        options={[
+                                            { value: NO_DRIVER, label: "No driver" },
+                                            ...drivers.map(driver => ({ value: driver.id, label: `${driver.name} - ${driver.email} - ${driver.phone}` })),
+                                        ]}
                                         onChange={(newValue, _) => {
                                             const newVal: OptionType<string> = newValue as OptionType<string>;
-                                            onChange(newVal ? newVal.value : "");
+                                            onChange(newVal ? newVal.value : NO_DRIVER);
                                         }}
                                         errorMessage={busForm.formState.errors.bus?.driverId?.message}
                                         onMenuScrollToBottom={(_) => {

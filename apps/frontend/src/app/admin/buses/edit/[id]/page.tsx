@@ -65,11 +65,23 @@ export function AdminEditBusPage() {
 
     const updateBusMutation = useMutation({
         ...trpc.buses.updateOne.mutationOptions(),
-        onSuccess(data, variables, onMutateResult, context) {
-
+        onSuccess(data) {
+            queryClient.setQueryData(trpc.buses.getOneById.queryKey({ id: busId }), data);
         },
-        onError(error, variables, onMutateResult, context) {
-
+        onError(error: any) {
+            if (error.data?.zodError) {
+                // Handle Zod validation errors from backend
+                const zodErrors = error.data.zodError.fieldErrors;
+                zodErrors.forEach((fieldError: any) => {
+                    busForm.setError(fieldError.path[0] as any, {
+                        message: fieldError.message,
+                    });
+                });
+            } else {
+                busForm.setError("root", {
+                    message: error.message || "Create new bus failed. Please try again.",
+                });
+            }
         },
     });
 
@@ -363,26 +375,24 @@ export function AdminEditBusPage() {
                             />
                             <Controller control={busForm.control}
                                 name="bus.driverId"
-                                render={({ field: { onChange } }) => (
+                                render={({ field: { onChange, value } }) => (
                                     <div className="col-span-2">
                                         <SelectDropdown label="Driver" isClearable
-                                            {...busForm.register('bus.driverId')}
                                             value={(() => {
-                                                const driverId = busFormData.bus.driverId;
-                                                if (driverId) {
+                                                const driverId = value;
+                                                if (driverId && driverId !== NO_DRIVER) {
                                                     const driver = drivers.find(d => d.id === driverId);
-                                                    if (!driver) {
-                                                        return { value: NO_DRIVER, label: 'No driver' };
+                                                    if (driver) {
+                                                        return {
+                                                            label: `${driver.name} - ${driver.email} - ${driver.phone}`,
+                                                            value: driverId,
+                                                        };
                                                     }
-                                                    return {
-                                                        label: `${driver.name} - ${driver.email} - ${driver.phone}`,
-                                                        value: driverId,
-                                                    };
                                                 }
                                                 return { value: NO_DRIVER, label: 'No driver' };
                                             })()}
                                             options={[
-                                                { value: undefined, label: 'No driver' },
+                                                { value: NO_DRIVER, label: 'No driver' },
                                                 ...drivers.map(driver => ({
                                                     value: driver.id,
                                                     label: `${driver.name} - ${driver.email} - ${driver.phone}`,
@@ -390,7 +400,7 @@ export function AdminEditBusPage() {
                                             ]}
                                             onChange={(newValue, _) => {
                                                 const newVal: OptionType<string> = newValue as OptionType<string>;
-                                                onChange(newVal ? newVal.value : undefined);
+                                                onChange(newVal ? newVal.value : NO_DRIVER);
                                             }}
                                             errorMessage={busForm.formState.errors.bus?.driverId?.message}
                                             menuPortalTarget={document.body}
@@ -420,7 +430,6 @@ export function AdminEditBusPage() {
                             {updateBusMutation.isSuccess && (
                                 <>
                                     <div className="col-span-2 text-success dark:text-success font-bold text-center text-xl mt-4">Update Bus Successfully!</div>
-                                    <div className="col-span-2 text-success dark:text-success font-bold text-center text-xl mt-4">Returning to Buses Page</div>
                                 </>
                             )}
                         </CardFooter>

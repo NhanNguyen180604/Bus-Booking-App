@@ -51,7 +51,7 @@ export class BusesService {
 
     async createOne(dto: BusCreateOneDtoType) {
         let driver: User | null = null;
-        if (dto.driverId) {
+        if (dto.driverId !== NO_DRIVER) {
             driver = await this.usersService.findOneBy({ id: dto.driverId, role: UserRoleEnum.DRIVER });
             if (!driver) {
                 throw new TRPCError({
@@ -254,6 +254,7 @@ export class BusesService {
     }
 
     // i'm losing brain cells
+    // buggy
     async updateOneBus(dto: BusUpdateOneDtoType) {
         return await this.entityManager.transaction(async (transactionalEntityManager) => {
             const { id: busId, bus: updateBusDto, seats: updateSeatsDto } = dto;
@@ -271,7 +272,10 @@ export class BusesService {
                     message: `Bus with ID ${busId} not found`,
                 });
 
-            if (updateBusDto.driverId === NO_DRIVER) bus.driver = undefined;
+            if (updateBusDto.driverId === NO_DRIVER) {
+                bus.driver = null;
+                this.logger.log(`No more driver`);
+            }
             else if (updateBusDto.driverId !== bus.driver?.id) {
                 // frontend fetches driver with no bus, no need to check for now
                 const newDriver = await transactionalEntityManager.getRepository(User)
@@ -356,7 +360,7 @@ export class BusesService {
             if (useReservedBus && reservedBus) {
                 reservedBus.status = BusStatusEnum.ACTIVE;
                 reservedBus.driver = driver;  // there will be case the driver here is undefined, admin deals with that in the frontend
-                bus.driver = undefined;
+                bus.driver = null;
                 await transactionalEntityManager.save([reservedBus, bus]);
             }
 

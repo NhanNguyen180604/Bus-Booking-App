@@ -14,7 +14,7 @@ export class Bus {
 
     @OneToOne(() => User, { nullable: true, onDelete: "SET NULL" })
     @JoinColumn()
-    driver?: User;
+    driver: User | null;
 
     @OneToMany(() => Seat, seat => seat.bus)
     seats: Seat[];
