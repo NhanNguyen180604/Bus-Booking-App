@@ -61,7 +61,7 @@ export function TripDetail({ trip, onSelectSeat, selectedSeats, seatList, classN
     const totalPrice = trip!.basePrice;
     const totalSeats = seatList.length;
 
-    // Generate seat layout (mock data for now)
+    // Generate seat layout
     const getSeatsAtFloor = (floor: number) => {
         const seats: Array<Seat> = seatList || [];
         return seats.filter((seat) => seat.floor === floor);

@@ -14,7 +14,10 @@ export enum BusStatusEnum {
 
 // create bus without seat
 export const BusCreateOneDto = z.object({
-    driverId: z.uuid({ error: "Driver ID must be an UUID string" }).optional(),
+    driverId: z.union([
+        z.uuid({ error: "Driver ID must be an UUID string" }),
+        z.literal(''),
+    ]),
     plateNumber: z.string().trim().nonempty({ error: "Plate number must not be empty" }),
     busTypeId: z.uuid({ error: "Bus type ID must be an UUID string" }),
     rows: z.int().gt(0, { error: "Rows must be greater than 0" }),
@@ -108,3 +111,21 @@ export const BusSeatsGetManyByIdsDto = z.object({
     ids: z.array(z.uuid({ error: "Seat ID must be an UUID string" })).min(1, { error: "Array must not be empty" }),
 });
 export type BusSeatsGetManyByIdsDtoType = z.infer<typeof BusSeatsGetManyByIdsDto>;
+
+export const NO_DRIVER = "NO_DRIVER";
+export const BusUpdateOneDto = z.object({
+    id: z.uuid(),
+    bus: z.object({
+        driverId: z.union([
+            z.uuid({ error: "Driver ID must be an UUID string" }),
+            z.literal(NO_DRIVER)
+        ]),
+        plateNumber: z.string().trim().nonempty({ error: "Plate number must not be empty" }),
+        status: z.enum(BusStatusEnum),
+    }),
+    seats: z.array(z.object({
+        id: z.uuid(),
+        isActive: z.boolean(),
+    })),
+});
+export type BusUpdateOneDtoType = z.infer<typeof BusUpdateOneDto>;

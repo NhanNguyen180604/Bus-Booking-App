@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seat Change Notification</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            line-height: 1.6;
+            color: hsla(0, 0%, 5%, 1);
+            background: hsla(222, 20%, 75%, 1);
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, hsla(223, 66%, 45%, 1) 0%, hsla(223, 66%, 55%, 1) 100%);
+            color: hsla(0, 0%, 95%, 1);
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px 20px;
+        }
+
+        .booking-info {
+            background: hsla(223, 20%, 95%, 1);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid hsla(223, 66%, 45%, 1);
+        }
+
+        .booking-info h3 {
+            color: hsla(223, 66%, 45%, 1);
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .booking-info p {
+            margin: 5px 0;
+            color: hsla(0, 0%, 30%, 1);
+        }
+
+        .changes-section {
+            background: hsla(52, 88%, 95%, 1);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid hsla(52, 88%, 50%, 1);
+        }
+
+        .changes-section h3 {
+            color: hsla(52, 88%, 30%, 1);
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .changes-section p {
+            margin: 10px 0;
+            line-height: 1.7;
+        }
+
+        .message {
+            margin: 20px 0;
+            padding: 20px;
+            background: hsla(223, 20%, 95%, 1);
+            border-radius: 8px;
+            border-left: 4px solid hsla(223, 66%, 45%, 1);
+        }
+
+        .message h2 {
+            color: hsla(223, 66%, 45%, 1);
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .message p {
+            margin: 10px 0;
+            line-height: 1.7;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: hsla(223, 66%, 45%, 1);
+            color: hsla(0, 0%, 95%, 1);
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 20px 0;
+            transition: background-color 0.3s ease;
+        }
+
+        .cta-button:hover {
+            background: hsla(223, 66%, 55%, 1);
+        }
+
+        .footer {
+            background: hsla(223, 20%, 95%, 1);
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid hsla(223, 20%, 85%, 1);
+        }
+
+        .footer p {
+            color: hsla(0, 0%, 30%, 1);
+            font-size: 14px;
+        }
+
+        .highlight {
+            font-weight: 600;
+            color: hsla(223, 66%, 45%, 1);
+        }
+
+        .warning {
+            background: hsla(359, 85%, 95%, 1);
+            border-left: 4px solid hsla(359, 85%, 60%, 1);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 6px;
+        }
+
+        .warning p {
+            color: hsla(359, 85%, 30%, 1);
+            margin: 0;
+            font-weight: 500;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                color: hsla(0, 0%, 95%, 1);
+                background: hsla(223, 20%, 10%, 1);
+            }
+
+            .container {
+                background: hsla(223, 20%, 15%, 1);
+            }
+
+            .booking-info {
+                background: hsla(223, 20%, 25%, 1);
+            }
+
+            .booking-info p {
+                color: hsla(0, 0%, 70%, 1);
+            }
+
+            .changes-section {
+                background: hsla(52, 78%, 15%, 1);
+            }
+
+            .message {
+                background: hsla(223, 20%, 25%, 1);
+            }
+
+            .footer {
+                background: hsla(223, 20%, 25%, 1);
+                border-top: 1px solid hsla(223, 20%, 20%, 1);
+            }
+
+            .footer p {
+                color: hsla(0, 0%, 70%, 1);
+            }
+
+            .warning {
+                background: hsla(359, 66%, 15%, 1);
+            }
+
+            .warning p {
+                color: hsla(359, 66%, 70%, 1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Seat Change Notification</h1>
+            <p>Your booking has been updated</p>
+        </div>
+
+        <div class="content">
+            <p>Dear {{fullName}},</p>
+
+            <div class="message">
+                <h2>Update to Your Booking</h2>
+                <p>Due to operational changes, we have updated your seat assignment for the following trip. Your new seats have been assigned to ensure a smooth journey.</p>
+            </div>
+
+            <div class="booking-info">
+                <h3>Updated Booking Details</h3>
+                <p><strong>Booking Code:</strong> {{bookingCode}}</p>
+                <p><strong>Route:</strong> {{origin}} → {{destination}}</p>
+                <p><strong>Departure:</strong> {{departureDateTime}}</p>
+                <p><strong>New Seats:</strong> {{newSeatCodes}}</p>
+                <p><strong>Total Price:</strong> {{totalPrice}}</p>
+            </div>
+
+            <div class="changes-section">
+                <h3>What Changed</h3>
+                <p><strong>Previous Seats:</strong> {{oldSeatCodes}}</p>
+                <p><strong>New Seats:</strong> {{newSeatCodes}}</p>
+                <p>The seat change maintains the same number of seats and total price for your booking.</p>
+            </div>
+
+            <div class="warning">
+                <p><strong>Important:</strong> If you are not satisfied with the new seat assignment, you may cancel your booking for a full refund.</p>
+            </div>
+
+            <div class="message">
+                <p>If you wish to cancel and receive a full refund, please contact our customer support team as soon as possible. Refunds will be processed to your original payment method.</p>
+
+                <p>If you have any questions or need assistance, please don't hesitate to reach out to us.</p>
+            </div>
+
+            <p>Thank you for your understanding and continued trust in our service.</p>
+            <p>Best regards,<br>The Bus Booking Team</p>
+        </div>
+
+        <div class="footer">
+            <p>This is an automated message. Please do not reply to this email.</p>
+            <p>For support, contact us at support@busbooking.com</p>
+        </div>
+    </div>
+</body>
+</html>

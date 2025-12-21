@@ -97,6 +97,7 @@ export function AdminCreateBusPage() {
                 rows: 0,
                 cols: 0,
                 status: BusStatusEnum.ACTIVE,
+                driverId: '',
             },
         }
     });
@@ -466,16 +467,21 @@ export function AdminCreateBusPage() {
                         />
                         <Controller control={busForm.control}
                             name="bus.status"
-                            render={({ field: { onChange } }) => (
+                            render={({ field }) => (
                                 <SelectDropdown label="Bus Status" required
                                     {...busForm.register('bus.status')}
                                     options={Object.entries(BusStatusEnum).map((key_val) => ({
                                         label: key_val[1],
                                         value: key_val[0],
                                     }))}
+                                    value={
+                                        field.value
+                                            ? { label: field.value, value: field.value }
+                                            : null
+                                    }
                                     onChange={(newValue) => {
                                         const newVal = newValue as OptionType<string>;
-                                        onChange(newVal ? newVal.value : BusStatusEnum.ACTIVE);
+                                        field.onChange(newVal ? newVal.value : BusStatusEnum.ACTIVE);
                                     }}
                                 />
                             )}

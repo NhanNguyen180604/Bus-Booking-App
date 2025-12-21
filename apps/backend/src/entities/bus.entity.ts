@@ -1,7 +1,8 @@
-import { Check, Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Check, Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { User } from "./users.entity";
 import { BusType } from "./bus-type.entity";
 import { BusStatusEnum } from "@repo/shared";
+import { Seat } from "./seat.entity";
 
 @Entity()
 @Check('"rows" > 0')
@@ -13,7 +14,10 @@ export class Bus {
 
     @OneToOne(() => User, { nullable: true, onDelete: "SET NULL" })
     @JoinColumn()
-    driver: User;
+    driver?: User;
+
+    @OneToMany(() => Seat, seat => seat.bus)
+    seats: Seat[];
 
     @Column({ unique: true })
     plateNumber: string;
