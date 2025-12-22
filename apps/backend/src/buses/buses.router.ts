@@ -1,7 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { TrpcService } from "../trpc/trpc.service";
 import { BusesService } from "./buses.service";
-import { UserRoleEnum } from "../entities/users.entity";
+import { UserRoleEnum } from "@repo/shared";
 import { BusAddSeatsDto, BusCreateOneDto, BusCreateOneWithSeatsDto, BusDeleteOneDto, BusGetOneByIdDto, BusGetSeatsByBusIdDto, BusSearchDto, BusSeatsGetManyByIdsDto, } from "@repo/shared";
 
 @Injectable()

@@ -6,3 +6,4 @@ export * from './buses.schema';
 export * from './bus-types.schema';
 export * from './trips.schema';
 export * from './booking.schema';
+export * from './payment.schema';

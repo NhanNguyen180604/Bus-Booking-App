@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { TrpcService } from 'src/trpc/trpc.service';
 import { ReportsService } from './reports.service';
-import { UserRoleEnum } from 'src/entities/users.entity';
+import { UserRoleEnum } from '@repo/shared';
 
 @Injectable()
 export class ReportsRouter {

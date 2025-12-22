@@ -7,6 +7,7 @@ import { useTRPC } from "../../utils/trpc";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "../ui/button";
 import useUser from "../../hooks/useUser";
+import { UserRoleEnum } from "@repo/shared";
 
 export interface AppShellProps {
   children: ReactNode;
@@ -62,7 +63,7 @@ function DefaultHeader({ hideHeaderNav = false }: DefaultHeaderProps) {
   };
 
   const isLoggedIn = userQuery.isSuccess && userQuery.data;
-  const isAdmin = isLoggedIn && userQuery.data.role === "ADMIN";
+  const isAdmin = isLoggedIn && userQuery.data.role === UserRoleEnum.ADMIN;
 
   const navItems = [
     { href: "/", label: "Home", },
@@ -83,10 +84,10 @@ function DefaultHeader({ hideHeaderNav = false }: DefaultHeaderProps) {
             </span>
           </Link>
           {isAdmin && (
-            <Link href='/admin/trips'
+            <Link href='/admin/'
               className="
-              bg-accent dark:bg-accent text-light-text-button dark:text-light-text-button w-fit h-fit px-4 py-2
-              rounded-md hover:bg-accent/50 transition-colors font-bold
+              text-accent dark:text-accent w-fit h-fit px-4 py-2
+              rounded-md hover:underline transition-colors font-bold
             ">
               Admin Page
             </Link>

@@ -1,7 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { TrpcService } from "../trpc/trpc.service";
 import { RoutesService } from "./routes.service";
-import { UserRoleEnum } from "../entities/users.entity";
+import { UserRoleEnum } from "@repo/shared";
 import { RouteCreateOneDto, RouteDeleteOneDto, RouteFindOneByIdDto, RouteSearchDto, RouteUpdateOneDto } from "@repo/shared";
 
 @Injectable()

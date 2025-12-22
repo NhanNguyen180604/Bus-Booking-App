@@ -1,8 +1,8 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { UserLoginDtoType, UserRegisterDtoType, UserSearchDtoType } from '@repo/shared';
+import { UserLoginDtoType, UserRegisterDtoType, UserRoleEnum, UserSearchDtoType } from '@repo/shared';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LoginProviderEnum, User, UserRoleEnum } from '../entities/users.entity';
-import { DeepPartial, FindOptionsOrder, FindOptionsWhere, ILike, Repository } from 'typeorm';
+import { LoginProviderEnum, User } from '../entities/users.entity';
+import { DeepPartial, FindOptionsWhere, Repository } from 'typeorm';
 import bcryptjs from 'bcryptjs';
 import { TRPCError } from '@trpc/server';
 import { TokenService } from '../token/token.service';

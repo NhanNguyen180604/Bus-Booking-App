@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { initTRPC, TRPCError } from '@trpc/server';
 import { TrpcContext } from './trpc.context';
-import { UserRoleEnum } from '../entities/users.entity';
+import { UserRoleEnum } from '@repo/shared';
 
 @Injectable()
 export class TrpcService {

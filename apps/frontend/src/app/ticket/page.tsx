@@ -10,6 +10,9 @@ import { formatVNWithAMPM } from '@/src/utils/format-time';
 import useUser from '@/src/hooks/useUser';
 import { useRouter } from 'next/navigation';
 import Pagination from '@/src/components/ui/pagination';
+import Loading from '@/src/components/ui/loading';
+import { getStatusColor } from '@/src/utils/get-status-color';
+import { PaymentStatusEnum } from '@repo/shared';
 
 export default function TicketPage() {
     const router = useRouter();
@@ -49,9 +52,7 @@ export default function TicketPage() {
                 <div className="space-y-4">
                     {bookingsQuery.isLoading && (
                         <Card>
-                            <CardBody className="flex items-center justify-center py-12">
-                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
-                            </CardBody>
+                            <Loading />
                         </Card>
                     )}
 
@@ -87,12 +88,22 @@ export default function TicketPage() {
                                                 <div className="flex-1">
                                                     <div className="flex items-center gap-3 mb-2">
                                                         <h3 className="text-lg font-bold text-text">{booking.lookupCode}</h3>
-                                                        <p className={`inline-block px-3 py-1 rounded-full font-semibold text-md ${new Date(booking.trip.departureTime) < new Date()
-                                                            ? 'bg-secondary-text/20 text-secondary-text'
-                                                            : 'bg-success/20 text-success'
-                                                            }`}>
-                                                            {new Date(booking.trip.departureTime) < new Date() ? 'Completed' : 'Upcoming'}
-                                                        </p>
+                                                        {booking.payment.status !== PaymentStatusEnum.COMPLETED ? (
+                                                            <p className={`
+                                                                inline-block px-3 py-1 rounded-full font-semibold text-md
+                                                                bg-${getStatusColor(booking.payment.status)}/20 text-${getStatusColor(booking.payment.status)}
+                                                                `
+                                                            }>
+                                                                {booking.payment.status}
+                                                            </p>
+                                                        ) : (
+                                                            <p className={`inline-block px-3 py-1 rounded-full font-semibold text-md ${new Date(booking.trip.departureTime) < new Date()
+                                                                ? 'bg-secondary-text/20 text-secondary-text'
+                                                                : 'bg-success/20 text-success'
+                                                                }`}>
+                                                                {new Date(booking.trip.departureTime) < new Date() ? 'Completed' : 'Upcoming'}
+                                                            </p>
+                                                        )}
                                                     </div>
                                                     <div className="grid md:grid-cols-3 gap-4 text-sm">
                                                         <div>
@@ -135,7 +146,6 @@ export default function TicketPage() {
                         </>
                     )}
                 </div>
-                )
             </div>
         </div>
     );
