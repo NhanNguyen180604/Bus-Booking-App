@@ -1,5 +1,5 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { UserLoginDtoType, UserRegisterDtoType, UserRoleEnum, UserSearchDtoType } from '@repo/shared';
+import { UserChangePasswordDtoType, UserLoginDtoType, UserRegisterDtoType, UserRoleEnum, UserSearchDtoType, UserUpdateProfileDtoType } from '@repo/shared';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LoginProviderEnum, User } from '../entities/users.entity';
 import { DeepPartial, FindOptionsWhere, Repository } from 'typeorm';
@@ -45,7 +45,6 @@ export class UsersService {
         const tokens = this.tokenService.extractTokensFromCookies(req);
         if (tokens && tokens.refresh_token) {
             await this.tokenService.deleteOneRefreshTokenByValue(tokens.refresh_token);
-            await this.tokenService.deleteOneRefreshTokenByUser(foundUser);
         }
 
         const { verified } = foundUser;
@@ -136,10 +135,6 @@ export class UsersService {
         };
     }
 
-    logout(user: User) {
-        this.tokenService.deleteOneRefreshTokenByUser(user);
-    }
-
     async createTokens(user: User, rememberMe: boolean) {
         const access_token = await this.tokenService.createOneAccessToken(user);
 
@@ -220,5 +215,32 @@ export class UsersService {
             ...driver,
             password: '',
         })) as User[];
+    }
+
+    async changePassword(dto: UserChangePasswordDtoType, user: User) {
+        if (!(await bcryptjs.compare(dto.oldPassword, user.password)))
+            throw new TRPCError({
+                code: "UNAUTHORIZED",
+                message: "Incorrect old password",
+            });
+
+        if (dto.newPassword !== dto.confirmNewPassword)
+            throw new TRPCError({
+                code: "BAD_REQUEST",
+                message: "New password does not match",
+            });
+
+        const salt = await bcryptjs.genSalt();
+        const hashedPassword = await bcryptjs.hash(dto.newPassword, salt);
+        user.password = hashedPassword;
+        await this.userRepo.save(user);
+
+        // delete old tokens
+        await this.tokenService.deleteAllRefreshTokenByUser(user);
+    }
+
+    async updateProfile(dto: UserUpdateProfileDtoType, user: User) {
+        user.name = dto.name;
+        return await this.userRepo.save(user);
     }
 }

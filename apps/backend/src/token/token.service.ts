@@ -62,7 +62,7 @@ export class TokenService {
         return refresh_token;
     }
 
-    async deleteOneRefreshTokenByUser(user: string | User) {
+    async deleteAllRefreshTokenByUser(user: string | User) {
         if (typeof (user) === 'string') {
             user = (await this.usersService.findOneBy({ id: user }))!;
         }
