@@ -104,3 +104,9 @@ export const TripAdminSearchDto = z.object({
     sortDepartureTime: sortOptions,
 }).extend(PaginationDto.shape);
 export type TripAdminSearchDtoType = z.infer<typeof TripAdminSearchDto>;
+
+export const RelatedTripsDto = z.object({
+    routeId: z.uuid(),
+    excludeTripId: z.uuid().optional(),
+}).extend(PaginationDto.shape);
+export type RelatedTripsDtoType = z.infer<typeof RelatedTripsDto>;

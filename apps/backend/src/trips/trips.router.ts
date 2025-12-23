@@ -1,7 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { TrpcService } from "../trpc/trpc.service";
 import { UserRoleEnum } from "@repo/shared";
-import { TripAdminSearchDto, TripCreateOneDto, TripDeleteOneDto, TripFindManyDto, TripFindOneByIdDto, TripUpdateOneDto } from "@repo/shared";
+import { TripAdminSearchDto, TripCreateOneDto, TripDeleteOneDto, TripFindManyDto, TripFindOneByIdDto, TripUpdateOneDto, RelatedTripsDto } from "@repo/shared";
 import { TripsService } from "./trips.service";
 
 @Injectable()
@@ -52,6 +52,12 @@ export class TripsRouter {
                 .input(TripAdminSearchDto)
                 .query(({ input }) => {
                     return this.tripsService.adminSearch(input);
+                }),
+            relatedTrips: this.trpcService
+                .publicProcedure()
+                .input(RelatedTripsDto)
+                .query(({ input }) => {
+                    return this.tripsService.getRelatedTrips(input);
                 }),
         });
     }
