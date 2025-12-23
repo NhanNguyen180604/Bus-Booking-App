@@ -1,6 +1,6 @@
 import { TrpcService } from "../trpc/trpc.service";
 import { Inject, Injectable, Logger } from "@nestjs/common";
-import { UserUpdateProfileDto, UserChangePasswordDto, UserLoginDto, UserRegisterDto, UserSearchDto, UserVerifyEmailDto } from "@repo/shared";
+import { UserUpdateProfileDto, UserChangePasswordDto, UserLoginDto, UserRegisterDto, UserSearchDto, UserVerifyEmailDto, UserForgetPasswordDto, UserResetPasswordDto } from "@repo/shared";
 import { UsersService } from "./users.service";
 import { RootConfig } from "../config/config";
 import { CookieOptions, Request, Response } from "express";
@@ -162,6 +162,18 @@ export class UsersRouter {
                         role: newUser.role,
                         verified: newUser.verified,
                     };
+                }),
+            postForgetPassword: this.trpcService
+                .publicProcedure()
+                .input(UserForgetPasswordDto)
+                .mutation(({ input }) => {
+                    return this.usersService.sendResetPasswordEmail(input);
+                }),
+            resetPassword: this.trpcService
+                .publicProcedure()
+                .input(UserResetPasswordDto)
+                .mutation(({ input }) => {
+                    return this.usersService.resetPassword(input);
                 }),
         });
     }

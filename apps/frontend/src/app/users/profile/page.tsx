@@ -1,4 +1,5 @@
 "use client"
+import { CancelIcon } from "@/src/components/icons/cancel-ic";
 import { CheckIcon } from "@/src/components/icons/check-ic";
 import UnauthorizedPage from "@/src/components/status-pages/unauthorized-page";
 import { Button } from "@/src/components/ui/button";
@@ -86,6 +87,7 @@ export default function UserProfilePage() {
                             <FormField
                                 label="Full Name"
                                 required
+                                placeholder="Your Full"
                                 {...updateProfileForm.register('name')}
                                 error={updateProfileForm.formState.errors.name?.message}
                             />
@@ -125,6 +127,7 @@ export default function UserProfilePage() {
                             <FormField
                                 label="Old Password"
                                 type="password"
+                                placeholder="Your Old Password"
                                 required
                                 {...changePasswordForm.register('oldPassword')}
                                 error={changePasswordForm.formState.errors.oldPassword?.message}
@@ -132,6 +135,7 @@ export default function UserProfilePage() {
                             <FormField
                                 label="New Password"
                                 type="password"
+                                placeholder="Your New Password"
                                 required
                                 {...changePasswordForm.register('newPassword')}
                                 error={changePasswordForm.formState.errors.newPassword?.message}
@@ -139,6 +143,7 @@ export default function UserProfilePage() {
                             <FormField
                                 label="Confirm New Password"
                                 type="password"
+                                placeholder="Confirm Your New Password"
                                 required
                                 {...changePasswordForm.register('confirmNewPassword')}
                                 error={changePasswordForm.formState.errors.confirmNewPassword?.message}
@@ -165,7 +170,7 @@ export default function UserProfilePage() {
                             bg-danger/20 dark:bg-danger/20 border border-danger dark:border-danger text-danger
                             rounded-lg p-4 flex gap-4 mt-6
                             ">
-                                    <CheckIcon /> <span className="font-semibold">{changePasswordForm.formState.errors.root.message}</span>
+                                    <CancelIcon /> <span className="font-semibold">{changePasswordForm.formState.errors.root.message}</span>
                                 </div>
                             )}
                         </CardFooter>

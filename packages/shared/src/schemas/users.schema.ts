@@ -84,3 +84,24 @@ export const UserUpdateProfileDto = z.object({
     name: z.string().trim().min(1, { error: "Name must not be empty" }),
 });
 export type UserUpdateProfileDtoType = z.infer<typeof UserUpdateProfileDto>;
+
+export const UserForgetPasswordDto = z.object({
+    email: z.email().trim().nonempty(),
+});
+export type UserForgetPasswordDtoType = z.infer<typeof UserForgetPasswordDto>;
+
+export const UserResetPasswordDto = z.object({
+    newPassword: z.string().trim().min(8).regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/,
+        "Password should have a min length of 8, contain both lower and uppercase, be alpha-numeric and contain at least 1 symbol"
+    ),
+    confirmNewPassword: z.string().trim().min(8).regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/,
+        "Password should have a min length of 8, contain both lower and uppercase, be alpha-numeric and contain at least 1 symbol"
+    ),
+    token: z.string().trim().nonempty(),
+})
+    .refine((data) => data.newPassword === data.confirmNewPassword, {
+        error: "New password does not match",
+    });
+export type UserResetPasswordDtoType = z.infer<typeof UserResetPasswordDto>;

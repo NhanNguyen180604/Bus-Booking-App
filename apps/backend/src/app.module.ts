@@ -38,6 +38,7 @@ import { PaymentsModule } from './payments/payments.module';
 import { TasksModule } from './tasks/tasks.module';
 import { ReviewModule } from './reviews/reviews.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ResetPasswordToken } from './entities/reset-password-token.entity';
 
 @Module({
   imports: [
@@ -55,7 +56,7 @@ import { ScheduleModule } from '@nestjs/schedule';
         type: 'postgres',
         url: config.database.url,
         entities: [
-          User, RefreshToken,
+          User, RefreshToken, ResetPasswordToken,
           Bus, BusType, Seat,
           Station, Route, Trip,
           Booking,

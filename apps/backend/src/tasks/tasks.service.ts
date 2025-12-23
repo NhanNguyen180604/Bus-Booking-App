@@ -8,6 +8,7 @@ import { Notification, NotificationTypeEnum } from 'src/entities/notification.en
 import { PaymentProviderEnum, PaymentStatusEnum, TripStatusEnum } from '@repo/shared';
 import { StripeService } from 'src/stripe/stripe.service';
 import { Payment } from 'src/entities/payment.entity';
+import { ResetPasswordToken } from 'src/entities/reset-password-token.entity';
 
 @Injectable()
 export class TasksService {
@@ -195,5 +196,14 @@ export class TasksService {
 
             await transactionalEntityManager.save(expiredPayments);
         });
+    }
+
+    @Cron(CronExpression.EVERY_DAY_AT_11PM)
+    async deleteResetPasswordToken() {
+        await this.entityManager.getRepository(ResetPasswordToken)
+            .createQueryBuilder('token')
+            .where('token.expiresAt < NOW()')
+            .delete()
+            .execute();
     }
 }
