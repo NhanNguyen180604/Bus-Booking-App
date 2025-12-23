@@ -473,7 +473,7 @@ export default function AdminManageTripPage() {
                     <CardBody className="text-text dark:text-text">
                         <div>ID: {deletingTrip?.id}</div>
                         <div>Route: {deletingTrip?.route.origin.name} - {deletingTrip?.route.destination.name} - {deletingTrip?.route.distanceKm} (km)</div>
-                        <div>Driver: {deletingTrip?.bus.driver.name} - {deletingTrip?.bus.driver.email} - {deletingTrip?.bus.driver.phone}</div>
+                        <div>Driver: {deletingTrip?.bus.driver?.name} - {deletingTrip?.bus.driver?.email} - {deletingTrip?.bus.driver?.phone}</div>
                     </CardBody>
                     <CardFooter className="flex justify-between gap-6">
                         <Button variant="danger"
