@@ -3,8 +3,17 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { TripAdminSearchDtoType, TripCreateOneDtoType, TripDeleteOneDtoType, TripFindManyDtoType, TripUpdateOneDtoType } from '@repo/shared';
 import { TRPCError } from '@trpc/server';
 import { Trip } from '../entities/trip.entity';
-import { Between, FindManyOptions, FindOneOptions, FindOptionsOrder, FindOptionsWhere, ILike, In, LessThan, MoreThan, Not, Repository } from 'typeorm';
-import { Route } from 'src/entities/route.entity';
+import {
+    Between,
+    FindOneOptions,
+    FindOptionsOrder,
+    FindOptionsWhere,
+    In,
+    LessThan,
+    MoreThan,
+    Not,
+    Repository,
+} from 'typeorm';
 import { RoutesService } from 'src/routes/routes.service';
 import { BusesService } from 'src/buses/buses.service';
 

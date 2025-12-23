@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Refund Notification</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            line-height: 1.6;
+            color: hsla(0, 0%, 5%, 1);
+            background: hsla(222, 20%, 75%, 1);
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, hsla(359, 85%, 60%, 1) 0%, hsla(359, 66%, 45%, 1) 100%);
+            color: hsla(0, 0%, 95%, 1);
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px 20px;
+        }
+
+        .booking-info {
+            background: hsla(223, 20%, 95%, 1);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid hsla(223, 66%, 45%, 1);
+        }
+
+        .booking-info h3 {
+            color: hsla(223, 66%, 45%, 1);
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .booking-info p {
+            margin: 5px 0;
+            color: hsla(0, 0%, 30%, 1);
+        }
+
+        .message {
+            margin: 20px 0;
+            padding: 20px;
+            background: hsla(359, 85%, 95%, 1);
+            border-radius: 8px;
+            border-left: 4px solid hsla(359, 85%, 60%, 1);
+        }
+
+        .message h2 {
+            color: hsla(359, 85%, 60%, 1);
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .message p {
+            margin: 10px 0;
+            line-height: 1.7;
+        }
+
+        .footer {
+            background: hsla(223, 20%, 95%, 1);
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid hsla(223, 20%, 85%, 1);
+        }
+
+        .footer p {
+            color: hsla(0, 0%, 30%, 1);
+            font-size: 14px;
+        }
+
+        .highlight {
+            font-weight: 600;
+            color: hsla(223, 66%, 45%, 1);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                color: hsla(0, 0%, 95%, 1);
+                background: hsla(223, 20%, 10%, 1);
+            }
+
+            .container {
+                background: hsla(223, 20%, 15%, 1);
+            }
+
+            .booking-info {
+                background: hsla(223, 20%, 25%, 1);
+            }
+
+            .booking-info p {
+                color: hsla(0, 0%, 70%, 1);
+            }
+
+            .message {
+                background: hsla(359, 66%, 15%, 1);
+            }
+
+            .footer {
+                background: hsla(223, 20%, 25%, 1);
+                border-top: 1px solid hsla(223, 20%, 20%, 1);
+            }
+
+            .footer p {
+                color: hsla(0, 0%, 70%, 1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Booking Refund Notification</h1>
+            <p>We're sorry for the inconvenience</p>
+        </div>
+
+        <div class="content">
+            <p>Dear {{fullName}},</p>
+
+            <div class="message">
+                <h2>Important Update About Your Booking</h2>
+                <p>We regret to inform you that due to operational changes, we were unable to accommodate your original seat selection for the following trip:</p>
+            </div>
+
+            <div class="booking-info">
+                <h3>Booking Details</h3>
+                <p><strong>Booking Code:</strong> {{bookingCode}}</p>
+                <p><strong>Route:</strong> {{origin}} → {{destination}}</p>
+                <p><strong>Departure:</strong> {{departureDateTime}}</p>
+                <p><strong>Seats:</strong> {{seatCodes}}</p>
+                <p><strong>Refunded Amount:</strong> {{totalPrice}}</p>
+            </div>
+
+            <div class="message">
+                <p>Your booking has been <span class="highlight">fully refunded</span> to your original payment method. The refund should appear in your account within 3-5 business days, depending on your bank's processing time.</p>
+
+                <p>We sincerely apologize for any inconvenience this may have caused. We are committed to providing you with the best possible service and hope to have the opportunity to serve you again in the future.</p>
+
+                <p>If you have any questions or need further assistance, please don't hesitate to contact our customer support team.</p>
+            </div>
+
+            <p>Thank you for your understanding.</p>
+            <p>Best regards,<br>The Bus Booking Team</p>
+        </div>
+
+        <div class="footer">
+            <p>This is an automated message. Please do not reply to this email.</p>
+            <p>For support, contact us at support@busbooking.com</p>
+        </div>
+    </div>
+</body>
+</html>
