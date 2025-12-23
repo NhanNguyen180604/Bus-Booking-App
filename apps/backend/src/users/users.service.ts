@@ -207,4 +207,18 @@ export class UsersService {
             totalPage,
         };
     }
+
+    async getAllDriversWithNoBus() {
+        const drivers = await this.userRepo
+            .createQueryBuilder('user')
+            .leftJoin(Bus, "bus", "bus.driverId = user.id")
+            .where("user.role = :role", { role: UserRoleEnum.DRIVER })
+            .andWhere("bus.id IS NULL")
+            .getMany();
+
+        return drivers.map(driver => ({
+            ...driver,
+            password: '',
+        })) as User[];
+    }
 }

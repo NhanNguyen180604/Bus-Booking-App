@@ -17,6 +17,8 @@ export const PaymentCancelReason = [
     'Requested by customer',
     'Urgent schedule',
     'Other',
+    'Out of seats due to deactivating',
+    'No reserved bus to stand in for the trip'
 ] as const;
 export type PaymentCancelReasonType = typeof PaymentCancelReason[number];
 

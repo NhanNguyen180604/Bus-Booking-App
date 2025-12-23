@@ -123,6 +123,11 @@ export class UsersRouter {
                     }
                     return this.usersService.sendEmailVerification(user!);
                 }),
+            getAllDriversWithNoBus: this.trpcService.procedure
+                .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.ADMIN))
+                .query(() => {
+                    return this.usersService.getAllDriversWithNoBus();
+                }),
         });
     }
 }

@@ -7,6 +7,8 @@ import { BusesService } from './buses.service';
 import { BusesRouter } from './buses.router';
 import { UsersModule } from 'src/users/users.module';
 import { BusTypesModule } from 'src/bus-types/bus-types.module';
+import { StripeModule } from 'src/stripe/stripe.module';
+import { MyMailerModule } from 'src/my-mailer/my-mailer.module';
 
 @Module({
     imports: [
@@ -14,6 +16,8 @@ import { BusTypesModule } from 'src/bus-types/bus-types.module';
         TypeOrmModule.forFeature([Bus, Seat]),
         UsersModule,
         BusTypesModule,
+        StripeModule,
+        MyMailerModule,
     ],
     providers: [BusesService, BusesRouter],
     exports: [BusesService, BusesRouter],
