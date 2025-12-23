@@ -29,7 +29,9 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
             if (!foundUser.verified) {
                 foundUser.verified = true;
             }
-            foundUser.provider.push(LoginProviderEnum.GOOGLE);
+            if (!foundUser.provider.includes(LoginProviderEnum.GOOGLE)) {
+                foundUser.provider.push(LoginProviderEnum.GOOGLE);
+            }
             foundUser = await this.usersService.createOne(foundUser);  // update
             return done(null, foundUser);
         }
