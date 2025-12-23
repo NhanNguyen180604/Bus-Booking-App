@@ -1,6 +1,7 @@
 "use client";
 import { useParams, useRouter } from "next/navigation";
 import { TripDetail } from "../../../components/trips/trip-detail";
+import { ReviewsList } from "../../../components/reviews/reviews-list";
 import { useTRPC } from "../../../utils/trpc";
 import { useQuery } from "@tanstack/react-query";
 import { RouterOutputsType } from "backend";
@@ -114,6 +115,11 @@ export default function TripDetailPage() {
           trip={tripQuery.data}
           selectedSeats={selectedSeats}
           paymentFormRef={paymentFormRef}
+        />
+
+        <ReviewsList
+          className="lg:col-span-2"
+          routeId={tripQuery.data.route.id}
         />
       </div>
     </div>
