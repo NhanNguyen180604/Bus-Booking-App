@@ -215,7 +215,6 @@ export default function AdminManageBusTypePage() {
                     <CardBody className="text-text dark:text-text">
                         <div>ID: {deletingBusType?.id}</div>
                         <div>Name: {deletingBusType?.name}</div>
-                        <div>Price Multiplier: {deletingBusType?.priceMultiplier}</div>
                     </CardBody>
                     <CardFooter className="flex justify-between gap-6">
                         <Button variant="danger"

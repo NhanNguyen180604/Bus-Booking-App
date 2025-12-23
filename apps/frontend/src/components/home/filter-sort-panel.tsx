@@ -193,9 +193,9 @@ export function FilterSortPanel({
                 />
               </div>
               <div className="flex justify-between text-xs text-secondary-text items-center">
-                <span>VND {PRICE_MIN}</span>
-                <span className="text-sm text-text font-semibold">VND {localMinPrice} - {localMaxPrice}</span>
-                <span>VND {PRICE_MAX}</span>
+                <span>0M VND</span>
+                <span className="text-sm text-text font-semibold">{(localMinPrice/1000000).toFixed(2)} - {(localMaxPrice/1000000).toFixed(2)}M VND</span>
+                <span>{(PRICE_MAX/1000000).toFixed(2)}M VND</span>
               </div>
             </div>
           </div>

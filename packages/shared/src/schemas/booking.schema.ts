@@ -10,7 +10,17 @@ export enum PaymentStatusEnum {
     PROCESSING = 'PROCESSING',
     COMPLETED = 'COMPLETED',
     EXPIRED = 'EXPIRED',
+    REFUNDED = 'REFUNDED',
 }
+
+export const PaymentCancelReason = [
+    'Requested by customer',
+    'Urgent schedule',
+    'Other',
+    'Out of seats due to deactivating',
+    'No reserved bus to stand in for the trip'
+] as const;
+export type PaymentCancelReasonType = typeof PaymentCancelReason[number];
 
 export const BookingCreateOneDto = z.object({
     tripId: z.uuid({ error: 'Trip ID must be a UUID string' }),
@@ -47,6 +57,7 @@ export type GetBookingSeatsByTripDtoType = z.infer<typeof GetBookingSeatsByTripD
 
 export const BookingCancelDto = z.object({
     cancelToken: z.string().trim().nonempty(),
+    cancelReason: z.enum(PaymentCancelReason),
 });
 export type BookingCancelDtoType = z.infer<typeof BookingCancelDto>;
 

@@ -7,6 +7,8 @@
     "jwt__access_token__expires_in",
     "jwt__refresh_token__secret",
     "jwt__refresh_token__expires_in",
+    "jwt__email_verification_token__secret",
+    "jwt__email_verification_token__expires_in",
     "cookie__secret",
     "cookie__access_token_max_age",
     "cookie__refresh_token_max_age",

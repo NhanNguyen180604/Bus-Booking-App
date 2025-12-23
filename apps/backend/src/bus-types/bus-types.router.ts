@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { TrpcService } from "../trpc/trpc.service";
-import { UserRoleEnum } from "../entities/users.entity";
+import { UserRoleEnum } from "@repo/shared";
 import { BusTypeCreateOneDto, BusTypeDeleteOneDto, BusTypeFindDto, BusTypeGetOneByIdDto, BusTypeUpdateOneDto } from "@repo/shared";
 import { BusTypesService } from "./bus-types.service";
 

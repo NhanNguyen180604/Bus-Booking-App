@@ -112,4 +112,100 @@ export class MyMailerService {
             throw error;
         }
     }
+
+    /**
+     * Send refund notification email to customer
+     */
+    async sendRefundNotification(booking: Booking): Promise<void> {
+        const departureDateTime = new Date(booking.trip.departureTime).toLocaleString('vi-VN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+        });
+        const totalPrice = new Intl.NumberFormat('de-DE', {
+            style: 'currency',
+            currency: 'VND',
+            currencyDisplay: 'code',
+        }).format(Math.ceil(Number(booking.totalPrice)));
+        const seatCodes = booking.seats.map(seat => seat.code);
+
+        try {
+            await this.mailerService.sendMail({
+                to: booking.email,
+                subject: `Booking Refund Notification - ${booking.lookupCode}`,
+                template: 'booking-refund',
+                context: {
+                    fullName: booking.fullName,
+                    bookingCode: booking.lookupCode,
+                    origin: booking.trip.route.origin.name,
+                    destination: booking.trip.route.destination.name,
+                    departureDateTime,
+                    seatCodes: seatCodes.join(', '),
+                    totalPrice,
+                },
+            });
+
+            this.logger.log(
+                `Refund notification sent successfully to ${booking.email} for booking ${booking.lookupCode}`
+            );
+        } catch (error) {
+            this.logger.error(
+                `Failed to send refund notification to ${booking.email}:`,
+                error instanceof Error ? error.message : 'Unknown error'
+            );
+            throw error;
+        }
+    }
+
+    /**
+     * Send seat change notification email to customer
+     */
+    async sendSeatChangeNotification(
+        booking: Booking,
+        oldSeatCodes: string[],
+        newSeatCodes: string[]
+    ): Promise<void> {
+        const departureDateTime = new Date(booking.trip.departureTime).toLocaleString('vi-VN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+        });
+        const totalPrice = new Intl.NumberFormat('de-DE', {
+            style: 'currency',
+            currency: 'VND',
+            currencyDisplay: 'code',
+        }).format(Math.ceil(Number(booking.totalPrice)));
+
+        try {
+            await this.mailerService.sendMail({
+                to: booking.email,
+                subject: `Seat Change Notification - ${booking.lookupCode}`,
+                template: 'seat-change',
+                context: {
+                    fullName: booking.fullName,
+                    bookingCode: booking.lookupCode,
+                    origin: booking.trip.route.origin.name,
+                    destination: booking.trip.route.destination.name,
+                    departureDateTime,
+                    oldSeatCodes: oldSeatCodes.join(', '),
+                    newSeatCodes: newSeatCodes.join(', '),
+                    totalPrice,
+                },
+            });
+
+            this.logger.log(
+                `Seat change notification sent successfully to ${booking.email} for booking ${booking.lookupCode}`
+            );
+        } catch (error) {
+            this.logger.error(
+                `Failed to send seat change notification to ${booking.email}:`,
+                error instanceof Error ? error.message : 'Unknown error'
+            );
+            throw error;
+        }
+    }
 }

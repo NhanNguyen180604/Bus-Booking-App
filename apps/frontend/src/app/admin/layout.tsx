@@ -5,6 +5,7 @@ import Loading from "@/src/components/ui/loading";
 import useUser from "@/src/hooks/useUser";
 import UnauthorizedPage from "@/src/components/status-pages/unauthorized-page";
 import ForbiddenPage from "@/src/components/status-pages/forbidden-page";
+import { UserRoleEnum } from "@repo/shared";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const userQuery = useUser();
@@ -12,7 +13,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         return <Loading />;
     }
 
-    if (userQuery.isSuccess && userQuery.data.role !== "ADMIN") {
+    if (userQuery.isSuccess && userQuery.data.role !== UserRoleEnum.ADMIN) {
         return (
             <ForbiddenPage routerGoBack />
         );

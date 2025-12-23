@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { TrpcService } from "../trpc/trpc.service";
-import { UserRoleEnum } from "../entities/users.entity";
+import { UserRoleEnum } from "@repo/shared";
 import { TripAdminSearchDto, TripCreateOneDto, TripDeleteOneDto, TripFindManyDto, TripFindOneByIdDto, TripUpdateOneDto } from "@repo/shared";
 import { TripsService } from "./trips.service";
 
