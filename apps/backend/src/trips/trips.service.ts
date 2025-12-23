@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { TripAdminSearchDtoType, TripCreateOneDtoType, TripDeleteOneDtoType, TripFindManyDtoType, TripUpdateOneDtoType } from '@repo/shared';
+import { TripAdminSearchDtoType, TripCreateOneDtoType, TripDeleteOneDtoType, TripFindManyDtoType, TripUpdateOneDtoType, RelatedTripsDtoType } from '@repo/shared';
 import { TRPCError } from '@trpc/server';
 import { Trip } from '../entities/trip.entity';
 import {
@@ -322,6 +322,42 @@ export class TripsService {
             data: trips,
             page: Math.min(dto.page, totalPage),
             perPage: Math.min(dto.perPage, count),
+            total: count,
+            totalPage,
+        };
+    }
+
+    async getRelatedTrips(dto: RelatedTripsDtoType) {
+        const qb = this.tripRepo
+            .createQueryBuilder("trip")
+            .leftJoinAndSelect("trip.route", "route")
+            .leftJoinAndSelect("route.origin", "origin")
+            .leftJoinAndSelect("route.destination", "destination")
+            .leftJoinAndSelect("trip.bus", "bus")
+            .leftJoinAndSelect("bus.type", "busType")
+            .where("trip.route_id = :routeId", { routeId: dto.routeId })
+            .andWhere("trip.departureTime > :now", { now: new Date() });
+
+        if (dto.excludeTripId) {
+            qb.andWhere("trip.id != :excludeTripId", { excludeTripId: dto.excludeTripId });
+        }
+
+        const page = dto.page || 1;
+        const perPage = dto.perPage || 10;
+
+        const [trips, count] = await qb
+            .skip((page - 1) * perPage)
+            .take(perPage)
+            .getManyAndCount();
+
+        console.log('Relatedtrips:', trips);
+
+        const totalPage = Math.ceil(count / perPage);
+
+        return {
+            data: trips,
+            page,
+            perPage,
             total: count,
             totalPage,
         };
