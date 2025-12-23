@@ -22,6 +22,7 @@ import { BusType } from './entities/bus-type.entity';
 import { Booking } from './entities/booking.entity';
 import { Payment } from './entities/payment.entity';
 import { Notification } from './entities/notification.entity';
+import { Review } from './entities/review.entity';
 import { StationsModule } from './stations/stations.module';
 import { RoutesModule } from './routes/routes.module';
 import { TripsModule } from './trips/trips.module';
@@ -35,6 +36,7 @@ import { RawBodyMiddleware } from './middlewares/raw-body.middleware';
 import { ReportsModule } from './reports/reports.module';
 import { PaymentsModule } from './payments/payments.module';
 import { TasksModule } from './tasks/tasks.module';
+import { ReviewModule } from './reviews/reviews.module';
 import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
@@ -59,6 +61,7 @@ import { ScheduleModule } from '@nestjs/schedule';
           Booking,
           Payment,
           Notification,
+          Review,
         ],
         // TODO: set this as false when deployed
         synchronize: true,
@@ -81,6 +84,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     ReportsModule,
     PaymentsModule,
     TasksModule,
+    ReviewModule,
     ScheduleModule.forRoot(),
   ],
   controllers: [AppController],

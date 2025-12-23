@@ -13,6 +13,7 @@ import { TripsRouter } from "./trips/trips.router";
 import { BookingRouter } from "./booking/booking.router";
 import { ReportsRouter } from "./reports/reports.router";
 import { PaymentsRouter } from "./payments/payments.router";
+import { ReviewRouter } from "./reviews/reviews.router";
 
 @Injectable()
 export class AppRouter {
@@ -28,6 +29,7 @@ export class AppRouter {
         private readonly bookingRouter: BookingRouter,
         private readonly reportsRouter: ReportsRouter,
         private readonly paymentsRouter: PaymentsRouter,
+        private readonly reviewRouter: ReviewRouter,
     ) {
         this.appRouter = this.apply();
     }
@@ -43,6 +45,7 @@ export class AppRouter {
             booking: this.bookingRouter.apply(),
             reports: this.reportsRouter.apply(),
             payments: this.paymentsRouter.apply(),
+            reviews: this.reviewRouter.apply(),
         });
     }
 

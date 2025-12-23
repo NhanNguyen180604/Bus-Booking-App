@@ -7,6 +7,7 @@ import { Card, CardBody, CardHeader } from "@/src/components/ui/card";
 import { FormField } from "@/src/components/ui/form-field";
 import Loading from "@/src/components/ui/loading";
 import { OptionType, SelectDropdown } from "@/src/components/ui/select-dropdown";
+import { VariantModal } from "@/src/components/ui/variant-modal";
 import useUser from "@/src/hooks/useUser";
 import { formatPrice } from "@/src/utils/format-price";
 import { formatVNWithAMPM } from "@/src/utils/format-time";
@@ -29,17 +30,18 @@ import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
+import { ReviewForm } from "@/src/components/reviews/review-form";
 
 type Booking = RouterOutputsType["booking"]["userSearchBookings"]["data"][number];
 type Seat = RouterOutputsType["buses"]["getSeatsByBus"][number];
 
 export default function TicketDetailsPage() {
     const userQuery = useUser();
-
     const params = useParams();
     const id = params.id as string;
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [showDeleteReviewModal, setShowDeleteReviewModal] = useState(false);
     const [showSeatSelection, setShowSeatSelection] = useState(false);
     const [selectedSeats, setSelectedSeats] = useState<Seat[]>([]);
     const [selectedFloor, setSelectedFloor] = useState(0);
@@ -50,9 +52,27 @@ export default function TicketDetailsPage() {
     const bookingQuery = useQuery({
         ...findOneBookingById,
         retry: false,
-    })
+    });
     const selectedBooking = bookingQuery.data;
     console.log(selectedBooking);
+
+    // Check for existing review
+    const checkReviewQuery = useQuery({
+        ...trpc.reviews.checkUserReview.queryOptions({ bookingId: id }),
+        enabled: !!selectedBooking,
+    });
+
+    const existingReview = checkReviewQuery.data?.review;
+
+    // Delete review mutation
+    const deleteReviewMutation = useMutation({
+        ...trpc.reviews.delete.mutationOptions(),
+        onSuccess: () => {
+            setShowDeleteReviewModal(false);
+            checkReviewQuery.refetch();
+            
+        },
+    });
 
     // Fetch seats for the trip when editing
     const getSeatsQueryOptions = trpc.buses.getSeatsByBus.queryOptions({
@@ -818,27 +838,31 @@ export default function TicketDetailsPage() {
                             </div>
                         </CardBody>
                     </Card>
+
+                    {/* Review Form */}
+                    <ReviewForm 
+                        bookingId={selectedBooking.id}
+                        tripId={selectedBooking.trip.id}
+                        onDeleteClick={() => setShowDeleteReviewModal(true)}
+                    />
                 </div>
             )}
 
             {/* Cancel Confirmation Modal */}
-            {showCancelModal && selectedBooking && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={handleCloseModal}>
-                    <div className="bg-background rounded-lg p-6 max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-start gap-4 mb-4">
-                            <div className="shrink-0 w-12 h-12 rounded-full bg-danger/20 flex items-center justify-center">
-                                <svg className="w-6 h-6 text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                </svg>
-                            </div>
-                            <div className="flex-1">
-                                <h3 className="text-lg font-semibold text-text">Cancel Booking</h3>
-                                <p className="text-sm text-secondary-text">
-                                    Are you sure you want to cancel this booking?
-                                </p>
-                            </div>
-                        </div>
-
+            <VariantModal
+                isOpen={showCancelModal && !!selectedBooking}
+                onClose={handleCloseModal}
+                onConfirm={handleConfirmCancel}
+                title="Cancel Booking"
+                description="Are you sure you want to cancel this booking?"
+                confirmText="Yes, Cancel Booking"
+                cancelText="Keep Booking"
+                isPending={cancelBookingMutation.isPending}
+                error={cancelBookingMutation.error?.message || null}
+                variant="danger"
+            >
+                {selectedBooking && (
+                    <>
                         <div className="bg-primary rounded-lg p-3 mb-4">
                             <p className="text-xs text-secondary-text mb-1">Booking Code</p>
                             <p className="font-mono font-bold text-accent">{selectedBooking.lookupCode}</p>
@@ -851,7 +875,8 @@ export default function TicketDetailsPage() {
                                 {formatVNWithAMPM(new Date(selectedBooking.trip.departureTime))}
                             </p>
                         </div>
-                        <div className='flex items-center gap-2 mb-4'>
+
+                        <div className="flex items-center gap-2 mb-4">
                             <svg className="w-9 h-9 text-text" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                             </svg>
@@ -864,13 +889,6 @@ export default function TicketDetailsPage() {
                                 </p>
                             </div>
                         </div>
-                        {cancelBookingMutation.isError && (
-                            <div className="mb-4 p-3 bg-danger/10 border border-danger/20 rounded-lg">
-                                <p className="text-sm text-danger">
-                                    {cancelBookingMutation.error?.message || 'Failed to cancel booking. Please try again.'}
-                                </p>
-                            </div>
-                        )}
 
                         <div className="mb-4">
                             <SelectDropdown
@@ -887,51 +905,29 @@ export default function TicketDetailsPage() {
                                 }}
                             />
                         </div>
-
-                        <div className="flex gap-3 justify-end">
-                            <Button
-                                variant="secondary"
-                                onClick={handleCloseModal}
-                                disabled={cancelBookingMutation.isPending}
-                            >
-                                Keep Booking
-                            </Button>
-                            <Button
-                                variant="danger"
-                                onClick={handleConfirmCancel}
-                                disabled={cancelBookingMutation.isPending}
-                            >
-                                {cancelBookingMutation.isPending ? (
-                                    <>
-                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                        Canceling...
-                                    </>
-                                ) : (
-                                    'Yes, Cancel Booking'
-                                )}
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
+                    </>
+                )}
+            </VariantModal>
 
             {/* Edit Booking Modal */}
-            {showEditModal && selectedBooking && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto" onClick={handleCloseEditModal}>
-                    <div className="bg-background rounded-lg p-6 max-w-lg w-full mx-4 my-8 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-start gap-4 mb-4">
-                            <div className="shrink-0 w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center">
-                                <svg className="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                </svg>
-                            </div>
-                            <div className="flex-1">
-                                <h3 className="text-xl font-semibold text-text">Edit Booking</h3>
-                                <p className="text-sm text-secondary-text">
-                                    Update your passenger information
-                                </p>
-                            </div>
-                        </div>
+            <VariantModal
+                isOpen={showEditModal && !!selectedBooking}
+                onClose={handleCloseEditModal}
+                title="Edit Booking"
+                description="Update your passenger information"
+                variant="accent"
+                showActions={false}
+                maxWidth="lg"
+                icon={
+                    <div className="shrink-0 w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center">
+                        <svg className="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                    </div>
+                }
+            >
+                {selectedBooking && (
+                    <>
                         <div className="bg-primary rounded-lg p-3 mb-4">
                             <p className="text-xs text-secondary-text mb-1">Booking Code</p>
                             <p className="font-mono font-bold text-accent">{selectedBooking.lookupCode}</p>
@@ -1195,9 +1191,76 @@ export default function TicketDetailsPage() {
                                 </Button>
                             </div>
                         </form>
-                    </div>
-                </div>
-            )}
+                    </>
+                )}
+            </VariantModal>
+
+            {/* Delete Review Modal */}
+            <VariantModal
+                isOpen={showDeleteReviewModal && !!existingReview}
+                onClose={() => setShowDeleteReviewModal(false)}
+                onConfirm={() => deleteReviewMutation.mutate({ reviewId: existingReview!.id })}
+                title="Delete Review"
+                description="Are you sure you want to delete this review?"
+                confirmText="Yes, Delete Review"
+                cancelText="Keep Review"
+                isPending={deleteReviewMutation.isPending}
+                error={deleteReviewMutation.error?.message || null}
+                variant="danger"
+            >
+                {existingReview && (
+                    <>
+                        <div className="bg-primary rounded-lg p-3 mb-4">
+                            <p className="text-xs text-secondary-text mb-1">Your Rating</p>
+                            <div className="flex gap-1 mb-2">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                    <svg
+                                        key={star}
+                                        className={`w-5 h-5 ${
+                                            star <= existingReview.rating
+                                                ? "text-yellow-400 fill-current"
+                                                : "text-text/20"
+                                        }`}
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                                        />
+                                    </svg>
+                                ))}
+                            </div>
+                            <p className="text-xs text-secondary-text mt-2">Your Comment</p>
+                            <p className="text-sm text-text mt-1 line-clamp-3">
+                                {existingReview.comment}
+                            </p>
+                        </div>
+
+                        <div className="flex items-center gap-2 mb-4">
+                            <svg
+                                className="w-9 h-9 text-text shrink-0"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                                />
+                            </svg>
+                            <p className="text-sm text-text font-semibold">
+                                This action cannot be undone. Your review will be permanently deleted.
+                            </p>
+                        </div>
+                    </>
+                )}
+            </VariantModal>
         </div>
     )
 }
