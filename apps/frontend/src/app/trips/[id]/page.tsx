@@ -50,7 +50,7 @@ export default function TripDetailPage() {
     });
   }
 
-  if (tripQuery.isLoading || getSeatsQuery.isLoading || userQuery.isPending) {
+  if (tripQuery.isLoading || getSeatsQuery.isLoading) {
     return <Loading />
   }
 
