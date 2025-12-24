@@ -29,7 +29,7 @@ const classNamesStyles: ClassNamesConfig = {
     clearIndicator: () => `text-text dark:text-text`,
     menu: () => `
         bg-primary border border-border dark:border-border
-        rounded-md shadow-lg mt-1
+        rounded-md shadow-lg mt-1 z-50
     `,
     menuList: () => `
         bg-primary rounded-md
@@ -52,7 +52,16 @@ export const SelectDropdown = ({ label, labelClassNames = "", errorMessage = "",
                         {label} {props.required && <span className="text-danger dark:text-danger">*</span>}
                     </label>
                 )}
-                <Select {...props} className="mt-2" classNames={classNamesStyles} unstyled />
+                <Select 
+                    {...props} 
+                    className="mt-2" 
+                    classNames={classNamesStyles} 
+                    unstyled 
+                    menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+                    styles={{
+                        menuPortal: (base) => ({ ...base, zIndex: 9999 })
+                    }}
+                />
                 {errorMessage && errorMessage.trim() !== "" && (
                     <div className="text-danger dark:text-danger mt-2 mb-2">{errorMessage}</div>
                 )}

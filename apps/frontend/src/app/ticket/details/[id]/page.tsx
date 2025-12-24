@@ -22,6 +22,7 @@ import {
     type PaymentCancelReasonType,
     PaymentStatusEnum,
     SeatTypeEnum,
+    TripStatusEnum,
     UserRoleEnum
 } from "@repo/shared";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -52,6 +53,8 @@ export default function TicketDetailsPage() {
     const bookingQuery = useQuery({
         ...findOneBookingById,
         retry: false,
+        refetchInterval: 30000, // Refetch every 30 seconds for real-time status updates
+        refetchIntervalInBackground: false, // Only refetch when tab is active
     });
     const selectedBooking = bookingQuery.data;
     console.log(selectedBooking);
@@ -703,17 +706,17 @@ export default function TicketDetailsPage() {
                                             {selectedBooking.payment.status}
                                         </p>
                                     ) : (
-                                        <p className={`inline-block px-3 py-1 rounded-full font-semibold text-lg ${new Date(selectedBooking.trip.departureTime) < new Date()
-                                            ? 'bg-secondary-text/20 text-secondary-text'
-                                            : 'bg-success/20 text-success'
+                                        <p className={`inline-block px-3 py-1 rounded-full font-semibold text-lg ${selectedBooking.trip.status === TripStatusEnum.UPCOMING
+                                            ? 'bg-success/20 text-success'
+                                            : 'bg-secondary-text/20 text-secondary-text'
                                             }`}>
-                                            {new Date(selectedBooking.trip.departureTime) < new Date() ? 'Completed' : 'Upcoming'}
+                                            {selectedBooking.trip.status}
                                         </p>
                                     )}
 
                                 </div>
                                 <div className="flex gap-2">
-                                    {new Date(selectedBooking.trip.departureTime) > new Date() && selectedBooking.cancelToken && selectedBooking.payment.status === PaymentStatusEnum.COMPLETED && (
+                                    {selectedBooking.trip.status === TripStatusEnum.UPCOMING && selectedBooking.cancelToken && selectedBooking.payment.status === PaymentStatusEnum.COMPLETED && (
                                         <>
                                             <Button
                                                 variant="accent"

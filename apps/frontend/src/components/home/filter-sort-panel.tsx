@@ -92,13 +92,6 @@ export function FilterSortPanel({
     onReset();
   };
 
-  const hasActiveFilters =
-    localBusTypes.length > 0 ||
-    localMinPrice > 0 ||
-    localMaxPrice < PRICE_MAX ||
-    localSortPrice !== undefined ||
-    localSortDepartureTime !== undefined;
-
 
   const trpc = useTRPC();
   const busTypesQuery = useQuery(
@@ -118,8 +111,6 @@ export function FilterSortPanel({
             <Button
               variant="danger"
               size="sm"
-              disabled={!hasActiveFilters}
-              className={`${!hasActiveFilters ? `opacity-0!` : `opacity-100`} transition-opacity`}
               onClick={handleReset}
             >
               Reset
@@ -327,7 +318,6 @@ export function FilterSortPanel({
             variant="accent"
             fullWidth
             onClick={handleApply}
-            disabled={!hasActiveFilters}
             className="transition"
           >
             Apply Filters
