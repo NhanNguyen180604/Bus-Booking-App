@@ -105,3 +105,14 @@ export const UserResetPasswordDto = z.object({
         error: "New password does not match",
     });
 export type UserResetPasswordDtoType = z.infer<typeof UserResetPasswordDto>;
+
+export const UserUploadAvatarDto = z.instanceof(FormData)
+    .transform((fd) => Object.fromEntries(fd.entries()))
+    .pipe(
+        z.object({
+            avatar: z.file()
+                .max(10 * 1000 * 1000, { error: 'The image must not exceed 10MB' })
+                .mime(['image/png', 'image/jpeg', 'image/webp']),
+        }),
+    );
+export type UserUploadAvatarDtoType = z.infer<typeof UserUploadAvatarDto>;

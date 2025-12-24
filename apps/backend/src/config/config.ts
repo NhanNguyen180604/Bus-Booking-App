@@ -88,6 +88,17 @@ export class StripeConfig {
     public readonly webhook_secret!: string;
 }
 
+export class CloudinaryConfig {
+    @Allow()
+    public readonly name!: string;
+
+    @Allow()
+    public readonly key!: string;
+
+    @Allow()
+    public readonly secret!: string;
+}
+
 export class RootConfig {
     @Allow()
     public readonly port!: number;
@@ -122,4 +133,8 @@ export class RootConfig {
     @Type(() => StripeConfig)
     @Allow()
     public readonly stripe!: StripeConfig;
+
+    @Type(() => CloudinaryConfig)
+    @Allow()
+    public readonly cloudinary!: CloudinaryConfig;
 };

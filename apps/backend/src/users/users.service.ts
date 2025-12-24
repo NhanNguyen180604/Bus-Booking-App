@@ -1,5 +1,5 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { UserChangePasswordDtoType, UserForgetPasswordDtoType, UserLoginDtoType, UserRegisterDtoType, UserResetPasswordDtoType, UserRoleEnum, UserSearchDtoType, UserUpdateProfileDtoType } from '@repo/shared';
+import { UserChangePasswordDtoType, UserForgetPasswordDtoType, UserLoginDtoType, UserRegisterDtoType, UserResetPasswordDtoType, UserRoleEnum, UserSearchDtoType, UserUpdateProfileDtoType, UserUploadAvatarDtoType } from '@repo/shared';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LoginProviderEnum, User } from '../entities/users.entity';
 import { DeepPartial, FindOptionsWhere, Repository } from 'typeorm';
@@ -14,6 +14,7 @@ import { RootConfig } from 'src/config/config';
 import { ResetPasswordToken } from 'src/entities/reset-password-token.entity';
 import crypto from 'crypto';
 import { convertToMs } from 'src/utils/convert-to-ms';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Injectable()
 export class UsersService {
@@ -27,6 +28,7 @@ export class UsersService {
         private readonly mailerService: MyMailerService,
         @Inject(RootConfig)
         private readonly config: RootConfig,
+        private readonly cloudinaryService: CloudinaryService,
     ) { }
 
     findOneBy(where: FindOptionsWhere<User> | FindOptionsWhere<User>[]) {
@@ -312,5 +314,22 @@ export class UsersService {
         user.password = hashedPassword;
         await this.userRepo.save(user);
         await this.resetPassTokenRepo.delete(tokenEntity);
+    }
+
+    async uploadAvatar(dto: UserUploadAvatarDtoType, user: User) {
+        try {
+            const { public_id, secure_url } = await this.cloudinaryService.uploadOneImage(dto.avatar, `users/${user.id}/avatar`);
+            if (user.avatarPublicID) await this.cloudinaryService.deleteResources([user.avatarPublicID]);
+            user.avatarPublicID = public_id;
+            user.avatarUrl = secure_url;
+            await this.userRepo.save(user);
+            return { url: secure_url };
+        }
+        catch (error) {
+            throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: error.message,
+            });
+        }
     }
 }

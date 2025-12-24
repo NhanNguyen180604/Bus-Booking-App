@@ -12,8 +12,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { UserChangePasswordDto, UserChangePasswordDtoType, UserUpdateProfileDto, UserUpdateProfileDtoType } from "@repo/shared";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, FormEventHandler, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
+
+type FormImage = {
+    objectUrl: string;
+    file: File,
+};
 
 export default function UserProfilePage() {
     const trpc = useTRPC();
@@ -34,16 +39,6 @@ export default function UserProfilePage() {
         resolver: zodResolver(UserUpdateProfileDto),
         mode: 'all'
     });
-    useEffect(() => {
-        const oldData = updateProfileForm.watch();
-        if (userQuery.data) {
-            updateProfileForm.reset({
-                ...oldData,
-                name: userQuery.data.name,
-            });
-        }
-    }, [userQuery.data]);
-
 
     const changePasswordMutation = useMutation({
         ...trpc.users.changePassword.mutationOptions(),
@@ -58,6 +53,37 @@ export default function UserProfilePage() {
     const changePasswordForm = useForm<UserChangePasswordDtoType>({
         resolver: zodResolver(UserChangePasswordDto),
         mode: 'all',
+    });
+
+    useEffect(() => {
+        const oldData = updateProfileForm.watch();
+        if (userQuery.data) {
+            updateProfileForm.reset({
+                ...oldData,
+                name: userQuery.data.name,
+            });
+            originalAvatarRef.current = userQuery.data.avatarUrl;
+            setCurrentAvatar(userQuery.data.avatarUrl);
+        }
+    }, [userQuery.data]);
+
+    const originalAvatarRef = useRef<string | null>(null);
+    const newAvatarRef = useRef<FormImage | null>(null);
+    const [currentAvatar, setCurrentAvatar] = useState<string | null>(null);
+    const avatarInputRef = useRef<HTMLInputElement>(null);
+    const uploadAvatarMutation = useMutation({
+        ...trpc.users.uploadAvatar.mutationOptions(),
+        onSuccess(data) {
+            const oldUserData = queryClient.getQueryData(trpc.users.getMe.queryKey());
+            if (oldUserData) {
+                oldUserData.avatarUrl = data.url;
+                queryClient.setQueryData(trpc.users.getMe.queryKey(), oldUserData);
+            }
+            onAvatarInputReset();
+        },
+        onError(error) {
+            console.log(error);
+        },
     });
 
     if (userQuery.isPending) {
@@ -75,6 +101,40 @@ export default function UserProfilePage() {
 
     const onChangePasswordSubmit = (data: UserChangePasswordDtoType) => {
         changePasswordMutation.mutate(data);
+    }
+
+    const onAvatarChosen = (e: ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (files && files.length) {
+            newAvatarRef.current = {
+                file: files[0],
+                objectUrl: URL.createObjectURL(files[0]),
+            };
+            setCurrentAvatar(newAvatarRef.current.objectUrl);
+        }
+    }
+
+    const onAvatarInputReset = () => {
+        if (newAvatarRef.current) {
+            setCurrentAvatar(originalAvatarRef.current);
+            URL.revokeObjectURL(newAvatarRef.current.objectUrl);
+            newAvatarRef.current = null;
+        }
+        if (avatarInputRef.current) {
+            avatarInputRef.current.value = '';
+        }
+    };
+
+    const handleUploadAvatar = (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        if (!newAvatarRef.current)
+            return;
+
+        // ah shiet not type safe and I dont know how to make zod works for this
+        const formData = new FormData();
+        formData.append('avatar', newAvatarRef.current?.file);
+        uploadAvatarMutation.mutate(formData);
     }
 
     return (
@@ -159,17 +219,19 @@ export default function UserProfilePage() {
                             </Button>
                             {changePasswordMutation.isSuccess && (
                                 <div className="
-                            bg-success/20 dark:bg-success/20 border border-success dark:border-success text-success
-                            rounded-lg p-4 flex gap-4 mt-6
-                            ">
+                                    bg-success/20 dark:bg-success/20 border border-success dark:border-success text-success
+                                    rounded-lg p-4 flex gap-4 mt-6
+                                    "
+                                >
                                     <CheckIcon /> <span className="font-semibold">Password Changed Successfully</span>
                                 </div>
                             )}
                             {changePasswordForm.formState.errors.root && (
                                 <div className="
-                            bg-danger/20 dark:bg-danger/20 border border-danger dark:border-danger text-danger
-                            rounded-lg p-4 flex gap-4 mt-6
-                            ">
+                                    bg-danger/20 dark:bg-danger/20 border border-danger dark:border-danger text-danger
+                                    rounded-lg p-4 flex gap-4 mt-6
+                                    "
+                                >
                                     <CancelIcon /> <span className="font-semibold">{changePasswordForm.formState.errors.root.message}</span>
                                 </div>
                             )}
@@ -177,9 +239,58 @@ export default function UserProfilePage() {
                     </Card>
                 </form>
             </div>
-            <Card className="col-span-1">
-
-            </Card>
+            <form className="sticky top-20 col-span-1 h-fit" onSubmit={handleUploadAvatar}>
+                <Card>
+                    <CardBody className="flex flex-col items-center gap-4">
+                        <img src={currentAvatar ?? 'https://placehold.co/250x250'}
+                            loading="lazy"
+                            className="rounded-full h-[175px] w-[175px] xl:w-[200px] xl:h-[200px] object-cover"
+                        />
+                        <FormField type="file"
+                            ref={avatarInputRef}
+                            className="cursor-pointer"
+                            accept=".png, .jpeg, .jpg, .webp"
+                            onChange={onAvatarChosen}
+                        />
+                    </CardBody>
+                    <CardFooter className="rounded-lg space-y-4">
+                        <Button variant="accent" fullWidth
+                            type="submit"
+                            className="transition-all"
+                            disabled={uploadAvatarMutation.isPending || !newAvatarRef.current}
+                        >
+                            {uploadAvatarMutation.isPending ? 'Updating...' : 'Update Avatar'}
+                        </Button>
+                        <Button variant="secondary" fullWidth
+                            className="transition-all border-2"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                onAvatarInputReset();
+                            }}
+                        >
+                            Reset Avatar
+                        </Button>
+                        {uploadAvatarMutation.isSuccess && (
+                            <div className="
+                                    bg-success/20 dark:bg-success/20 border border-success dark:border-success text-success
+                                    rounded-lg p-4 flex gap-4 mt-6
+                                    "
+                            >
+                                <CheckIcon /> <span className="font-semibold">Avatar Uploaded Successfully</span>
+                            </div>
+                        )}
+                        {uploadAvatarMutation.isError && (
+                            <div className="
+                                    bg-danger/20 dark:bg-danger/20 border border-danger dark:border-danger text-danger
+                                    rounded-lg p-4 flex gap-4 mt-6
+                                    "
+                            >
+                                <CancelIcon /> <span className="font-semibold">{uploadAvatarMutation.error.message}</span>
+                            </div>
+                        )}
+                    </CardFooter>
+                </Card>
+            </form>
         </div>
     );
 }

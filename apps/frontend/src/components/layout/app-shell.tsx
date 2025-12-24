@@ -126,7 +126,12 @@ function DefaultHeader({ hideHeaderNav = false }: DefaultHeaderProps) {
                       Welcome, <span className="font-semibold text-text dark:text-text">{userQuery.data.name}</span>
                     </span>
                     <Link href='/users/profile'>
-                      <img loading="lazy" width={36} height={36} className="rounded-full" src={'https://placehold.co/24x24'} alt="Image" />
+                      <img
+                        loading="lazy"
+                        // help, i hate css, object-cover does not work here help
+                        className="rounded-full object-cover w-[36px] h-[36px]"
+                        src={userQuery.data?.avatarUrl ?? 'https://placehold.co/36x36'}
+                        alt="Avatar" />
                     </Link>
                   </div>
                   <Button

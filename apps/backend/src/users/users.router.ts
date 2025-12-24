@@ -1,6 +1,6 @@
 import { TrpcService } from "../trpc/trpc.service";
 import { Inject, Injectable, Logger } from "@nestjs/common";
-import { UserUpdateProfileDto, UserChangePasswordDto, UserLoginDto, UserRegisterDto, UserSearchDto, UserVerifyEmailDto, UserForgetPasswordDto, UserResetPasswordDto } from "@repo/shared";
+import { UserUpdateProfileDto, UserChangePasswordDto, UserLoginDto, UserRegisterDto, UserSearchDto, UserVerifyEmailDto, UserForgetPasswordDto, UserResetPasswordDto, UserUploadAvatarDto } from "@repo/shared";
 import { UsersService } from "./users.service";
 import { RootConfig } from "../config/config";
 import { CookieOptions, Request, Response } from "express";
@@ -94,6 +94,7 @@ export class UsersRouter {
                         provider: user.provider,
                         role: user.role,
                         verified: user.verified,
+                        avatarUrl: user.avatarUrl,
                     }
                 }),
             search: this.trpcService.procedure
@@ -161,6 +162,7 @@ export class UsersRouter {
                         provider: newUser.provider,
                         role: newUser.role,
                         verified: newUser.verified,
+                        avatarUrl: user.avatarUrl,
                     };
                 }),
             postForgetPassword: this.trpcService
@@ -174,6 +176,13 @@ export class UsersRouter {
                 .input(UserResetPasswordDto)
                 .mutation(({ input }) => {
                     return this.usersService.resetPassword(input);
+                }),
+            uploadAvatar: this.trpcService.procedure
+                .use(this.trpcService.roleGuardMiddleware())
+                .input(UserUploadAvatarDto)
+                .mutation(({ input, ctx }) => {
+                    const user = ctx.user!;
+                    return this.usersService.uploadAvatar(input, user);
                 }),
         });
     }
