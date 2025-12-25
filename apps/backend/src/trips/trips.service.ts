@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { TripAdminSearchDtoType, TripCreateOneDtoType, TripDeleteOneDtoType, TripFindManyDtoType, TripUpdateOneDtoType, RelatedTripsDtoType } from '@repo/shared';
+import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
+import { TripAdminSearchDtoType, TripCreateOneDtoType, TripDeleteOneDtoType, TripFindManyDtoType, TripUpdateOneDtoType, RelatedTripsDtoType, TripFindOneByIdDtoType, PaymentStatusEnum, UserRoleEnum } from '@repo/shared';
 import { TRPCError } from '@trpc/server';
 import { Trip } from '../entities/trip.entity';
 import {
     Between,
+    EntityManager,
     FindOneOptions,
     FindOptionsOrder,
     FindOptionsWhere,
@@ -16,6 +17,8 @@ import {
 } from 'typeorm';
 import { RoutesService } from 'src/routes/routes.service';
 import { BusesService } from 'src/buses/buses.service';
+import { User } from 'src/entities/users.entity';
+import { Booking } from 'src/entities/booking.entity';
 
 @Injectable()
 export class TripsService {
@@ -24,6 +27,8 @@ export class TripsService {
         private readonly tripRepo: Repository<Trip>,
         private readonly routesService: RoutesService,
         private readonly busesService: BusesService,
+        @InjectEntityManager()
+        private readonly entityManager: EntityManager,
     ) { }
 
     async createOne(dto: TripCreateOneDtoType) {
@@ -77,7 +82,7 @@ export class TripsService {
         return await this.tripRepo.save(newTrip);
     }
 
-    async updateOne(dto: TripUpdateOneDtoType) {
+    async updateOne(dto: TripUpdateOneDtoType, user: User) {
         const trip = await this.findOneHelper({
             where: { id: dto.id },
             relations: { route: { origin: true, destination: true }, bus: { type: true, driver: true } },
@@ -87,6 +92,13 @@ export class TripsService {
                 code: "NOT_FOUND",
                 message: `Trip with ID: ${dto.id} is not found`,
                 cause: "Not found trip ID",
+            });
+        }
+
+        if (user.role === UserRoleEnum.DRIVER && user.id !== trip.bus?.driver?.id) {
+            throw new TRPCError({
+                code: "FORBIDDEN",
+                message: `This trip is not assigned to you, you are not allowed to update`,
             });
         }
 
@@ -365,5 +377,46 @@ export class TripsService {
 
     findOneHelper(options: FindOneOptions<Trip>) {
         return this.tripRepo.findOne(options);
+    }
+
+    async driverFindOneById(dto: TripFindOneByIdDtoType, driver: User) {
+        const trip = await this.entityManager.getRepository(Trip)
+            .findOne({
+                where: { id: dto.id },
+                relations: { route: { origin: true, destination: true }, bus: { type: true, driver: true } },
+            });
+
+        if (!trip)
+            throw new TRPCError({
+                code: "NOT_FOUND",
+                message: `Trip with ID ${dto.id} not found`,
+            });
+
+        const bookings = await this.entityManager.getRepository(Booking)
+            .find({
+                where: {
+                    trip: { id: trip.id },
+                    payment: { status: PaymentStatusEnum.COMPLETED },
+                },
+                relations: {
+                    seats: true,
+                    payment: { user: true },
+                },
+            });
+
+        const users = bookings.map(b => ({
+            bookingId: b.id,
+            name: b.fullName,
+            email: b.email,
+            phone: b.phone,
+            seats: b.seats,
+            token: b.token,
+            checkedIn: b.checkedIn,
+        }));
+
+        return {
+            trip,
+            users,
+        };
     }
 }

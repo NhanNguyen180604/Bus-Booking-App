@@ -21,10 +21,11 @@ export class TripsRouter {
                     return this.tripsService.createOne(input);
                 }),
             updateOne: this.trpcService.procedure
-                .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.ADMIN))
+                .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.ADMIN, UserRoleEnum.DRIVER))
                 .input(TripUpdateOneDto)
-                .mutation(({ input }) => {
-                    return this.tripsService.updateOne(input);
+                .mutation(({ input, ctx }) => {
+                    const user = ctx.user!;
+                    return this.tripsService.updateOne(input, user);
                 }),
             deleteOne: this.trpcService.procedure
                 .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.ADMIN))
@@ -58,6 +59,13 @@ export class TripsRouter {
                 .input(RelatedTripsDto)
                 .query(({ input }) => {
                     return this.tripsService.getRelatedTrips(input);
+                }),
+            driverFindOneTripById: this.trpcService.procedure
+                .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.DRIVER))
+                .input(TripFindOneByIdDto)
+                .query(({ input, ctx }) => {
+                    const { user: driver } = ctx;
+                    return this.tripsService.driverFindOneById(input, driver!);
                 }),
         });
     }

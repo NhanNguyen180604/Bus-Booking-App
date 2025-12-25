@@ -64,6 +64,7 @@ function DefaultHeader({ hideHeaderNav = false }: DefaultHeaderProps) {
 
   const isLoggedIn = userQuery.isSuccess && userQuery.data;
   const isAdmin = isLoggedIn && userQuery.data.role === UserRoleEnum.ADMIN;
+  const isDriver = isLoggedIn && userQuery.data.role === UserRoleEnum.DRIVER;
 
   const navItems = [
     { href: "/", label: "Home", },
@@ -90,6 +91,15 @@ function DefaultHeader({ hideHeaderNav = false }: DefaultHeaderProps) {
               rounded-md hover:underline transition-colors font-bold
             ">
               Admin Page
+            </Link>
+          )}
+          {isDriver && (
+            <Link href='/driver/'
+              className="
+              text-accent dark:text-accent w-fit h-fit px-4 py-2
+              rounded-md hover:underline transition-colors font-bold
+            ">
+              Driver Page
             </Link>
           )}
         </div>

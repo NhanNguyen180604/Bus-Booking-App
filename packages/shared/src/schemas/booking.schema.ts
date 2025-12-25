@@ -74,3 +74,9 @@ export const BookingFindOneByIdDto = z.object({
     id: z.uuid({ error: 'Booking ID must be a UUID string' }),
 });
 export type BookingFindOneByIdDtoType = z.infer<typeof BookingFindOneByIdDto>;
+
+export const BookingCheckInDto = z.object({
+    bookingId: z.uuid(),
+    checkedIn: z.boolean(),
+});
+export type BookingCheckInDtoType = z.infer<typeof BookingCheckInDto>;
