@@ -2,7 +2,9 @@
 
 import { CancelIcon } from "@/src/components/icons/cancel-ic";
 import { CheckIcon } from "@/src/components/icons/check-ic";
+import ForbiddenPage from "@/src/components/status-pages/forbidden-page";
 import NotFoundPage from "@/src/components/status-pages/not-found-page";
+import UnauthorizedPage from "@/src/components/status-pages/unauthorized-page";
 import { Button } from "@/src/components/ui/button";
 import { Card, CardBody } from "@/src/components/ui/card";
 import Checkbox from "@/src/components/ui/checkbox";
@@ -106,7 +108,16 @@ export default function DriverTripDetailsPage() {
         return <NotFoundPage routerGoBack message="Trip not found or deleted" />
     }
 
-    const isAssignedDriver = tripQuery.data.trip.bus.driver?.id === userQuery.data?.id;
+    const driverId = tripQuery.data.trip.bus?.driver?.id;
+    const userId = userQuery.data?.id;
+
+    if (!userId) {
+        return <UnauthorizedPage />
+    }
+    if (!driverId || driverId !== userId) {
+        return <ForbiddenPage message="This trip is not assigned to you"/>
+    }
+
     const onCheckInChange = (e: ChangeEvent<HTMLInputElement>, bookingId: string) => {
         const checked = e.target.checked;
         const existingTimer = debounceTimersRef.current.get(bookingId);
