@@ -51,6 +51,9 @@ export class Booking {
     @Column({ type: 'timestamptz', nullable: true })
     expiresAt: Date | null;
 
+    @Column({ default: false })
+    checkedIn: boolean;
+
     @BeforeInsert()
     generateLookupCode() {
         // 1. 4-char hash from the trip ID (stable, readable)

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectEntityManager } from '@nestjs/typeorm';
 import {
     BookingCancelDtoType,
+    BookingCheckInDtoType,
     BookingCreateOneDtoType,
     BookingLookUpDtoType,
     BookingUpdateDtoType,
@@ -318,6 +319,12 @@ export class BookingService {
             });
         }
 
+        if (booking.checkedIn)
+            throw new TRPCError({
+                code: "BAD_REQUEST",
+                message: "Cannot refund because you already checked in",
+            });
+
         if (booking.trip.status !== TripStatusEnum.UPCOMING) {
             throw new TRPCError({
                 code: "BAD_REQUEST",
@@ -468,5 +475,42 @@ export class BookingService {
             .select(['booking.id', 'seats.id'])
             .getMany();
         return bookings.map(booking => booking.seats).flat();
+    }
+
+    async checkInBooking(dto: BookingCheckInDtoType, user: User) {
+        const booking = await this.entityManager.getRepository(Booking)
+            .findOne({
+                where: { id: dto.bookingId },
+                relations: { trip: { bus: { driver: true } } },
+            });
+        if (!booking)
+            throw new TRPCError({
+                code: "NOT_FOUND",
+                message: `Booking with id ${dto.bookingId} not found`,
+            });
+
+        if (user.role === UserRoleEnum.DRIVER && user.id !== booking.trip.bus?.driver?.id)
+            throw new TRPCError({
+                code: "FORBIDDEN",
+                message: "This trip is not assigned to you, you are not allowed to check in customers",
+            });
+
+        if (booking.trip.status !== TripStatusEnum.UPCOMING)
+            throw new TRPCError({
+                code: "BAD_REQUEST",
+                message: 'This trip already departed/arrived, cannot check in anymore',
+            });
+
+        booking.checkedIn = dto.checkedIn;
+        await this.entityManager.save(booking);
+        return {
+            bookingId: booking.id,
+            name: booking.fullName,
+            email: booking.email,
+            phone: booking.phone,
+            seats: booking.seats,
+            token: booking.token,
+            checkedIn: booking.checkedIn,
+        };
     }
 }

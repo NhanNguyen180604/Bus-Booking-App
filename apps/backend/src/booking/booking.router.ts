@@ -1,7 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { TrpcService } from "src/trpc/trpc.service";
 import { BookingService } from "./booking.service";
-import { BookingCancelDto, BookingCreateOneDto, BookingFindOneByIdDto, BookingLookUpDto, BookingUpdateDto, BookingUserSearchDto, GetBookingSeatsByTripDto, UserRoleEnum } from "@repo/shared";
+import { BookingCancelDto, BookingCheckInDto, BookingCreateOneDto, BookingFindOneByIdDto, BookingLookUpDto, BookingUpdateDto, BookingUserSearchDto, GetBookingSeatsByTripDto, UserRoleEnum } from "@repo/shared";
 import { User } from "src/entities/users.entity";
 import { TRPCError } from "@trpc/server";
 
@@ -89,6 +89,13 @@ export class BookingRouter {
                 .query(({ input }) => {
                     return this.bookingService.getBookingSeatsByTrip(input);
                 }),
+            checkInBooking: this.trpcService.procedure
+                .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.ADMIN, UserRoleEnum.DRIVER))
+                .input(BookingCheckInDto)
+                .mutation(({ input, ctx }) => {
+                    const user = ctx.user!;
+                    return this.bookingService.checkInBooking(input, user);
+                })
         });
     }
 }
