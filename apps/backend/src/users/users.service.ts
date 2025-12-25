@@ -1,5 +1,5 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { UserLoginDtoType, UserRegisterDtoType, UserRoleEnum, UserSearchDtoType } from '@repo/shared';
+import { UserChangePasswordDtoType, UserForgetPasswordDtoType, UserLoginDtoType, UserRegisterDtoType, UserResetPasswordDtoType, UserRoleEnum, UserSearchDtoType, UserUpdateProfileDtoType, UserUploadAvatarDtoType } from '@repo/shared';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LoginProviderEnum, User } from '../entities/users.entity';
 import { DeepPartial, FindOptionsWhere, Repository } from 'typeorm';
@@ -11,17 +11,24 @@ import { Bus } from 'src/entities/bus.entity';
 import { MyMailerService } from 'src/my-mailer/my-mailer.service';
 import { AccessTokenPayload } from 'src/types/token-payload';
 import { RootConfig } from 'src/config/config';
+import { ResetPasswordToken } from 'src/entities/reset-password-token.entity';
+import crypto from 'crypto';
+import { convertToMs } from 'src/utils/convert-to-ms';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Injectable()
 export class UsersService {
     constructor(
         @InjectRepository(User)
         private readonly userRepo: Repository<User>,
+        @InjectRepository(ResetPasswordToken)
+        private readonly resetPassTokenRepo: Repository<ResetPasswordToken>,
         @Inject(forwardRef(() => TokenService))
         private readonly tokenService: TokenService,
         private readonly mailerService: MyMailerService,
         @Inject(RootConfig)
         private readonly config: RootConfig,
+        private readonly cloudinaryService: CloudinaryService,
     ) { }
 
     findOneBy(where: FindOptionsWhere<User> | FindOptionsWhere<User>[]) {
@@ -45,7 +52,6 @@ export class UsersService {
         const tokens = this.tokenService.extractTokensFromCookies(req);
         if (tokens && tokens.refresh_token) {
             await this.tokenService.deleteOneRefreshTokenByValue(tokens.refresh_token);
-            await this.tokenService.deleteOneRefreshTokenByUser(foundUser);
         }
 
         const { verified } = foundUser;
@@ -136,10 +142,6 @@ export class UsersService {
         };
     }
 
-    logout(user: User) {
-        this.tokenService.deleteOneRefreshTokenByUser(user);
-    }
-
     async createTokens(user: User, rememberMe: boolean) {
         const access_token = await this.tokenService.createOneAccessToken(user);
 
@@ -220,5 +222,114 @@ export class UsersService {
             ...driver,
             password: '',
         })) as User[];
+    }
+
+    async changePassword(dto: UserChangePasswordDtoType, user: User) {
+        if (!(await bcryptjs.compare(dto.oldPassword, user.password)))
+            throw new TRPCError({
+                code: "UNAUTHORIZED",
+                message: "Incorrect old password",
+            });
+
+        if (dto.newPassword !== dto.confirmNewPassword)
+            throw new TRPCError({
+                code: "BAD_REQUEST",
+                message: "New password does not match",
+            });
+
+        const salt = await bcryptjs.genSalt();
+        const hashedPassword = await bcryptjs.hash(dto.newPassword, salt);
+        user.password = hashedPassword;
+        await this.userRepo.save(user);
+
+        // delete old tokens
+        await this.tokenService.deleteAllRefreshTokenByUser(user);
+    }
+
+    async updateProfile(dto: UserUpdateProfileDtoType, user: User) {
+        user.name = dto.name;
+        return await this.userRepo.save(user);
+    }
+
+    async sendResetPasswordEmail(dto: UserForgetPasswordDtoType) {
+        const { email } = dto;
+        const user = await this.findOneBy({ email });
+        if (!user)
+            throw new TRPCError({
+                code: "NOT_FOUND",
+                message: `User with email ${email} not found`,
+            });
+
+        crypto.randomBytes(256, async (err, buf) => {
+            if (err) throw err;
+            const token = buf.toString('hex');
+            const resetTokenEntity = await this.resetPassTokenRepo.save({
+                user,
+                token,
+                expiresAt: new Date(Date.now() + convertToMs('1h')),
+            });
+
+            const resetPasswordLink = `${this.config.frontend_url}/users/reset-password?token=${token}`;
+            await this.mailerService.sendGenericMail({
+                to: email,
+                subject: 'BusBus - Reset password',
+                template: 'email-verification',
+                context: {
+                    headline: `Hi,`,
+                    body: `Here is your password reset link. This will expire in 1 hour.`,
+                    link: resetPasswordLink,
+                },
+            });
+        });
+    }
+
+    async resetPassword(dto: UserResetPasswordDtoType) {
+        const tokenEntity = await this.resetPassTokenRepo
+            .createQueryBuilder('resetToken')
+            .leftJoinAndSelect('resetToken.user', 'user')
+            .where('resetToken.token = :value', { value: dto.token })
+            .andWhere('resetToken.expiresAt > NOW()')
+            .getOne();
+        if (!tokenEntity)
+            throw new TRPCError({
+                code: "UNAUTHORIZED",
+                message: "Token expired or not found",
+            });
+
+        const { user } = tokenEntity;
+        if (!user)
+            throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: "User not found",
+            });
+
+        if (dto.newPassword !== dto.confirmNewPassword)
+            throw new TRPCError({
+                code: "BAD_REQUEST",
+                message: "Password does not match",
+            });
+
+        const salt = await bcryptjs.genSalt();
+        const hashedPassword = await bcryptjs.hash(dto.newPassword, salt);
+        user.password = hashedPassword;
+        await this.userRepo.save(user);
+        await this.resetPassTokenRepo.delete(tokenEntity);
+    }
+
+    async uploadAvatar(dto: UserUploadAvatarDtoType, user: User) {
+        try {
+            const { public_id, secure_url } = await this.cloudinaryService.uploadOneImage(dto.avatar, `users/${user.id}/avatar`);
+            if (user.avatarPublicID) await this.cloudinaryService.deleteResources([user.avatarPublicID]);
+            user.avatarPublicID = public_id;
+            user.avatarUrl = secure_url;
+            await this.userRepo.save(user);
+            return { url: secure_url };
+        }
+        catch (error) {
+            throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: error.message,
+            });
+        }
     }
 }

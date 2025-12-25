@@ -14,6 +14,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { type UserLoginDtoType, UserLoginDto } from "@repo/shared";
 import { AppShell } from "../../../components/layout/app-shell";
+import Checkbox from "@/src/components/ui/checkbox";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -91,19 +92,16 @@ export default function LoginPage() {
                   {...register("password")}
                 />
 
-                <div className="flex items-center">
-                  <input
-                    id="remember-me"
-                    type="checkbox"
-                    {...register("rememberMe")}
-                    className="h-4 w-4 rounded border-border dark:border-border text-accent focus:ring-accent focus:ring-offset-2"
+                <div className="flex justify-between">
+                  <Checkbox title="Remember Me"
+                    {...register('rememberMe')}
                   />
-                  <label
-                    htmlFor="remember-me"
-                    className="ml-2 block text-sm text-secondary-text dark:text-secondary-text"
+                  <Link
+                    href="/users/forget-password"
+                    className="text-sm font-medium text-accent hover:text-accent/50 dark:text-accent"
                   >
-                    Remember me
-                  </label>
+                    Forget Password
+                  </Link>
                 </div>
               </CardBody>
 

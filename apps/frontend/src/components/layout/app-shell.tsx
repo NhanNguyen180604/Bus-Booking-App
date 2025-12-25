@@ -121,9 +121,19 @@ function DefaultHeader({ hideHeaderNav = false }: DefaultHeaderProps) {
             <>
               {isLoggedIn ? (
                 <>
-                  <span className="text-sm font-medium text-secondary-text dark:text-secondary-text">
-                    Welcome, <span className="font-semibold text-text dark:text-text">{userQuery.data.name}</span>
-                  </span>
+                  <div className="flex gap-x-2 items-center me-4">
+                    <span className="text-sm font-medium text-secondary-text dark:text-secondary-text">
+                      Welcome, <span className="font-semibold text-text dark:text-text">{userQuery.data.name}</span>
+                    </span>
+                    <Link href='/users/profile'>
+                      <img
+                        loading="lazy"
+                        // help, i hate css, object-cover does not work here help
+                        className="rounded-full object-cover w-[36px] h-[36px]"
+                        src={userQuery.data?.avatarUrl ?? 'https://placehold.co/36x36'}
+                        alt="Avatar" />
+                    </Link>
+                  </div>
                   <Button
                     variant="primary"
                     size="sm"
