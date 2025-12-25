@@ -48,4 +48,10 @@ export class User {
 
     @Column({ default: false })
     verified: boolean;
+
+    @Column({ nullable: true, default: null, type: 'varchar' })
+    avatarUrl: string | null;
+
+    @Column({ nullable: true, default: null, type: 'varchar' })
+    avatarPublicID: string | null;
 }

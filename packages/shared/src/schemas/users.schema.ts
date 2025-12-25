@@ -11,7 +11,7 @@ export enum UserRoleEnum {
 // local login
 export const UserLoginDto = z.object({
     email: z.email(),
-    password: z.string().min(8, 'Password must be at least 8 characters'),
+    password: z.string().trim().min(8, 'Password must be at least 8 characters'),
     rememberMe: z.boolean(),
 });
 export type UserLoginDtoType = z.infer<typeof UserLoginDto>;
@@ -21,7 +21,7 @@ export const UserRegisterDto = z.object({
     email: z.email(),
     // TODO: phone validation?
     phone: z.string().min(8),
-    password: z.string().min(8).regex(
+    password: z.string().trim().min(8).regex(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/,
         "Password should have a min length of 8, contain both lower and uppercase, be alpha-numeric and contain at least 1 symbol"
     ),
@@ -57,3 +57,62 @@ export const UserVerifyEmailDto = z.object({
     token: z.string().trim().nonempty(),
 });
 export type UserVerifyEmailDtoType = z.infer<typeof UserVerifyEmailDto>;
+
+export const UserChangePasswordDto = z.object({
+    oldPassword: z.string().trim().min(8).regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/,
+        "Password should have a min length of 8, contain both lower and uppercase, be alpha-numeric and contain at least 1 symbol"
+    ),
+    newPassword: z.string().trim().min(8).regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/,
+        "Password should have a min length of 8, contain both lower and uppercase, be alpha-numeric and contain at least 1 symbol"
+    ),
+    confirmNewPassword: z.string().trim().min(8).regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/,
+        "Password should have a min length of 8, contain both lower and uppercase, be alpha-numeric and contain at least 1 symbol"
+    ),
+})
+    .refine((data) => data.newPassword === data.confirmNewPassword, {
+        error: "New password does not match",
+    })
+    .refine((data) => data.newPassword !== data.oldPassword, {
+        error: "Password must be anew",
+    });
+export type UserChangePasswordDtoType = z.infer<typeof UserChangePasswordDto>;
+
+export const UserUpdateProfileDto = z.object({
+    name: z.string().trim().min(1, { error: "Name must not be empty" }),
+});
+export type UserUpdateProfileDtoType = z.infer<typeof UserUpdateProfileDto>;
+
+export const UserForgetPasswordDto = z.object({
+    email: z.email().trim().nonempty(),
+});
+export type UserForgetPasswordDtoType = z.infer<typeof UserForgetPasswordDto>;
+
+export const UserResetPasswordDto = z.object({
+    newPassword: z.string().trim().min(8).regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/,
+        "Password should have a min length of 8, contain both lower and uppercase, be alpha-numeric and contain at least 1 symbol"
+    ),
+    confirmNewPassword: z.string().trim().min(8).regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/,
+        "Password should have a min length of 8, contain both lower and uppercase, be alpha-numeric and contain at least 1 symbol"
+    ),
+    token: z.string().trim().nonempty(),
+})
+    .refine((data) => data.newPassword === data.confirmNewPassword, {
+        error: "New password does not match",
+    });
+export type UserResetPasswordDtoType = z.infer<typeof UserResetPasswordDto>;
+
+export const UserUploadAvatarDto = z.instanceof(FormData)
+    .transform((fd) => Object.fromEntries(fd.entries()))
+    .pipe(
+        z.object({
+            avatar: z.file()
+                .max(10 * 1000 * 1000, { error: 'The image must not exceed 10MB' })
+                .mime(['image/png', 'image/jpeg', 'image/webp']),
+        }),
+    );
+export type UserUploadAvatarDtoType = z.infer<typeof UserUploadAvatarDto>;

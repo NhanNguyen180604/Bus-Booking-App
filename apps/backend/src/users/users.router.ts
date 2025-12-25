@@ -1,17 +1,20 @@
 import { TrpcService } from "../trpc/trpc.service";
 import { Inject, Injectable, Logger } from "@nestjs/common";
-import { UserLoginDto, UserRegisterDto, UserSearchDto, UserVerifyEmailDto } from "@repo/shared";
+import { UserUpdateProfileDto, UserChangePasswordDto, UserLoginDto, UserRegisterDto, UserSearchDto, UserVerifyEmailDto, UserForgetPasswordDto, UserResetPasswordDto, UserUploadAvatarDto } from "@repo/shared";
 import { UsersService } from "./users.service";
 import { RootConfig } from "../config/config";
 import { CookieOptions, Request, Response } from "express";
 import { UserRoleEnum } from "@repo/shared";
 import { TRPCError } from "@trpc/server";
+import { LoginProviderEnum } from "src/entities/users.entity";
+import { TokenService } from "src/token/token.service";
 
 @Injectable()
 export class UsersRouter {
     constructor(
         private readonly trpcService: TrpcService,
         private readonly usersService: UsersService,
+        private readonly tokenService: TokenService,
         @Inject(RootConfig)
         private readonly config: RootConfig,
     ) { }
@@ -69,9 +72,10 @@ export class UsersRouter {
             postLogout: this.trpcService
                 .publicProcedure()
                 .mutation(async ({ ctx }) => {
-                    const user = ctx.user;
+                    const { user, req } = ctx;
                     if (user) {
-                        this.usersService.logout(user);
+                        const tokenObj = this.tokenService.extractTokensFromCookies(req);
+                        if (tokenObj?.refresh_token) await this.tokenService.deleteOneRefreshTokenByValue(tokenObj.refresh_token);
                     }
                     const res: Response = ctx.res;
                     res.clearCookie('access_token', this.cookieOptions);
@@ -90,6 +94,7 @@ export class UsersRouter {
                         provider: user.provider,
                         role: user.role,
                         verified: user.verified,
+                        avatarUrl: user.avatarUrl,
                     }
                 }),
             search: this.trpcService.procedure
@@ -127,6 +132,57 @@ export class UsersRouter {
                 .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.ADMIN))
                 .query(() => {
                     return this.usersService.getAllDriversWithNoBus();
+                }),
+            changePassword: this.trpcService.procedure
+                .use(this.trpcService.roleGuardMiddleware())
+                .input(UserChangePasswordDto)
+                .mutation(async ({ input, ctx }) => {
+                    const { user, req, res } = ctx;
+                    if (!user!.provider.includes(LoginProviderEnum.LOCAL)) {
+                        throw new TRPCError({
+                            code: 'BAD_REQUEST',
+                            message: "You cannot reset password if you have none",
+                        });
+                    }
+                    await this.usersService.changePassword(input, user!);
+                    res.clearCookie('access_token', this.cookieOptions);
+                    res.clearCookie('refresh_token', this.cookieOptions);
+                }),
+            updateProfile: this.trpcService.procedure
+                .use(this.trpcService.roleGuardMiddleware())
+                .input(UserUpdateProfileDto)
+                .mutation(async ({ input, ctx }) => {
+                    const user = ctx.user!;
+                    const newUser = await this.usersService.updateProfile(input, user);
+                    return {
+                        id: newUser.id,
+                        email: newUser.email,
+                        name: newUser.name,
+                        phone: newUser.phone,
+                        provider: newUser.provider,
+                        role: newUser.role,
+                        verified: newUser.verified,
+                        avatarUrl: user.avatarUrl,
+                    };
+                }),
+            postForgetPassword: this.trpcService
+                .publicProcedure()
+                .input(UserForgetPasswordDto)
+                .mutation(({ input }) => {
+                    return this.usersService.sendResetPasswordEmail(input);
+                }),
+            resetPassword: this.trpcService
+                .publicProcedure()
+                .input(UserResetPasswordDto)
+                .mutation(({ input }) => {
+                    return this.usersService.resetPassword(input);
+                }),
+            uploadAvatar: this.trpcService.procedure
+                .use(this.trpcService.roleGuardMiddleware())
+                .input(UserUploadAvatarDto)
+                .mutation(({ input, ctx }) => {
+                    const user = ctx.user!;
+                    return this.usersService.uploadAvatar(input, user);
                 }),
         });
     }
