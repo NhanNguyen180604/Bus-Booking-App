@@ -319,6 +319,12 @@ export class BookingService {
             });
         }
 
+        if (booking.checkedIn)
+            throw new TRPCError({
+                code: "BAD_REQUEST",
+                message: "Cannot refund because you already checked in",
+            });
+
         if (booking.trip.status !== TripStatusEnum.UPCOMING) {
             throw new TRPCError({
                 code: "BAD_REQUEST",
