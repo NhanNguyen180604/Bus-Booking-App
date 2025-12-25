@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams as useNextSearchParams } from "next/navigation";
 import { AppShell } from "../components/layout/app-shell";
 import { BusSearchForm } from "../components/home/bus-search-form";
 import { HeroSection } from "../components/home/hero-section";
@@ -13,7 +14,62 @@ import { type TripFindManyDtoType } from "@repo/shared";
 
 export default function Home() {
   const trpc = useTRPC();
+  const router = useRouter();
+  const nextSearchParams = useNextSearchParams();
   const [searchParams, setSearchParams] = useState<TripFindManyDtoType | null>(null);
+
+  // Restore state from URL on mount
+  useEffect(() => {
+    const origin = nextSearchParams.get('origin');
+    const destination = nextSearchParams.get('destination');
+    const departureTime = nextSearchParams.get('departureTime');
+    const passengers = nextSearchParams.get('passengers');
+    const busType = nextSearchParams.get('busType');
+    const minPrice = nextSearchParams.get('minPrice');
+    const maxPrice = nextSearchParams.get('maxPrice');
+    const sortPrice = nextSearchParams.get('sortPrice');
+    const sortDepartureTime = nextSearchParams.get('sortDepartureTime');
+    const page = nextSearchParams.get('page');
+
+    if (origin && destination) {
+      const params: TripFindManyDtoType = {
+        origin,
+        destination,
+        passengers: passengers ? parseInt(passengers) : 1,
+        page: page ? parseInt(page) : 1,
+        perPage: 10,
+      };
+
+      if (departureTime) params.departureTime = new Date(departureTime);
+      if (passengers) params.passengers = parseInt(passengers);
+      if (busType) params.busType = busType.split(',');
+      if (minPrice) params.minPrice = parseInt(minPrice);
+      if (maxPrice) params.maxPrice = parseInt(maxPrice);
+      if (sortPrice) params.sortPrice = sortPrice as 'asc' | 'desc';
+      if (sortDepartureTime) params.sortDepartureTime = sortDepartureTime as 'asc' | 'desc';
+
+      setSearchParams(params);
+    }
+  }, []);
+
+  // Update URL when search params change
+  useEffect(() => {
+    if (!searchParams) return;
+
+    const params = new URLSearchParams();
+    params.set('origin', searchParams.origin!);
+    params.set('destination', searchParams.destination!);
+    if (searchParams.departureTime) params.set('departureTime', searchParams.departureTime.toISOString());
+    if (searchParams.passengers) params.set('passengers', searchParams.passengers.toString());
+    if (searchParams.busType?.length) params.set('busType', searchParams.busType.join(','));
+    if (searchParams.minPrice !== undefined) params.set('minPrice', searchParams.minPrice.toString());
+    if (searchParams.maxPrice !== undefined) params.set('maxPrice', searchParams.maxPrice.toString());
+    if (searchParams.sortPrice) params.set('sortPrice', searchParams.sortPrice);
+    if (searchParams.sortDepartureTime) params.set('sortDepartureTime', searchParams.sortDepartureTime);
+    if (searchParams.page) params.set('page', searchParams.page.toString());
+
+    router.replace(`/?${params.toString()}`, { scroll: false });
+  }, [searchParams]);
 
   const searchQuery = useQuery({
     ...trpc.trips.search.queryOptions(searchParams ?? skipToken),
@@ -46,6 +102,7 @@ export default function Home() {
         origin: searchParams.origin,
         destination: searchParams.destination,
         departureTime: searchParams.departureTime,
+        passengers: searchParams.passengers,
         page: 1,
         perPage,
       });
@@ -59,6 +116,7 @@ export default function Home() {
         <BusSearchForm
           onSearch={handleSearch}
           isLoading={searchQuery.isFetching}
+          initialValues={searchParams}
         />
         {searchParams && (
           <div className="flex gap-6">

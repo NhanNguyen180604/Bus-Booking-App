@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -14,13 +15,15 @@ import { TripFindManyDto, type TripFindManyDtoType } from "@repo/shared";
 interface BusSearchFormProps {
   onSearch: (params: Omit<TripFindManyDtoType, 'page' | 'perPage'>) => void;
   isLoading: boolean;
+  initialValues?: Omit<TripFindManyDtoType, 'page' | 'perPage'> | null;
 }
 
 type BusSearchFormType = Omit<TripFindManyDtoType, 'departureTime' | 'page' | 'perPage'> & {
   departureTime?: string;
+  passengers?: number;
 };
 
-export function BusSearchForm({ onSearch, isLoading }: BusSearchFormProps) {
+export function BusSearchForm({ onSearch, isLoading, initialValues }: BusSearchFormProps) {
   const trpc = useTRPC();
   const stationsQuery = useQuery({
     ...trpc.stations.findAll.queryOptions(),
@@ -33,18 +36,41 @@ export function BusSearchForm({ onSearch, isLoading }: BusSearchFormProps) {
     setValue,
     control,
     getValues,
+    reset,
     formState: { errors },
   } = useForm<BusSearchFormType>({
     resolver: zodResolver(TripFindManyDto.omit({ page: true, perPage: true, departureTime: true }).extend({
       departureTime: z.string().optional(),
     })),
+    defaultValues: initialValues ? {
+      origin: initialValues.origin,
+      destination: initialValues.destination,
+      departureTime: initialValues.departureTime ? new Date(initialValues.departureTime).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      passengers: initialValues.passengers || 1,
+    } : {
+      departureTime: new Date().toISOString().split('T')[0],
+      passengers: 1,
+    },
   });
+
+  // Update form when initialValues changes
+  useEffect(() => {
+    if (initialValues) {
+      reset({
+        origin: initialValues.origin,
+        destination: initialValues.destination,
+        departureTime: initialValues.departureTime ? new Date(initialValues.departureTime).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        passengers: initialValues.passengers || 1,
+      });
+    }
+  }, [initialValues, reset]);
 
   const onSubmit = (data: BusSearchFormType) => {
     onSearch({
       origin: data.origin,
       destination: data.destination,
       departureTime: data.departureTime ? new Date(data.departureTime) : undefined,
+      passengers: data.passengers,
     });
   };
 
@@ -142,7 +168,6 @@ export function BusSearchForm({ onSearch, isLoading }: BusSearchFormProps) {
               <FormField
                 label="Date"
                 type="date"
-                defaultValue={new Date().toISOString().split('T')[0]}
                 error={errors.departureTime?.message}
                 {...register("departureTime")}
               />
@@ -150,13 +175,20 @@ export function BusSearchForm({ onSearch, isLoading }: BusSearchFormProps) {
 
             {/* Passengers */}
             <div className="flex-1 lg:max-w-xs">
-              <SelectDropdown
-                label="Passengers"
-                options={[1, 2, 3, 4, 5].map((num) => ({
-                  value: num,
-                  label: `${num} passenger${num > 1 ? "s" : ""}`,
-                }))}
-                defaultValue={{ value: 1, label: "1 passenger" }}
+              <Controller
+                name="passengers"
+                control={control}
+                render={({ field }) => (
+                  <SelectDropdown
+                    label="Passengers"
+                    options={[1, 2, 3, 4, 5].map((num) => ({
+                      value: num,
+                      label: `${num} passenger${num > 1 ? "s" : ""}`,
+                    }))}
+                    value={field.value ? { value: field.value, label: `${field.value} passenger${field.value > 1 ? "s" : ""}` } : { value: 1, label: "1 passenger" }}
+                    onChange={(option) => field.onChange((option as OptionType<number> | null)?.value || 1)}
+                  />
+                )}
               />
             </div>
 
