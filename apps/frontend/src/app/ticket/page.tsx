@@ -12,7 +12,7 @@ import { useRouter } from 'next/navigation';
 import Pagination from '@/src/components/ui/pagination';
 import Loading from '@/src/components/ui/loading';
 import { getStatusColor } from '@/src/utils/get-status-color';
-import { PaymentStatusEnum } from '@repo/shared';
+import { PaymentStatusEnum, TripStatusEnum } from '@repo/shared';
 
 export default function TicketPage() {
     const router = useRouter();
@@ -97,11 +97,11 @@ export default function TicketPage() {
                                                                 {booking.payment.status}
                                                             </p>
                                                         ) : (
-                                                            <p className={`inline-block px-3 py-1 rounded-full font-semibold text-md ${new Date(booking.trip.departureTime) < new Date()
-                                                                ? 'bg-secondary-text/20 text-secondary-text'
-                                                                : 'bg-success/20 text-success'
+                                                            <p className={`inline-block px-3 py-1 rounded-full font-semibold text-md ${booking.trip.status === TripStatusEnum.UPCOMING
+                                                                ? 'bg-success/20 text-success'
+                                                                : 'bg-secondary-text/20 text-secondary-text'
                                                                 }`}>
-                                                                {new Date(booking.trip.departureTime) < new Date() ? 'Completed' : 'Upcoming'}
+                                                                {booking.trip.status}
                                                             </p>
                                                         )}
                                                     </div>

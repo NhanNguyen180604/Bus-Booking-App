@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { TripAdminSearchDtoType, TripCreateOneDtoType, TripDeleteOneDtoType, TripFindManyDtoType, TripUpdateOneDtoType, RelatedTripsDtoType } from '@repo/shared';
+import { TripAdminSearchDtoType, TripCreateOneDtoType, TripDeleteOneDtoType, TripFindManyDtoType, TripUpdateOneDtoType, RelatedTripsDtoType, TripStatusEnum } from '@repo/shared';
 import { TRPCError } from '@trpc/server';
 import { Trip } from '../entities/trip.entity';
 import {
@@ -171,6 +171,12 @@ export class TripsService {
                 }
             };
         }
+
+        where = {
+            ...where,
+            status: TripStatusEnum.UPCOMING,
+        }
+
         if (dto.departureTime) {
             where = {
                 ...where,

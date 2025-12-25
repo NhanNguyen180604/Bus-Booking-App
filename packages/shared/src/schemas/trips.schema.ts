@@ -75,6 +75,7 @@ export const TripFindManyDto = z.object({
     busType: z.array(z.uuid()).optional(),
     minPrice: z.number().int().optional(),
     maxPrice: z.number().int().optional(),
+    passengers: z.number().int().min(1).max(5).default(1).optional(),
     sortPrice: sortOptions,
     sortDepartureTime: sortOptions,
 })
