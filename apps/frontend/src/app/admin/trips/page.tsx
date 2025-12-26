@@ -9,22 +9,22 @@ import Pagination from "@/src/components/ui/pagination";
 import { OptionType, SelectDropdown } from "@/src/components/ui/select-dropdown";
 import { Table } from "@/src/components/ui/table";
 import { useTRPC } from "@/src/utils/trpc";
-import { TripAdminSearchDtoType } from "@repo/shared";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { TripAdminSearchDtoType, TripStatusEnum } from "@repo/shared";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { RouterOutputsType } from "backend";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import RangeSlider from 'react-range-slider-input';
 import 'react-range-slider-input/dist/style.css';
 import "./slider.css";
+import Loading from "@/src/components/ui/loading";
+import { CancelIcon } from "@/src/components/icons/cancel-ic";
 
-type Station = RouterOutputsType['stations']['search']['data'][number];
 type Trip = RouterOutputsType['trips']['adminSearch']['data'][number];
 
 export default function AdminManageTripPage() {
     const router = useRouter();
     const trpc = useTRPC();
-    const queryClient = useQueryClient();
     const perPage = 20;
 
 
@@ -36,26 +36,10 @@ export default function AdminManageTripPage() {
     });
 
     // fetching stations for dropdown
-    const [stations, setStations] = useState<Station[]>([]);
-    const stationTotalPageNumber = useRef(1);
-    const [stationPage, setStationPage] = useState(1);
-
-    const searchStationQueryOpts = trpc.stations.search.queryOptions({
-        page: stationPage,
-        perPage,
-    });
-    const searchStationQuery = useQuery({
-        ...searchStationQueryOpts,
+    const stationsQuery = useQuery({
+        ...trpc.stations.findAll.queryOptions(),
         staleTime: 60 * 60 * 1000,
     });
-    // appending stations whenever successfully fetch
-    useEffect(() => {
-        if (searchStationQuery.isSuccess) {
-            stationTotalPageNumber.current = searchStationQuery.data.totalPage;
-            setStations([...stations, ...searchStationQuery.data.data]);
-        }
-    }, [searchStationQuery.isSuccess]);
-
 
     // actually search for trip here
     const [tripPage, setTripPage] = useState(1);
@@ -87,29 +71,31 @@ export default function AdminManageTripPage() {
     const [maxPriceInput, setMaxPriceInput] = useState(tripSearchQueryInput.maxPrice ?? 0);
 
 
-    // deleting trip
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [deletingTrip, setDeletingTrip] = useState<Trip | null>(null);
-    const [deleteTripError, setDeleteTripError] = useState<string>();
-    const deleteTripOpts = trpc.trips.deleteOne.mutationOptions();
-    const deleteRouteMutation = useMutation({
-        ...deleteTripOpts,
+    // cancel trip
+    // TODO: actually cancel trip
+    const [showCancelModal, setShowCancelModal] = useState(false);
+    const [cancellingTrip, setCancellingTrip] = useState<Trip | null>(null);
+    const [cancelTripError, setCancelTripError] = useState<string>();
+    const cancelTripMutation = useMutation({
+        ...trpc.trips.cancelTripById.mutationOptions(),
         onError(error) {
-            setDeleteTripError(error.message);
+            setCancelTripError(error.message);
         },
         onSuccess() {
-            queryClient.removeQueries({ queryKey: trpc.trips.findOneById.queryKey({ id: deletingTrip!.id }) });
-            queryClient.invalidateQueries({ queryKey: trpc.trips.search.queryKey() });
-            queryClient.invalidateQueries({ queryKey: trpc.trips.adminSearch.queryKey() });
-            onDeleteModalClose();
+            tripSearchQuery.refetch();
+            onCancelTripModalClose();
         },
     });
 
-    const onDeleteModalClose = () => {
-        setShowDeleteModal(false);
-        setDeletingTrip(null);
-        setDeleteTripError(undefined);
+    const onCancelTripModalClose = () => {
+        setShowCancelModal(false);
+        setCancellingTrip(null);
+        setCancelTripError(undefined);
     };
+
+    if (stationsQuery.isPending || busTypesQuery.isPending) {
+        return <Loading />
+    }
 
     return (
         <div className="flex flex-col">
@@ -261,46 +247,38 @@ export default function AdminManageTripPage() {
                         </div>
                     </CardBody>
 
-                    <CardBody className="flex px-6 border-b border-border dark:border-border pb-4 gap-8">
-                        <div className="flex-1">
-                            <SelectDropdown label="Origin" isClearable
-                                options={stations.map(station => ({ value: station.id, label: station.name }))}
-                                onChange={(newValue, _) => {
-                                    const newVal: OptionType<string> = newValue as OptionType<string>;
-                                    setTripSearchQueryInput({
-                                        ...tripSearchQueryInput,
-                                        originId: newVal?.value,
-                                    });
-                                }}
-                                onMenuScrollToBottom={(_) => {
-                                    if (stationPage < stationTotalPageNumber.current) {
-                                        setStationPage(stationPage + 1);
-                                    }
-                                }}
-                                menuPortalTarget={document.body}
-                                menuPosition="fixed"
-                            />
-                        </div>
-                        <div className="flex-1">
-                            <SelectDropdown label="Destination" isClearable
-                                options={stations.map(station => ({ value: station.id, label: station.name }))}
-                                onChange={(newValue, _) => {
-                                    const newVal: OptionType<string> = newValue as OptionType<string>;
-                                    setTripSearchQueryInput({
-                                        ...tripSearchQueryInput,
-                                        destinationId: newVal?.value,
-                                    });
-                                }}
-                                onMenuScrollToBottom={(_) => {
-                                    if (stationPage < stationTotalPageNumber.current) {
-                                        setStationPage(stationPage + 1);
-                                    }
-                                }}
-                                menuPortalTarget={document.body}
-                                menuPosition="fixed"
-                            />
-                        </div>
-                    </CardBody>
+                    {stationsQuery.data && (
+                        <CardBody className="flex px-6 border-b border-border dark:border-border pb-4 gap-8">
+                            <div className="flex-1">
+                                <SelectDropdown label="Origin" isClearable
+                                    options={stationsQuery.data.map(station => ({ value: station.id, label: station.name }))}
+                                    onChange={(newValue, _) => {
+                                        const newVal: OptionType<string> = newValue as OptionType<string>;
+                                        setTripSearchQueryInput({
+                                            ...tripSearchQueryInput,
+                                            originId: newVal?.value,
+                                        });
+                                    }}
+                                    menuPortalTarget={document.body}
+                                    menuPosition="fixed"
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <SelectDropdown label="Destination" isClearable
+                                    options={stationsQuery.data.map(station => ({ value: station.id, label: station.name }))}
+                                    onChange={(newValue, _) => {
+                                        const newVal: OptionType<string> = newValue as OptionType<string>;
+                                        setTripSearchQueryInput({
+                                            ...tripSearchQueryInput,
+                                            destinationId: newVal?.value,
+                                        });
+                                    }}
+                                    menuPortalTarget={document.body}
+                                    menuPosition="fixed"
+                                />
+                            </div>
+                        </CardBody>
+                    )}
 
                     <CardHeader className="text-text dark:text-text text-[20px] font-bold">SORT</CardHeader>
                     <div className="flex px-6 border-b border-border dark:border-border pb-4 gap-8">
@@ -425,12 +403,13 @@ export default function AdminManageTripPage() {
                                                         </Button>
                                                         <Button className="flex-1 max-w-32"
                                                             variant="danger"
+                                                            disabled={trip.status === TripStatusEnum.CANCELLED}
                                                             onClick={() => {
-                                                                setShowDeleteModal(true);
-                                                                setDeletingTrip(trip);
+                                                                setShowCancelModal(true);
+                                                                setCancellingTrip(trip);
                                                             }}
                                                         >
-                                                            Delete
+                                                            Cancel
                                                         </Button>
                                                     </>
                                                 ),
@@ -438,8 +417,8 @@ export default function AdminManageTripPage() {
                                             },
                                         ]}
                                         tableClassName="flex-1"
-                                        headClassName="text-text dark:text-text font-bold"
-                                        bodyClassName="bg-primary dark:bg-primary"
+                                        headClassName="text-text dark:text-text font-bold bg-primary dark:bg-primary"
+                                        bodyClassName="bg-secondary dark:bg-secondary"
                                     />
 
                                 </Card>
@@ -460,35 +439,44 @@ export default function AdminManageTripPage() {
                 </div>
             )}
 
-            <Modal open={showDeleteModal} onClose={() => onDeleteModalClose()}>
+            <Modal open={showCancelModal} onClose={() => onCancelTripModalClose()}>
                 <Card onClick={(e) => e.stopPropagation()} className="max-w-lg min-w-lg">
                     <CardHeader>
                         <h1 className="text-text dark:text-text font-bold text-xl">
-                            Are you sure you want to delete this route?
+                            Are you sure you want to cancel this trip?
                         </h1>
-                        {deleteTripError && (
-                            <div className="text-danger dark:text-danger font-bold mt-4">{deleteTripError}</div>
+                        {cancelTripError && (
+                            <div className="
+                            text-danger dark:text-danger bg-danger/20 dark:bg-danger/20 
+                            border border-danger dark:border-danger
+                            font-bold mt-4 p-4 rounded-lg flex gap-4
+                        ">
+                                <CancelIcon /> <span>{cancelTripError}</span>
+                            </div>
                         )}
+
                     </CardHeader>
                     <CardBody className="text-text dark:text-text">
-                        <div>ID: {deletingTrip?.id}</div>
-                        <div>Route: {deletingTrip?.route.origin.name} - {deletingTrip?.route.destination.name} - {deletingTrip?.route.distanceKm} (km)</div>
-                        <div>Driver: {deletingTrip?.bus.driver?.name} - {deletingTrip?.bus.driver?.email} - {deletingTrip?.bus.driver?.phone}</div>
+                        <div>ID: {cancellingTrip?.id}</div>
+                        <div>Route: {cancellingTrip?.route.origin.name} - {cancellingTrip?.route.destination.name} - {cancellingTrip?.route.distanceKm} (km)</div>
+                        {cancellingTrip?.bus.driver ? (
+                            <div>Driver: {cancellingTrip?.bus.driver?.name} - {cancellingTrip?.bus.driver?.email} - {cancellingTrip?.bus.driver?.phone}</div>
+                        ) : (
+                            <div>Driver: None</div>
+                        )}
                     </CardBody>
                     <CardFooter className="flex justify-between gap-6">
                         <Button variant="danger"
                             className="flex-1"
-                            disabled={deleteRouteMutation.isPending}
+                            disabled={cancelTripMutation.isPending}
                             onClick={() => {
-                                if (deletingTrip) {
-                                    deleteRouteMutation.mutate({ id: deletingTrip.id });
-                                }
+                                if (cancellingTrip) cancelTripMutation.mutate({ id: cancellingTrip.id });
                             }}>
-                            {deleteRouteMutation.isPending ? "Deleting..." : "Confirm"}
+                            {cancelTripMutation.isPending ? "Cancelling..." : "Confirm"}
                         </Button>
                         <Button variant="primary"
                             className="flex-1"
-                            onClick={() => onDeleteModalClose()}>
+                            onClick={() => onCancelTripModalClose()}>
                             Cancel
                         </Button>
                     </CardFooter>

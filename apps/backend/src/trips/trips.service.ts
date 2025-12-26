@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
-import { TripAdminSearchDtoType, TripCreateOneDtoType, TripDeleteOneDtoType, TripFindManyDtoType, TripUpdateOneDtoType, RelatedTripsDtoType, TripStatusEnum, UserRoleEnum, TripFindOneByIdDtoType, PaymentStatusEnum } from '@repo/shared';
+import { TripAdminSearchDtoType, TripCreateOneDtoType, TripDeleteOneDtoType, TripFindManyDtoType, TripUpdateOneDtoType, RelatedTripsDtoType, TripStatusEnum, UserRoleEnum, TripFindOneByIdDtoType, PaymentStatusEnum, TripCancelByIdDtoType } from '@repo/shared';
 import { TRPCError } from '@trpc/server';
 import { Trip } from '../entities/trip.entity';
 import {
@@ -19,6 +19,7 @@ import { RoutesService } from 'src/routes/routes.service';
 import { BusesService } from 'src/buses/buses.service';
 import { User } from 'src/entities/users.entity';
 import { Booking } from 'src/entities/booking.entity';
+import { MyMailerService } from 'src/my-mailer/my-mailer.service';
 
 @Injectable()
 export class TripsService {
@@ -29,6 +30,7 @@ export class TripsService {
         private readonly busesService: BusesService,
         @InjectEntityManager()
         private readonly entityManager: EntityManager,
+        private readonly mailerService: MyMailerService,
     ) { }
 
     async createOne(dto: TripCreateOneDtoType) {
@@ -424,5 +426,57 @@ export class TripsService {
             trip,
             users,
         };
+    }
+
+    async cancelTripById(dto: TripCancelByIdDtoType) {
+        return await this.entityManager.transaction(async (transactionalEntityManager) => {
+            const trip = await transactionalEntityManager.getRepository(Trip)
+                .findOne({
+                    where: { id: dto.id },
+                });
+            if (!trip)
+                throw new TRPCError({
+                    code: "NOT_FOUND",
+                    message: `Trip with ID ${dto.id} not found`,
+                });
+
+            trip.status = TripStatusEnum.CANCELLED;
+            await transactionalEntityManager.save(trip);
+
+            // refund all bookings
+            const bookings = await transactionalEntityManager.getRepository(Booking)
+                .find({
+                    where: {
+                        trip: { id: trip.id },
+                        payment: { status: PaymentStatusEnum.COMPLETED },
+                    },
+                    relations: {
+                        payment: true,
+                        seats: true,
+                        trip: {
+                            route: {
+                                origin: true,
+                                destination: true,
+                            },
+                        },
+                    },
+                });
+
+            for (const booking of bookings) {
+                booking.payment.status = PaymentStatusEnum.REFUNDED;
+                booking.payment.cancellationReason = 'Trip cancelled by admin';
+
+                // send refund notification email
+                if (booking.email && booking.email.trim().length > 0) {
+                    try {
+                        await this.mailerService.sendRefundNotification(booking);
+                    } catch (error) {
+                        console.error(`Failed to send refund notification email to ${booking.email}:`, error);
+                        // Continue with other bookings even if email fails
+                    }
+                }
+            }
+            await transactionalEntityManager.save(bookings.map(b => b.payment));
+        });
     }
 }

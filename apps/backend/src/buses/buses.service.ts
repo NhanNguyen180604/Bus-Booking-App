@@ -627,4 +627,11 @@ export class BusesService {
         // pretty bad here, should bulk instead
         await transactionalEntityManager.save(bookings);
     }
+
+    findAll() {
+        return this.busRepo.find({
+            relations: { driver: true, type: true },
+            order: { plateNumber: "ASC" },
+        });
+    }
 }

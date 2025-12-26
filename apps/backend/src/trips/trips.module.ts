@@ -6,6 +6,7 @@ import { TrpcModule } from 'src/trpc/trpc.module';
 import { TripsRouter } from './trips.router';
 import { TripsService } from './trips.service';
 import { BusesModule } from 'src/buses/buses.module';
+import { MyMailerModule } from 'src/my-mailer/my-mailer.module';
 
 @Module({
     imports:[
@@ -13,6 +14,7 @@ import { BusesModule } from 'src/buses/buses.module';
         TypeOrmModule.forFeature([Trip]),
         RoutesModule,
         BusesModule,
+        MyMailerModule,
     ],
     providers: [TripsRouter, TripsService],
     exports: [TripsRouter, TripsService],
