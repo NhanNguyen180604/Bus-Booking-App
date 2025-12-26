@@ -1,4 +1,4 @@
-"use client";;
+"use client"
 import { Button } from "@/src/components/ui/button";
 import { Card, CardBody, CardFooter } from "@/src/components/ui/card";
 import { FormField } from "@/src/components/ui/form-field";
@@ -10,6 +10,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter, useParams } from "next/navigation";
 import { useEffect } from "react";
 import NotFoundPage from "@/src/components/status-pages/not-found-page";
+import { CancelIcon } from "@/src/components/icons/cancel-ic";
+import { CheckIcon } from "@/src/components/icons/check-ic";
 
 export default function AdminEditRoutePage() {
     const params = useParams<{ id: string }>();
@@ -45,24 +47,13 @@ export default function AdminEditRoutePage() {
     const updateBusTypeMutationOpts = trpc.busTypes.updateOne.mutationOptions();
     const updateBusTypeMutation = useMutation({
         ...updateBusTypeMutationOpts,
-        onError(error: any) {
-            if (error.data?.zodError) {
-                const zodErrors = error.data.zodError.fieldErrors;
-                zodErrors.forEach((fieldError: any) => {
-                    setError(fieldError.path[0] as any, {
-                        message: fieldError.message,
-                    });
-                });
-            } else {
-                setError("root", {
-                    message: error.message || "Updating bus type failed. Please try again.",
-                });
-            }
+        onError(error) {
+            setError("root", { message: error.message });
         },
         onSuccess(data) {
             queryClient.invalidateQueries({ queryKey: trpc.busTypes.search.queryKey() });
             queryClient.setQueryData(trpc.busTypes.getOneById.queryKey({ id: data.id }), data);
-            setTimeout(() => router.push('/admin/buses'), 3000);
+            router.push("/admin/buses?tab=1");
         },
     });
 
@@ -84,18 +75,12 @@ export default function AdminEditRoutePage() {
 
     return (
         <div className="flex flex-col">
-            <h1 className="text-[2rem] text-text dark:text-text font-bold mb-8">Edit Route</h1>
+            <h1 className="text-[2rem] text-text dark:text-text font-bold mb-8">Edit Bus Type</h1>
             <Button variant="accent" className="self-start mb-8" onClick={() => router.push('/admin/buses?tab=1')}>Return</Button>
 
             <form onSubmit={handleSubmit(onSubmit)}>
                 <Card>
                     <CardBody className="gap-x-6 gap-y-4">
-                        {formErrors.root && (
-                            <div className="col-span-2">
-                                <p className="text-danger dark:text-danger font-bold">{formErrors.root.message}</p>
-                            </div>
-                        )}
-
                         <FormField
                             label="Name"
                             placeholder="Sleeper"
@@ -105,7 +90,7 @@ export default function AdminEditRoutePage() {
                         />
                     </CardBody>
 
-                    <CardFooter>
+                    <CardFooter className="rounded-lg">
                         <Button
                             type="submit"
                             variant="accent"
@@ -117,14 +102,24 @@ export default function AdminEditRoutePage() {
                         </Button>
 
                         {updateBusTypeMutation.isSuccess && (
-                            <>
-                                <div className="col-span-2 text-success dark:text-success font-bold text-center text-xl mt-4">
-                                    Update Bus Type Successfully!
-                                </div>
-                                <div className="col-span-2 text-success dark:text-success font-bold text-center text-xl mt-4">
-                                    Returning to Buses Page
-                                </div>
-                            </>
+                            <div className="col-span-2
+                                text-success dark:text-success bg-success/20 dark:bg-success/20 
+                                border border-success dark:border-success
+                                font-bold text-center p-4 rounded-lg flex gap-4 mt-8
+                            ">
+                                <CheckIcon />
+                                <span>Edit Bus Type Successfully!</span>
+                            </div>
+                        )}
+
+                        {formErrors.root && (
+                            <div className="col-span-2
+                                text-danger dark:text-danger bg-danger/20 dark:bg-danger/20 
+                                border border-danger dark:border-danger
+                                font-bold p-4 rounded-lg flex gap-4 mt-8
+                            ">
+                                <CancelIcon /> <span>{formErrors.root.message}</span>
+                            </div>
                         )}
                     </CardFooter>
                 </Card>

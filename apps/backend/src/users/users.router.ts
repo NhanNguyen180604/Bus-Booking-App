@@ -184,6 +184,11 @@ export class UsersRouter {
                     const user = ctx.user!;
                     return this.usersService.uploadAvatar(input, user);
                 }),
+            findAllDriver: this.trpcService.procedure
+                .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.ADMIN))
+                .query(() => {
+                    return this.usersService.findAllDriver();
+                }),
         });
     }
 }

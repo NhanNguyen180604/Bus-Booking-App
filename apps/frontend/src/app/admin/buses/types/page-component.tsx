@@ -12,6 +12,7 @@ import Pagination from "@/src/components/ui/pagination";
 import { FormField } from "@/src/components/ui/form-field";
 import { type RouterOutputsType } from 'backend';
 import Modal from "@/src/components/ui/modal";
+import { CancelIcon } from "@/src/components/icons/cancel-ic";
 
 type BusType = RouterOutputsType['busTypes']['getOneById'];
 
@@ -158,6 +159,7 @@ export default function AdminManageBusTypePage() {
                                     {
                                         header: "Name",
                                         render: busType => busType.name,
+                                        headerClassName: "py-3",
                                     },
                                     {
                                         header: "Actions",
@@ -181,11 +183,12 @@ export default function AdminManageBusTypePage() {
                                             </>
                                         ),
                                         className: "flex justify-center gap-2 py-2 px-6",
+                                        headerClassName: "py-3",
                                     },
                                 ]}
                                 tableClassName="flex-1"
-                                headClassName="text-text dark:text-text font-bold"
-                                bodyClassName="bg-primary dark:bg-primary"
+                                headClassName="text-secondary-text dark:text-secondary-text bg-primary dark:bg-primary font-bold"
+                                bodyClassName="bg-secondary dark:bg-secondary"
                             />
 
                         </Card>
@@ -209,7 +212,13 @@ export default function AdminManageBusTypePage() {
                             Are you sure you want to delete this bus type?
                         </h1>
                         {deleteBusTypeError && (
-                            <div className="text-danger dark:text-danger font-bold mt-4">{deleteBusTypeError}</div>
+                            <div className="
+                            text-danger dark:text-danger bg-danger/20 dark:bg-danger/20 
+                            border border-danger dark:border-danger
+                            font-bold mt-4 p-4 rounded-lg flex gap-4
+                        ">
+                                <CancelIcon /> <span>{deleteBusTypeError}</span>
+                            </div>
                         )}
                     </CardHeader>
                     <CardBody className="text-text dark:text-text">

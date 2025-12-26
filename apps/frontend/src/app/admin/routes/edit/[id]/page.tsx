@@ -13,6 +13,9 @@ import { RouteUpdateOneDto, RouteUpdateOneDtoType } from "@repo/shared";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter, useParams } from "next/navigation";
 import NotFoundPage from "@/src/components/status-pages/not-found-page";
+import { CheckIcon } from "@/src/components/icons/check-ic";
+import { CancelIcon } from "@/src/components/icons/cancel-ic";
+import Loading from "@/src/components/ui/loading";
 
 // bro what the hell
 type Station = RouterOutputsType["stations"]["search"]['data'][number];
@@ -87,24 +90,13 @@ export default function AdminEditRoutePage() {
     const updateRouteMutationOpts = trpc.routes.updateOne.mutationOptions();
     const updateRouteMutation = useMutation({
         ...updateRouteMutationOpts,
-        onError(error: any) {
-            if (error.data?.zodError) {
-                const zodErrors = error.data.zodError.fieldErrors;
-                zodErrors.forEach((fieldError: any) => {
-                    setError(fieldError.path[0] as any, {
-                        message: fieldError.message,
-                    });
-                });
-            } else {
-                setError("root", {
-                    message: error.message || "Updating route failed Please try again.",
-                });
-            }
+        onError(error) {
+            setError("root", { message: error.message });
         },
         onSuccess(data) {
             queryClient.invalidateQueries({ queryKey: trpc.routes.search.queryKey() });
             queryClient.setQueryData(trpc.routes.findOneById.queryKey({ id: data.id }), data);
-            setTimeout(() => router.push('/admin/routes'), 3000);
+            router.push('/admin/routes');
         },
     });
 
@@ -124,6 +116,10 @@ export default function AdminEditRoutePage() {
         );
     }
 
+    if (routeQuery.isPending) {
+        return <Loading />;
+    }
+
     return (
         <div className="flex flex-col">
             <h1 className="text-[2rem] text-text dark:text-text font-bold mb-8">Edit Route</h1>
@@ -132,12 +128,6 @@ export default function AdminEditRoutePage() {
             <form onSubmit={handleSubmit(onSubmit)}>
                 <Card>
                     <CardBody className="grid grid-cols-2 gap-x-6 gap-y-4">
-                        {formErrors.root && (
-                            <div className="col-span-2">
-                                <p className="text-danger dark:text-danger font-bold">{formErrors.root.message}</p>
-                            </div>
-                        )}
-
                         {/* station dropdowns */}
                         <Controller control={control}
                             name="originId"
@@ -199,7 +189,7 @@ export default function AdminEditRoutePage() {
                         />
                     </CardBody>
 
-                    <CardFooter>
+                    <CardFooter className="rounded-lg">
                         <Button
                             type="submit"
                             variant="accent"
@@ -211,10 +201,24 @@ export default function AdminEditRoutePage() {
                         </Button>
 
                         {updateRouteMutation.isSuccess && (
-                            <>
-                                <div className="col-span-2 text-success dark:text-success font-bold text-center text-xl mt-4">Update Route Successfully!</div>
-                                <div className="col-span-2 text-success dark:text-success font-bold text-center text-xl mt-4">Returning to Routes Page</div>
-                            </>
+                            <div className=" col-span-2
+                                text-success dark:text-success bg-success/20 dark:bg-success/20 
+                                border border-success dark:border-success
+                                font-bold text-center p-4 rounded-lg flex gap-4 mt-8
+                            ">
+                                <CheckIcon />
+                                <span>Update Route Successfully!</span>
+                            </div>
+                        )}
+
+                        {formErrors.root && (
+                            <div className="col-span-2
+                                text-danger dark:text-danger bg-danger/20 dark:bg-danger/20 
+                                border border-danger dark:border-danger
+                                font-bold p-4 rounded-lg flex gap-4 mt-8
+                            ">
+                                <CancelIcon /> <span>{formErrors.root.message}</span>
+                            </div>
                         )}
                     </CardFooter>
                 </Card>

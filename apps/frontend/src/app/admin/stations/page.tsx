@@ -6,12 +6,13 @@ import { useTRPC } from "@/src/utils/trpc";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { StationSearchDtoType, type SortOptionsType } from '@repo/shared';
+import { StationSearchDtoType } from '@repo/shared';
 import { Table } from "@/src/components/ui/table";
 import Pagination from "@/src/components/ui/pagination";
 import { FormField } from "@/src/components/ui/form-field";
 import { type RouterOutputsType } from 'backend';
 import Modal from "@/src/components/ui/modal";
+import { CancelIcon } from "@/src/components/icons/cancel-ic";
 
 type Station = RouterOutputsType['stations']['search']['data'][number];
 
@@ -162,6 +163,7 @@ export default function AdminManageStationPage() {
                                     {
                                         header: "Name",
                                         render: station => station.name,
+                                        headerClassName: "py-3 px-4"
                                     },
                                     {
                                         header: "Actions",
@@ -185,11 +187,12 @@ export default function AdminManageStationPage() {
                                             </>
                                         ),
                                         className: "flex justify-center gap-2 py-2 px-6",
+                                        headerClassName: "py-3 px-4"
                                     },
                                 ]}
                                 tableClassName="flex-1"
-                                headClassName="text-text dark:text-text font-bold"
-                                bodyClassName="bg-primary dark:bg-primary"
+                                headClassName="text-secondary-text dark:text-secondary-text font-bold bg-primary dark:bg-primary text-sm"
+                                bodyClassName="bg-secondary dark:bg-secondary"
                             />
 
                         </Card>
@@ -220,7 +223,13 @@ export default function AdminManageStationPage() {
                             Are you sure you want to delete this station?
                         </h1>
                         {deleteStationError && (
-                            <div className="text-danger dark:text-danger font-bold mt-4">{deleteStationError}</div>
+                            <div className="
+                            text-danger dark:text-danger bg-danger/20 dark:bg-danger/20 
+                            border border-danger dark:border-danger
+                            font-bold mt-4 p-4 rounded-lg flex gap-4
+                        ">
+                                <CancelIcon /> <span>{deleteStationError}</span>
+                            </div>
                         )}
                     </CardHeader>
                     <CardBody className="text-text dark:text-text">

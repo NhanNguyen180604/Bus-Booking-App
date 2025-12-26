@@ -28,10 +28,9 @@ export default function AdminManageTripPage() {
     const perPage = 20;
 
 
-    // fetching bus types for filter options
-    const busTypesQueryOpts = trpc.busTypes.search.queryOptions({ perPage: 999 });
+    // fetching bus types for filter option
     const busTypesQuery = useQuery({
-        ...busTypesQueryOpts,
+        ...trpc.busTypes.findAll.queryOptions(),
         staleTime: 5 * 60 * 1000,
     });
 
@@ -72,7 +71,6 @@ export default function AdminManageTripPage() {
 
 
     // cancel trip
-    // TODO: actually cancel trip
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [cancellingTrip, setCancellingTrip] = useState<Trip | null>(null);
     const [cancelTripError, setCancelTripError] = useState<string>();
@@ -115,7 +113,7 @@ export default function AdminManageTripPage() {
                                 </div>
                             ) : (
                                 <>
-                                    {busTypesQuery.data?.data.map(busType => (
+                                    {busTypesQuery.data?.map(busType => (
                                         <Checkbox title={busType.name}
                                             id={busType.id} name={`filter-${busType.name}-bus`} key={busType.id}
                                             onChange={(e) => {
@@ -364,10 +362,12 @@ export default function AdminManageTripPage() {
                                             {
                                                 header: "Origin",
                                                 render: trip => trip.route.origin.name,
+                                                headerClassName: "py-3",
                                             },
                                             {
                                                 header: "Destination",
                                                 render: trip => trip.route.destination.name,
+                                                headerClassName: "py-3",
                                             },
                                             {
                                                 header: "Departure Time",
@@ -377,6 +377,7 @@ export default function AdminManageTripPage() {
                                                     const timeString = date.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit' });
                                                     return `${dateString}, ${timeString}`;
                                                 },
+                                                headerClassName: "py-3",
                                             },
                                             {
                                                 header: "Price",
@@ -386,10 +387,12 @@ export default function AdminManageTripPage() {
                                                         style: "currency", currency: "VND", currencyDisplay: "code"
                                                     }).format(price);
                                                 },
+                                                headerClassName: "py-3",
                                             },
                                             {
                                                 header: "Status",
                                                 render: trip => trip.status,
+                                                headerClassName: "py-3",
                                             },
                                             {
                                                 header: "Actions",
@@ -414,10 +417,11 @@ export default function AdminManageTripPage() {
                                                     </>
                                                 ),
                                                 className: "flex justify-center gap-2 py-2 px-6",
+                                                headerClassName: "py-3",
                                             },
                                         ]}
                                         tableClassName="flex-1"
-                                        headClassName="text-text dark:text-text font-bold bg-primary dark:bg-primary"
+                                        headClassName="text-secondary-text dark:text-secondary-text font-bold bg-primary dark:bg-primary text-sm"
                                         bodyClassName="bg-secondary dark:bg-secondary"
                                     />
 
@@ -427,7 +431,15 @@ export default function AdminManageTripPage() {
                             )}
                         </>
                     ) : (
-                        <div className="text-danger dark:text-danger font-bold text-base text-center">ERROR LOADING TRIP</div>
+                        <div className="flex justify-center">
+                            <div className="
+                            text-danger dark:text-danger bg-danger/20 dark:bg-danger/20 
+                            border border-danger dark:border-danger
+                            font-bold p-4 rounded-lg flex gap-4
+                        ">
+                                <CancelIcon /> <span>ERROR LOADING TRIP</span>
+                            </div>
+                        </div>
                     )}
                 </>
             )}

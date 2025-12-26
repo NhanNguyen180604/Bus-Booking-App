@@ -1,4 +1,4 @@
-"use client";;
+"use client"
 import { CancelIcon } from "@/src/components/icons/cancel-ic";
 import { CheckIcon } from "@/src/components/icons/check-ic";
 import { Button } from "@/src/components/ui/button";
@@ -10,11 +10,8 @@ import { useTRPC } from "@/src/utils/trpc";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { TripCreateOneDto, TripCreateOneDtoType } from "@repo/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { RouterOutputsType } from "backend";
 import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
-
-type Bus = RouterOutputsType['buses']['searchBus']['data'][number];
 
 export default function AdminCreateTripPage() {
     const router = useRouter();
@@ -77,16 +74,6 @@ export default function AdminCreateTripPage() {
             <form onSubmit={handleSubmit(onSubmit)}>
                 <Card className="flex flex-col mb-8">
                     <CardBody className="flex flex-col px-6 pb-4 gap-8">
-                        {formErrors.root && (
-                            <div className="
-                                text-danger dark:text-danger bg-danger/20 dark:bg-danger/20 
-                                border border-danger dark:border-danger
-                                font-bold mt-4 p-4 rounded-lg flex gap-4
-                            ">
-                                <CancelIcon /> <span>{formErrors.root.message}</span>
-                            </div>
-                        )}
-
                         <div className="flex-1">
                             <Controller control={control}
                                 name="routeId"
@@ -160,7 +147,7 @@ export default function AdminCreateTripPage() {
                         </div>
                     </CardBody>
 
-                    <CardFooter>
+                    <CardFooter className="rounded-lg">
                         <Button
                             type="submit"
                             variant="accent"
@@ -175,12 +162,22 @@ export default function AdminCreateTripPage() {
                                 <div className="
                                     text-success dark:text-success bg-success/20 dark:bg-success/20 
                                     border border-success dark:border-success
-                                    font-bold mt-4 p-4 rounded-lg flex gap-4
+                                    font-bold mt-8 p-4 rounded-lg flex gap-4
                                 ">
                                     <CheckIcon />
                                     <span>Create Trip Successfully!</span>
                                 </div>
                             </>
+                        )}
+
+                        {formErrors.root && (
+                            <div className="
+                                text-danger dark:text-danger bg-danger/20 dark:bg-danger/20 
+                                border border-danger dark:border-danger
+                                font-bold mt-8 p-4 rounded-lg flex gap-4
+                            ">
+                                <CancelIcon /> <span>{formErrors.root.message}</span>
+                            </div>
                         )}
                     </CardFooter>
                 </Card>

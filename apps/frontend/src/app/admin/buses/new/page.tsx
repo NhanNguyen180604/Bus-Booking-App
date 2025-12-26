@@ -15,6 +15,8 @@ import { OptionType, SelectDropdown } from "@/src/components/ui/select-dropdown"
 import { type BusSeatCreateOneDtoType as Seat } from '@repo/shared';
 import { DragSelectProvider, useDragSelect } from "@/src/utils/drag-select-provider";
 import { generateSeatCode } from '@repo/shared';
+import { CancelIcon } from "@/src/components/icons/cancel-ic";
+import { CheckIcon } from "@/src/components/icons/check-ic";
 
 type Driver = RouterOutputsType['users']['search']['data'][number];
 type BusType = RouterOutputsType['busTypes']['getOneById'];
@@ -38,53 +40,19 @@ export function AdminCreateBusPage() {
     const trpc = useTRPC();
     const queryClient = useQueryClient();
     const router = useRouter();
-    const perPage = 20;
 
     //#region fetching drivers for dropdown
-    const driverTotalPageNumber = useRef(1);
-    const [driverPage, setDriverPage] = useState(1);
-    const [drivers, setDrivers] = useState<Driver[]>([]);
-
-    const searchDriverQueryOpts = trpc.users.search.queryOptions({
-        page: driverPage,
-        perPage,
-        role: "DRIVER",
-        driverWithNoBus: true,
+    const driversQuery = useQuery({
+        ...trpc.users.getAllDriversWithNoBus.queryOptions(),
+        staleTime: 10 * 60 * 1000,
     });
-    const searchDriverQuery = useQuery({
-        ...searchDriverQueryOpts,
-        staleTime: 60 * 60 * 1000,
-    });
-
-    // appending drivers whenever successfully fetch
-    useEffect(() => {
-        if (searchDriverQuery.isSuccess) {
-            driverTotalPageNumber.current = searchDriverQuery.data.totalPage;
-            setDrivers([...drivers, ...searchDriverQuery.data.data]);
-        }
-    }, [searchDriverQuery.isSuccess]);
     //#endregion
 
     //#region fetching bus types for dropdown
-    const busTypesTotalPageNumber = useRef(1);
-    const [busTypePage, setBusTypePage] = useState(1);
-    const [busTypes, setBusTypes] = useState<BusType[]>([]);
-
-    const searchBusTypeQueryOpts = trpc.busTypes.search.queryOptions({
-        page: busTypePage,
-        perPage,
+    const busTypesQuery = useQuery({
+        ...trpc.busTypes.findAll.queryOptions(),
+        staleTime: 10 * 60 * 1000,
     });
-    const searchBusTypeQuery = useQuery({
-        ...searchBusTypeQueryOpts,
-        staleTime: 60 * 60 * 1000,
-    });
-    // appending bus types whenever successfully fetch
-    useEffect(() => {
-        if (searchBusTypeQuery.isSuccess) {
-            busTypesTotalPageNumber.current = searchBusTypeQuery.data.totalPage;
-            setBusTypes([...busTypes, ...searchBusTypeQuery.data.data]);
-        }
-    }, [searchBusTypeQuery.isSuccess]);
     //#endregion
 
     //#region create bus hook form and mutation
@@ -110,22 +78,10 @@ export function AdminCreateBusPage() {
             queryClient.setQueryData(trpc.buses.getOneById.queryKey(), data.bus);
             queryClient.setQueryData(trpc.buses.getSeatsByBus.queryKey(), data.seats);
             queryClient.invalidateQueries({ queryKey: trpc.users.search.queryKey({ driverWithNoBus: true, role: "DRIVER" }) });
-            setTimeout(() => router.push("/admin/buses?tab=0"), 3000);
+            router.push("/admin/buses?tab=0");
         },
-        onError(error: any) {
-            if (error.data?.zodError) {
-                // Handle Zod validation errors from backend
-                const zodErrors = error.data.zodError.fieldErrors;
-                zodErrors.forEach((fieldError: any) => {
-                    busForm.setError(fieldError.path[0] as any, {
-                        message: fieldError.message,
-                    });
-                });
-            } else {
-                busForm.setError("root", {
-                    message: error.message || "Create new bus failed. Please try again.",
-                });
-            }
+        onError(error) {
+            busForm.setError("root", { message: error.message });
         },
     });
     //#endregion
@@ -423,6 +379,9 @@ export function AdminCreateBusPage() {
         createBusMutation.mutate(data);
     }
 
+    const busTypeData = busTypesQuery.data ?? [];
+    const driverData = driversQuery.data ?? [];
+
     return (
         <div className="flex flex-col">
 
@@ -432,14 +391,6 @@ export function AdminCreateBusPage() {
             <form onSubmit={busForm.handleSubmit(onSubmit)}>
                 {/* input things */}
                 <Card>
-                    <CardBody>
-                        {busForm.formState.errors.root && (
-                            <div className="col-span-2">
-                                <p className="text-danger dark:text-danger font-bold">{busForm.formState.errors.root.message}</p>
-                            </div>
-                        )}
-                    </CardBody>
-
                     <CardBody className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-6">
                         <FormField label="Plate Number" required
                             {...busForm.register("bus.plateNumber")}
@@ -449,17 +400,12 @@ export function AdminCreateBusPage() {
                             name="bus.busTypeId"
                             render={({ field: { onChange } }) => (
                                 <SelectDropdown label="Bus Type" isClearable required
-                                    options={busTypes.map(busType => ({ value: busType.id, label: busType.name }))}
+                                    options={busTypeData.map(busType => ({ value: busType.id, label: busType.name }))}
                                     onChange={(newValue, _) => {
                                         const newVal: OptionType<string> = newValue as OptionType<string>;
                                         onChange(newVal ? newVal.value : "");
                                     }}
                                     errorMessage={busForm.formState.errors.bus?.busTypeId?.message}
-                                    onMenuScrollToBottom={(_) => {
-                                        if (busTypePage < busTypesTotalPageNumber.current) {
-                                            setBusTypePage(busTypePage + 1);
-                                        }
-                                    }}
                                     menuPortalTarget={document.body}
                                     menuPosition="fixed"
                                 />
@@ -493,7 +439,7 @@ export function AdminCreateBusPage() {
                                         value={(() => {
                                             const driverId = value;
                                             if (driverId && driverId !== NO_DRIVER) {
-                                                const driver = drivers.find(d => d.id === driverId);
+                                                const driver = driverData.find(d => d.id === driverId);
                                                 if (driver) {
                                                     return {
                                                         label: `${driver.name} - ${driver.email} - ${driver.phone}`,
@@ -505,18 +451,13 @@ export function AdminCreateBusPage() {
                                         })()}
                                         options={[
                                             { value: NO_DRIVER, label: "No driver" },
-                                            ...drivers.map(driver => ({ value: driver.id, label: `${driver.name} - ${driver.email} - ${driver.phone}` })),
+                                            ...driverData.map(driver => ({ value: driver.id, label: `${driver.name} - ${driver.email} - ${driver.phone}` })),
                                         ]}
                                         onChange={(newValue, _) => {
                                             const newVal: OptionType<string> = newValue as OptionType<string>;
                                             onChange(newVal ? newVal.value : NO_DRIVER);
                                         }}
                                         errorMessage={busForm.formState.errors.bus?.driverId?.message}
-                                        onMenuScrollToBottom={(_) => {
-                                            if (driverPage < driverTotalPageNumber.current) {
-                                                setDriverPage(driverPage + 1);
-                                            }
-                                        }}
                                         menuPortalTarget={document.body}
                                         menuPosition="fixed"
                                     />
@@ -578,7 +519,7 @@ export function AdminCreateBusPage() {
                 {/* seat layout here */}
                 {createSeatLayout()}
                 <Card className="mt-4">
-                    <CardFooter>
+                    <CardFooter className="rounded-lg">
                         <Button
                             className="transition-all"
                             type="submit"
@@ -591,10 +532,24 @@ export function AdminCreateBusPage() {
                         </Button>
 
                         {createBusMutation.isSuccess && (
-                            <>
-                                <div className="col-span-2 text-success dark:text-success font-bold text-center text-xl mt-4">Create Bus Successfully!</div>
-                                <div className="col-span-2 text-success dark:text-success font-bold text-center text-xl mt-4">Returning to Buses Page</div>
-                            </>
+                            <div className="col-span-2
+                                text-success dark:text-success bg-success/20 dark:bg-success/20 
+                                border border-success dark:border-success
+                                font-bold text-center p-4 rounded-lg flex gap-4 mt-8
+                            ">
+                                <CheckIcon />
+                                <span>Create Bus Successfully!</span>
+                            </div>
+                        )}
+
+                        {busForm.formState.errors.root && (
+                            <div className="col-span-2
+                                text-danger dark:text-danger bg-danger/20 dark:bg-danger/20 
+                                border border-danger dark:border-danger
+                                font-bold p-4 rounded-lg flex gap-4 mt-8
+                            ">
+                                <CancelIcon /> <span>{busForm.formState.errors.root.message}</span>
+                            </div>
                         )}
                     </CardFooter>
                 </Card>

@@ -134,44 +134,11 @@ export class BusesService {
 
         // this will throw error if invalid
         this.validateSeatsLayout(dto.seats, bus.rows, bus.cols, bus.floors);
-        // TODO: get existing seats and validate layout too
-
-        // scrapped
-        // // coded this at 0AM
-        // // this needs more testing
-        // dto.seats.sort((a, b) => a.floor - b.floor);
-        // const seatsGroupedByFloor = Object.values(groupBy(dto.seats, seat => seat.floor));
-        // for (let i = 0; i < seatsGroupedByFloor.length; i++) {
-        //     const seatGroup = seatsGroupedByFloor.at(i)!;
-        //     const matrix = Array.from({ length: bus.rows }, () => new Array(bus.cols).fill(-1)) as number[][];
-        //     for (let currentSeatIndex = 0; currentSeatIndex < seatGroup.length; currentSeatIndex++) {
-        //         const currentSeat = seatGroup.at(currentSeatIndex)!;
-        //         const rowStartIndex = currentSeat.row;
-        //         const rowEndIndex = currentSeat.row + currentSeat.rowSpan - 1;
-        //         const colStartIndex = currentSeat.col;
-        //         const colEndIndex = currentSeat.col + currentSeat.colSpan - 1;
-        //         for (let k = rowStartIndex; k <= rowEndIndex; k++) {
-        //             for (let l = colStartIndex; l <= colEndIndex; l++) {
-        //                 if (matrix[k][l] !== -1) {
-        //                     throw new TRPCError({
-        //                         code: "BAD_REQUEST",
-        //                         message: `Invalid seat layout, overlapping seats detected. Overlapping seat indices: ${matrix[k][l]} and ${currentSeatIndex}`,
-        //                         cause: "Row index, row span, col index, col span or floor violates the bus layout range constraint",
-        //                     });
-        //                 }
-        //                 matrix[k][l] = currentSeatIndex;
-        //             }
-        //         }
-        //     }
-        // }
-
         const newSeats = this.seatRepo.create(dto.seats.map(seat => ({
             bus,
             code: generateSeatCode(seat.row, seat.col, seat.floor),
             row: seat.row,
             col: seat.col,
-            // rowSpan: seat.rowSpan,
-            // colSpan: seat.colSpan,
             floor: seat.floor,
             seatType: seat.seatType,
         })));
@@ -277,7 +244,6 @@ export class BusesService {
                 this.logger.log(`No more driver`);
             }
             else if (updateBusDto.driverId !== bus.driver?.id) {
-                // frontend fetches driver with no bus, no need to check for now
                 const newDriver = await transactionalEntityManager.getRepository(User)
                     .findOneBy({ id: updateBusDto.driverId, role: UserRoleEnum.DRIVER });
                 if (!newDriver)
@@ -285,6 +251,13 @@ export class BusesService {
                         code: "NOT_FOUND",
                         message: `Driver with ID ${updateBusDto.driverId} not found`,
                     });
+
+                const newDriverOldBus = await transactionalEntityManager.getRepository(Bus)
+                    .findOneBy({ driver: { id: newDriver.id } });
+                if (newDriverOldBus) {
+                    newDriverOldBus.driver = bus.driver;
+                    await transactionalEntityManager.save(newDriverOldBus);
+                }
                 bus.driver = newDriver;
             }
             let driver = bus.driver;

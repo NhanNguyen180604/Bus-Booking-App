@@ -24,8 +24,9 @@ import React from "react";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useCallback, useRef } from "react";
+import { CheckIcon } from "@/src/components/icons/check-ic";
+import { CancelIcon } from "@/src/components/icons/cancel-ic";
 
-type Driver = RouterOutputsType['users']['getAllDriversWithNoBus'][number];
 type Seat = RouterOutputsType["buses"]["getSeatsByBus"][0];
 
 export default function AdminEditBusPageWrapper() {
@@ -58,8 +59,8 @@ export function AdminEditBusPage() {
         staleTime: 5 * 60 * 1000,
     });
 
-    const allDriverNoBusQuery = useQuery({
-        ...trpc.users.getAllDriversWithNoBus.queryOptions(),
+    const driversQuery = useQuery({
+        ...trpc.users.findAllDriver.queryOptions(),
         staleTime: 5 * 60 * 1000,
     });
 
@@ -68,20 +69,8 @@ export function AdminEditBusPage() {
         onSuccess(data) {
             queryClient.setQueryData(trpc.buses.getOneById.queryKey({ id: busId }), data);
         },
-        onError(error: any) {
-            if (error.data?.zodError) {
-                // Handle Zod validation errors from backend
-                const zodErrors = error.data.zodError.fieldErrors;
-                zodErrors.forEach((fieldError: any) => {
-                    busForm.setError(fieldError.path[0] as any, {
-                        message: fieldError.message,
-                    });
-                });
-            } else {
-                busForm.setError("root", {
-                    message: error.message || "Create new bus failed. Please try again.",
-                });
-            }
+        onError(error) {
+            busForm.setError("root", { message: error.message });
         },
     });
 
@@ -157,7 +146,7 @@ export function AdminEditBusPage() {
     }, [ds, busForm]);
 
     //#region loading stuff
-    if (busQuery.isPending || seatsQuery.isPending || allDriverNoBusQuery.isPending) {
+    if (busQuery.isPending || seatsQuery.isPending || driversQuery.isPending) {
         return <Loading />
     }
     if (!busQuery.isPending && !busQuery.data) {
@@ -182,13 +171,7 @@ export function AdminEditBusPage() {
     }
     //#endregion
 
-    const drivers = [] as Driver[];
-    if (allDriverNoBusQuery.data) {
-        drivers.push(...allDriverNoBusQuery.data);
-    }
-    if (busQuery.data.driver) {
-        drivers.push(busQuery.data.driver);
-    }
+    const drivers = driversQuery.data ?? [];
 
     const seatIdMap = new Map<string, Seat>();
     seatsQuery.data.forEach(seat => {
@@ -337,14 +320,6 @@ export function AdminEditBusPage() {
 
                 <form onSubmit={busForm.handleSubmit(onSubmit)}>
                     <Card>
-                        <CardBody>
-                            {busForm.formState.errors.root && (
-                                <div className="col-span-2">
-                                    <p className="text-danger dark:text-danger font-bold">{busForm.formState.errors.root.message}</p>
-                                </div>
-                            )}
-                        </CardBody>
-
                         <CardBody className="grid grid-cols-1 xl:grid-cols-2 gap-x-6 gap-y-6">
                             <FormField label="Plate Number" required
                                 {...busForm.register("bus.plateNumber")}
@@ -415,7 +390,7 @@ export function AdminEditBusPage() {
                     {drawSeatLayout()}
 
                     <Card className="mt-4">
-                        <CardFooter>
+                        <CardFooter className="rounded-lg">
                             <Button
                                 className="transition-all"
                                 type="submit"
@@ -428,9 +403,25 @@ export function AdminEditBusPage() {
                             </Button>
 
                             {updateBusMutation.isSuccess && (
-                                <>
-                                    <div className="col-span-2 text-success dark:text-success font-bold text-center text-xl mt-4">Update Bus Successfully!</div>
-                                </>
+                                <div className="col-span-2
+                                    text-success dark:text-success bg-success/20 dark:bg-success/20 
+                                    border border-success dark:border-success
+                                    font-bold text-center p-4 rounded-lg flex gap-4 mt-8
+                                ">
+                                    <CheckIcon />
+                                    <span>Update Bus Successfully!</span>
+                                </div>
+                            )}
+
+                            {busForm.formState.errors.root && (
+                                <div className="col-span-2
+                                    text-danger dark:text-danger bg-danger/20 dark:bg-danger/20 
+                                    border border-danger dark:border-danger
+                                    font-bold p-4 rounded-lg flex gap-4 mt-8
+                                ">
+                                    <CancelIcon />
+                                    <span>{busForm.formState.errors.root.message}</span>
+                                </div>
                             )}
                         </CardFooter>
                     </Card>

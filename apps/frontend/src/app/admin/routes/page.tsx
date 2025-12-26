@@ -12,6 +12,7 @@ import Pagination from "@/src/components/ui/pagination";
 import { FormField } from "@/src/components/ui/form-field";
 import { type RouterOutputsType } from 'backend';
 import Modal from "@/src/components/ui/modal";
+import { CancelIcon } from "@/src/components/icons/cancel-ic";
 
 type Route = RouterOutputsType['routes']['findOneById'];
 
@@ -181,14 +182,17 @@ export default function AdminManageRoutePage() {
                                     {
                                         header: "Origin",
                                         render: route => route.origin.name,
+                                        headerClassName: "py-3",
                                     },
                                     {
                                         header: "Destination",
                                         render: route => route.destination.name,
+                                        headerClassName: "py-3",
                                     },
                                     {
                                         header: "Distance",
                                         render: route => `${route.distanceKm} km`,
+                                        headerClassName: "py-3",
                                     },
                                     {
                                         header: "Estimated Duration",
@@ -196,7 +200,8 @@ export default function AdminManageRoutePage() {
                                             const hours = Math.floor(route.estimatedMinutes / 60);
                                             const minutes = route.estimatedMinutes % 60;
                                             return `${hours} hour${hours > 1 ? "s" : ''}, ${minutes} minute${minutes > 1 ? "s" : ''}`;
-                                        }
+                                        },
+                                        headerClassName: "py-3",
                                     },
                                     {
                                         header: "Actions",
@@ -214,11 +219,12 @@ export default function AdminManageRoutePage() {
                                             </>
                                         ),
                                         className: "flex justify-center gap-2 py-2 px-6",
+                                        headerClassName: "py-3",
                                     },
                                 ]}
                                 tableClassName="flex-1"
-                                headClassName="text-text dark:text-text font-bold"
-                                bodyClassName="bg-primary dark:bg-primary"
+                                headClassName="text-secondary-text dark:text-secondary-text bg-primary dark:bg-primary font-bold"
+                                bodyClassName="bg-secondary dark:bg-secondary"
                             />
 
                         </Card>
@@ -242,7 +248,13 @@ export default function AdminManageRoutePage() {
                             Are you sure you want to delete this route?
                         </h1>
                         {deleteRouteError && (
-                            <div className="text-danger dark:text-danger font-bold mt-4">{deleteRouteError}</div>
+                            <div className="
+                                text-danger dark:text-danger bg-danger/20 dark:bg-danger/20 
+                                border border-danger dark:border-danger
+                                font-bold mt-4 p-4 rounded-lg flex gap-4
+                            ">
+                                <CancelIcon /> <span>{deleteRouteError}</span>
+                            </div>
                         )}
                     </CardHeader>
                     <CardBody className="text-text dark:text-text">

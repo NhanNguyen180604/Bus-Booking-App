@@ -8,6 +8,8 @@ import { useForm } from "react-hook-form";
 import { StationCreateDto, StationCreateDtoType } from "@repo/shared";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
+import { CancelIcon } from "@/src/components/icons/cancel-ic";
+import { CheckIcon } from "@/src/components/icons/check-ic";
 
 export default function AdminCreateNewStationPage() {
     const trpc = useTRPC();
@@ -27,25 +29,13 @@ export default function AdminCreateNewStationPage() {
     const createStationMutationOpts = trpc.stations.createOne.mutationOptions();
     const createStationMutation = useMutation({
         ...createStationMutationOpts,
-        onError(error: any) {
-            if (error.data?.zodError) {
-                // Handle Zod validation errors from backend
-                const zodErrors = error.data.zodError.fieldErrors;
-                zodErrors.forEach((fieldError: any) => {
-                    setError(fieldError.path[0] as any, {
-                        message: fieldError.message,
-                    });
-                });
-            } else {
-                setError("root", {
-                    message: error.message || "Creating new station failed. Please try again.",
-                });
-            }
+        onError(error) {
+            setError("root", { message: error.message });
         },
         onSuccess(data) {
             queryClient.invalidateQueries({ queryKey: trpc.stations.search.queryKey() });
             queryClient.setQueryData(trpc.stations.findOne.queryKey({ id: data.id }), data);
-            setTimeout(() => router.push('/admin/stations'), 3000);
+            router.push('/admin/stations');
         },
     });
 
@@ -61,12 +51,6 @@ export default function AdminCreateNewStationPage() {
             <form onSubmit={handleSubmit(onSubmit)}>
                 <Card>
                     <CardBody className="gap-x-6 gap-y-4">
-                        {formErrors.root && (
-                            <div className="col-span-2">
-                                <p className="text-danger dark:text-danger font-bold">{formErrors.root.message}</p>
-                            </div>
-                        )}
-
                         <FormField
                             label="Name"
                             placeholder="Hanoi"
@@ -76,7 +60,7 @@ export default function AdminCreateNewStationPage() {
                         />
                     </CardBody>
 
-                    <CardFooter>
+                    <CardFooter className="rounded-lg">
                         <Button
                             type="submit"
                             variant="accent"
@@ -88,14 +72,25 @@ export default function AdminCreateNewStationPage() {
                         </Button>
 
                         {createStationMutation.isSuccess && (
-                            <>
-                                <div className="col-span-2 text-success dark:text-success font-bold text-center text-xl mt-4">
-                                    Create Station Successfully!
-                                </div>
-                                <div className="col-span-2 text-success dark:text-success font-bold text-center text-xl mt-4">
-                                    Returning to Stations Page
-                                </div>
-                            </>
+                            <div className="col-span-2
+                                text-success dark:text-success bg-success/20 dark:bg-success/20 
+                                border border-success dark:border-success
+                                font-bold text-center p-4 rounded-lg flex gap-4 mt-8
+                            ">
+                                <CheckIcon />
+                                <span>Create Station Successfully!</span>
+                            </div>
+                        )}
+
+                        {formErrors.root && (
+                            <div className="col-span-2
+                                text-danger dark:text-danger bg-danger/20 dark:bg-danger/20 
+                                border border-danger dark:border-danger
+                                font-bold p-4 rounded-lg flex gap-4 mt-8
+                            ">
+                                <CancelIcon />
+                                <span>{formErrors.root.message}</span>
+                            </div>
                         )}
                     </CardFooter>
                 </Card>

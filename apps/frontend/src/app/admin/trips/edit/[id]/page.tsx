@@ -130,19 +130,6 @@ export default function AdminEditTripPage() {
             <form onSubmit={handleSubmit(onSubmit)}>
                 <Card className="flex flex-col mb-8">
                     <CardBody className="flex flex-col px-6 pb-4 gap-8">
-                        {formErrors.root && (
-                            <div className="col-span-2">
-                                <p className="
-                                    text-danger dark:text-danger bg-danger/20 dark:bg-danger/20 
-                                    border border-danger dark:border-danger
-                                    font-bold mt-4 p-4 rounded-lg flex gap-4
-                                ">
-                                    <CancelIcon />
-                                    <span>{formErrors.root.message}</span>
-                                </p>
-                            </div>
-                        )}
-
                         <div className="flex-1">
                             <Controller control={control}
                                 name="routeId"
@@ -250,7 +237,7 @@ export default function AdminEditTripPage() {
                         </div>
                     </CardBody>
 
-                    <CardFooter>
+                    <CardFooter className="rounded-lg">
                         <Button
                             type="submit"
                             variant="accent"
@@ -264,10 +251,23 @@ export default function AdminEditTripPage() {
                             <div className="
                                     text-success dark:text-success bg-success/20 dark:bg-success/20 
                                     border border-success dark:border-success
-                                    font-bold mt-4 p-4 rounded-lg flex gap-4
+                                    font-bold mt-8 p-4 rounded-lg flex gap-4
                                 ">
                                 <CheckIcon />
                                 <span>Update Trip Successfully!</span>
+                            </div>
+                        )}
+
+                        {formErrors.root && (
+                            <div className="col-span-2">
+                                <p className="
+                                    text-danger dark:text-danger bg-danger/20 dark:bg-danger/20 
+                                    border border-danger dark:border-danger
+                                    font-bold mt-8 p-4 rounded-lg flex gap-4
+                                ">
+                                    <CancelIcon />
+                                    <span>{formErrors.root.message}</span>
+                                </p>
                             </div>
                         )}
                     </CardFooter>
