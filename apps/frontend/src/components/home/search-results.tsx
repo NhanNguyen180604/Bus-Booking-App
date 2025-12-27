@@ -8,6 +8,9 @@ import { type RouterOutputsType } from "backend";
 import Pagination from "../ui/pagination";
 import Image from "next/image";
 import { formatPrice } from "@/src/utils/format-price";
+import { SeatTypeEnum } from "@repo/shared";
+import Link from "next/link";
+import { BusIcon2 } from "../icons/bus2-ic";
 
 type FindTripResults = RouterOutputsType["trips"]["search"];
 type Bus = FindTripResults["trips"][0]["bus"];
@@ -23,7 +26,6 @@ export function SearchResults({
   isLoading,
   onPageChange,
 }: SearchResultsProps) {
-  const [selectedTrip, setSelectedTrip] = useState<string | null>(null);
   const router = useRouter();
 
   if (isLoading) {
@@ -94,7 +96,7 @@ export function SearchResults({
   };
 
   const calculateSeats = (bus: Bus) => {
-    return bus.rows * bus.cols * bus.floors;
+    return bus.seats.filter(s => s.seatType === SeatTypeEnum.PASSENGER && s.isActive).length;
   };
 
   return (
@@ -102,172 +104,75 @@ export function SearchResults({
       {/* Results Header */}
       <div className="flex justify-between items-center px-1">
         <h2 className="text-xl font-semibold text-text">
-          {results.total} trips available
+          {results.total} trip{results.total > 1 ? 's' : ''} available
         </h2>
-        <div className="text-sm text-secondary-text">
-          Showing page {results.page} of {results.totalPage}
-        </div>
       </div>
 
       {/* Trip List */}
-      <div className="space-y-3">
+      <div className="flex flex-col gap-4">
         {results.trips.map((trip) => {
-          const totalPrice = trip.basePrice;
-          const isSelected = selectedTrip === trip.id;
           const totalSeats = calculateSeats(trip.bus);
 
           return (
-            <Card
-              key={trip.id}
-              variant="default"
-              className={`transition-all hover:shadow-md hover:cursor-pointer ${isSelected ? "ring-2 ring-accent" : ""
-                }`}
-              onClick={() => router.push(`/trips/${trip.id}`)}
-            >
-              <CardBody padding="md">
-                <div className="flex flex-col gap-4">
-                  {/* Main Trip Info */}
-                  <div className="flex items-start justify-between gap-4">
-                    {/* Left: Time and Route */}
-                    <div className="flex-1">
-                      <div className="flex items-center gap-6 mb-3">
-                        {/* Departure */}
-                        <div className="text-center min-w-20">
-                          <div className="text-3xl font-semibold text-text">
-                            {getTime(trip.departureTime)}
-                          </div>
-                          <div className="text-sm text-secondary-text mt-1">
-                            {trip.route.origin.name}
-                          </div>
-                        </div>
-
-                        {/* Duration Arrow */}
-                        <div className="flex-1 flex flex-col items-center justify-center min-w-[120px]">
-                          <div className="text-sm text-secondary-text mb-3">
-                            {calculateDuration(trip.departureTime, trip.arrivalTime)}
-                          </div>
-                          <div className="w-full relative">
-                            <div className="h-px bg-border"></div>
-                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-secondary px-2">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="20"
-                                height="20"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="text-accent"
-                              >
-                                <path d="M8 6v6" />
-                                <path d="M15 6v6" />
-                                <path d="M2 12h19.6" />
-                                <path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3" />
-                                <circle cx="7" cy="18" r="2" />
-                                <circle cx="17" cy="18" r="2" />
-                              </svg>
-                            </div>
-                          </div>
-                          <div className="text-sm text-secondary-text mt-3">
-                            {trip.route.distanceKm} km
-                          </div>
-                        </div>
-
-                        {/* Arrival */}
-                        <div className="text-center min-w-20">
-                          <div className="text-3xl font-semibold text-text">
-                            {getTime(trip.arrivalTime)}
-                          </div>
-                          <div className="text-sm text-secondary-text mt-1">
-                            {trip.route.destination.name}
-                          </div>
+            <Link href={`/trips/${trip.id}`} key={trip.id}>
+              <Card
+                variant="default"
+                className='transition-all hover:shadow-md hover:cursor-pointer px-6 py-4 flex flex-col gap-4'
+              >
+                <div className="
+                  flex-1 grid 
+                  grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,2fr)]
+                  md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_minmax(0,1fr)]
+                  lg:grid-cols-[minmax(0,2fr)_minmax(0,2fr)_minmax(0,2fr)_minmax(0,3fr)] 
+                  gap-2 lg:gap-4
+                ">
+                  <div className="grid grid-rows-subgrid gap-2 row-span-2 text-text dark:text-text font-semibold">
+                    <div className="text-sm">{trip.route.origin.name.toUpperCase()}</div>
+                    <div className="text-lg">{getTime(trip.departureTime)}</div>
+                  </div>
+                  <div className="row-span-2 self-center">
+                    <div className="flex-1 flex flex-col items-center justify-center">
+                      <div className="text-sm text-secondary-text mb-3">
+                        {calculateDuration(trip.departureTime, trip.arrivalTime)}
+                      </div>
+                      <div className="w-full relative">
+                        <div className="h-px bg-border"></div>
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 px-2">
+                          <BusIcon2 />
                         </div>
                       </div>
-
-                      {/* Bus Details */}
-                      <div className="flex flex-wrap items-end gap-x-4 text-sm h-full">
-                        <div className="flex items-center gap-1.5 text-secondary-text">
-                          <Image src={"/icons/bus-ic.svg"} alt={`bus icon`} width={24} height={24} />
-                          <span className="font-medium text-text">{trip.bus.type.name}</span>
-                        </div>
-                        <div className="text-secondary-text">•</div>
-                        <div className="flex items-center gap-1.5 text-secondary-text">
-                          <Image src={"/icons/seat-ic.svg"} alt={`seat icon`} width={24} height={24} />
-                          <span>{totalSeats} seats</span>
-                        </div>
+                      <div className="text-sm text-secondary-text mt-3">
+                        {trip.route.distanceKm} km
                       </div>
-                    </div>
-
-                    {/* Right: Price and Action */}
-                    <div className="flex flex-col items-end justify-between min-w-40">
-                      <div className="text-right mb-4">
-                        <div className="text-sm font-semibold text-text uppercase tracking-wide mb-1">
-                          Price
-                        </div>
-                        <div className="text-3xl font-semibold text-accent">
-                          {formatPrice(totalPrice)}
-                        </div>
-                        <div className="text-xs text-secondary-text mt-0.5">
-                          per seat
-                        </div>
-                      </div>
-                      <Button
-                        variant="accent"
-                        size="lg"
-                        fullWidth
-                        className="mt-0"
-                        onClick={() => router.push(`/trips/${trip.id}`)}
-                      >
-                        Booking
-                      </Button>
                     </div>
                   </div>
-
-                  {/* Additional Info - Collapsible */}
-                  {isSelected && (
-                    <div className="pt-4 border-t border-border">
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <div className="text-secondary-text mb-1">Departure Date</div>
-                          <div className="font-medium text-text">
-                            {getDate(trip.departureTime)}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-secondary-text mb-1">Estimated Arrival</div>
-                          <div className="font-medium text-text">
-                            {getDate(trip.arrivalTime)}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-secondary-text mb-1">Bus Layout</div>
-                          <div className="font-medium text-text">
-                            {trip.bus.floors} floor{trip.bus.floors > 1 ? "s" : ""} • {trip.bus.rows}×{trip.bus.cols}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-secondary-text mb-1">Distance</div>
-                          <div className="font-medium text-text">
-                            {trip.route.distanceKm} km ({trip.route.estimatedMinutes} min)
-                          </div>
-                        </div>
-                      </div>
-                      <div className="mt-4 flex gap-2">
-                        <Button
-                          variant="primary"
-                          fullWidth
-                          onClick={() => router.push(`/trips/${trip.id}`)}
-                        >
-                          Continue to Seat Selection
-                        </Button>
-                      </div>
+                  <div className="grid grid-rows-subgrid gap-2 row-span-2 text-text dark:text-text font-semibold">
+                    <div className="text-sm text-end">{trip.route.destination.name.toUpperCase()}</div>
+                    <div className="text-lg text-end">{getTime(trip.arrivalTime)}</div>
+                  </div>
+                  <div className="hidden lg:grid grid-rows-subgrid gap-2 row-span-2">
+                    <div className="text-secondary-text dark:text-secondary-text text-end">
+                      {trip.bus.type.name} - {totalSeats} seat{totalSeats > 1 ? 's' : ''}
                     </div>
-                  )}
+                    <div className="text-accent dark:text-accent font-bold text-xl text-end">
+                      {formatPrice(trip.basePrice)}
+                    </div>
+                  </div>
                 </div>
-              </CardBody>
-            </Card>
+                <div className="lg:hidden flex justify-between">
+                  <div className="text-secondary-text dark:text-secondary-text">
+                    <div>{trip.bus.type.name}</div>
+                    <div>{totalSeats} seat{totalSeats > 1 ? 's' : ''}</div>
+                  </div>
+                  <div className="text-accent dark:text-accent font-bold text-xl text-end self-center">
+                    {formatPrice(trip.basePrice)}
+                  </div>
+                </div>
+                <Button variant="accent" className="col-span-8">
+                  Book Now
+                </Button>
+              </Card>
+            </Link>
           );
         })}
       </div>

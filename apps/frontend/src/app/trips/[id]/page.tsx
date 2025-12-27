@@ -75,10 +75,10 @@ export default function TripDetailPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto py-8 px-8 lg:px-4">
+    <div className="max-w-7xl mx-auto py-8">
       <button
         onClick={() => router.back()}
-        className="flex items-center gap-2 text-accent hover:text-accent/80 mb-6"
+        className="flex items-center gap-2 text-accent hover:text-accent/80 mb-6 hover:cursor-pointer"
       >
         <ChevronLeftIcon />
         Back to Results

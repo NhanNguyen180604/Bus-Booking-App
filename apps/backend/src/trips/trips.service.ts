@@ -222,7 +222,7 @@ export class TripsService {
         const [trips, count] = await this.tripRepo.findAndCount({
             where,
             order,
-            relations: { route: { origin: true, destination: true }, bus: { type: true } },
+            relations: { route: { origin: true, destination: true }, bus: { type: true, seats: true }, },
             skip: (dto.page - 1) * dto.perPage,
             take: dto.perPage,
         });

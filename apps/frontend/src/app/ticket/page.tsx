@@ -13,6 +13,7 @@ import Pagination from '@/src/components/ui/pagination';
 import Loading from '@/src/components/ui/loading';
 import { getStatusColor } from '@/src/utils/get-status-color';
 import { PaymentStatusEnum, TripStatusEnum } from '@repo/shared';
+import Link from 'next/link';
 
 export default function TicketPage() {
     const router = useRouter();
@@ -45,9 +46,9 @@ export default function TicketPage() {
     }
 
     return (
-        <div className="min-h-screen bg-background py-8 px-4">
+        <div className="min-h-screen bg-background py-4 sm:py-8 px-4 lg:px-4">
             <div className="max-w-6xl mx-auto">
-                <h1 className="text-3xl font-bold text-text mb-8">My Tickets</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold text-text mb-6 sm:mb-8">My Tickets</h1>
                 {/* Booking History List */}
                 <div className="space-y-4">
                     {bookingsQuery.isLoading && (
@@ -82,55 +83,57 @@ export default function TicketPage() {
                         <>
                             <div className="grid gap-4">
                                 {bookingsQuery.data.data.map((booking) => (
-                                    <Card key={booking.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => router.push('/ticket/details/' + booking.id)}>
-                                        <CardBody>
-                                            <div className="flex items-center justify-between gap-4">
-                                                <div className="flex-1">
-                                                    <div className="flex items-center gap-3 mb-2">
-                                                        <h3 className="text-lg font-bold text-text">{booking.lookupCode}</h3>
-                                                        {booking.payment.status !== PaymentStatusEnum.COMPLETED ? (
-                                                            <p className={`
-                                                                inline-block px-3 py-1 rounded-full font-semibold text-md
+                                    <Link href={`/ticket/details/${booking.id}`} key={booking.id}>
+                                        <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                                            <CardBody>
+                                                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                                    <div className="flex-1">
+                                                        <div className="flex flex-wrap justify-between md:justify-start items-center gap-2 sm:gap-3 mb-3 sm:mb-2">
+                                                            <h3 className="text-base sm:text-lg font-bold text-text">{booking.lookupCode}</h3>
+                                                            {booking.payment.status !== PaymentStatusEnum.COMPLETED ? (
+                                                                <p className={`
+                                                                inline-block px-2 sm:px-3 py-0.5 sm:py-1 rounded-full font-semibold text-xs sm:text-sm
                                                                 bg-${getStatusColor(booking.payment.status)}/20 text-${getStatusColor(booking.payment.status)}
                                                                 `
-                                                            }>
-                                                                {booking.payment.status}
-                                                            </p>
-                                                        ) : (
-                                                            <p className={`inline-block px-3 py-1 rounded-full font-semibold text-md ${booking.trip.status === TripStatusEnum.UPCOMING
-                                                                ? 'bg-success/20 text-success'
-                                                                : 'bg-secondary-text/20 text-secondary-text'
-                                                                }`}>
-                                                                {booking.trip.status}
-                                                            </p>
-                                                        )}
+                                                                }>
+                                                                    {booking.payment.status}
+                                                                </p>
+                                                            ) : (
+                                                                <p className={`inline-block px-2 sm:px-3 py-0.5 sm:py-1 rounded-full font-semibold text-xs sm:text-sm ${booking.trip.status === TripStatusEnum.UPCOMING
+                                                                    ? 'bg-success/20 text-success'
+                                                                    : 'bg-secondary-text/20 text-secondary-text'
+                                                                    }`}>
+                                                                    {booking.trip.status}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 text-xs sm:text-sm">
+                                                            <div>
+                                                                <p className="text-secondary-text text-xs sm:text-sm">Route</p>
+                                                                <p className="font-semibold text-text text-sm sm:text-base">
+                                                                    {booking.trip.route?.origin?.name || 'N/A'} → {booking.trip.route?.destination?.name || 'N/A'}
+                                                                </p>
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-secondary-text text-xs sm:text-sm">Departure</p>
+                                                                <p className="font-semibold text-text text-sm sm:text-base">{formatVNWithAMPM(new Date(booking.trip.departureTime))}</p>
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-secondary-text text-xs sm:text-sm">Seats</p>
+                                                                <p className="font-semibold text-text text-sm sm:text-base">{booking.seats.map(s => s.code).join(', ')}</p>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                    <div className="grid md:grid-cols-3 gap-4 text-sm">
-                                                        <div>
-                                                            <p className="text-secondary-text">Route</p>
-                                                            <p className="font-semibold text-text">
-                                                                {booking.trip.route?.origin?.name || 'N/A'} → {booking.trip.route?.destination?.name || 'N/A'}
-                                                            </p>
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-secondary-text">Departure</p>
-                                                            <p className="font-semibold text-text">{formatVNWithAMPM(new Date(booking.trip.departureTime))}</p>
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-secondary-text">Seats</p>
-                                                            <p className="font-semibold text-text">{booking.seats.map(s => s.code).join(', ')}</p>
-                                                        </div>
+                                                    <div className="flex flex-col justify-between md:items-end gap-3 md:gap-2 pt-3 md:pt-0 border-t md:border-t-0 border-border">
+                                                        <p className="text-xl sm:text-2xl font-bold text-accent self-end">{formatPrice(booking.totalPrice)}</p>
+                                                        <Button variant="accent" size="sm" className="">
+                                                            View →
+                                                        </Button>
                                                     </div>
                                                 </div>
-                                                <div className="text-right">
-                                                    <p className="text-2xl font-bold text-accent">{formatPrice(booking.totalPrice)}</p>
-                                                    <Button variant="accent" size="sm" className="mt-2">
-                                                        View Ticket →
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </CardBody>
-                                    </Card>
+                                            </CardBody>
+                                        </Card>
+                                    </Link>
                                 ))}
                             </div>
 
