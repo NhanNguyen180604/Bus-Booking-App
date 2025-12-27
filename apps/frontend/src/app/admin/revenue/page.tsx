@@ -1,5 +1,4 @@
-"use client";
-
+"use client";;
 import { Button } from "@/src/components/ui/button";
 import { Card, CardBody, CardFooter, CardHeader } from "@/src/components/ui/card";
 import { FormField } from "@/src/components/ui/form-field";
@@ -8,13 +7,11 @@ import { OptionType, SelectDropdown } from "@/src/components/ui/select-dropdown"
 import { Table } from "@/src/components/ui/table";
 import { formatPrice } from "@/src/utils/format-price";
 import { formatVNWithAMPM } from "@/src/utils/format-time";
+import { getPaymentStatusColor } from "@/src/utils/get-status-color";
 import { useTRPC } from "@/src/utils/trpc";
 import { PaymentProviderEnum, PaymentSearchDtoType, PaymentStatusEnum } from "@repo/shared";
 import { useQuery } from "@tanstack/react-query";
-import { RouterOutputsType } from "backend";
 import { useState } from "react";
-
-type Payment = RouterOutputsType['payments']['search']['data'][number];
 
 export default function AdminRevenuePage() {
     const trpc = useTRPC();
@@ -40,15 +37,6 @@ export default function AdminRevenuePage() {
         e.preventDefault();
         setSearchObj({ ...searchInput, page: 1 });
         setPage(1);
-    };
-
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('vi-VN', {
-            style: 'currency',
-            currency: 'VND',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
-        }).format(amount).replace('₫', 'VND');
     };
 
     return (
@@ -263,7 +251,7 @@ export default function AdminRevenuePage() {
                                 },
                                 {
                                     header: "Amount",
-                                    render: (payment) => formatCurrency(Number(payment.amount)),
+                                    render: (payment) => formatPrice(Number(payment.amount)),
                                     className: "py-3 px-4 text-left text-text font-semibold",
                                     headerClassName: "py-3 px-4 text-left"
                                 },
@@ -276,15 +264,12 @@ export default function AdminRevenuePage() {
                                 {
                                     header: "Status",
                                     render: (payment) => (
-                                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${payment.status === 'COMPLETED'
-                                                ? 'bg-success/20 text-success'
-                                                : 'bg-warning/20 text-warning'
-                                            }`}>
+                                        <span className={`inline-flex w-28 justify-center whitespace-nowrap px-3 py-1 rounded-full text-xs font-semibold text-${getPaymentStatusColor(payment.status)} bg-${getPaymentStatusColor(payment.status)}/20`}>
                                             {payment.status}
                                         </span>
                                     ),
-                                    className: "py-3 px-4 text-left",
-                                    headerClassName: "py-3 px-4 text-left"
+                                    className: "py-3 px-4 w-28",
+                                    headerClassName: "py-3 px-4 text-left w-28"
                                 },
                                 {
                                     header: "Date",

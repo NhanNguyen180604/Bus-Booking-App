@@ -81,3 +81,16 @@ export const BookingCheckInDto = z.object({
     checkedIn: z.boolean(),
 });
 export type BookingCheckInDtoType = z.infer<typeof BookingCheckInDto>;
+
+export const BookingAdminSearchDto = z.object({
+    page: z.int().gte(1, { error: "Page number must be >= 1" }).default(1),
+    perPage: z.int().gte(1, { error: "Per Page number must be >= 1" }).default(10),
+    originId: z.uuid().optional(),
+    destinationId: z.uuid().optional(),
+    query: z.string().trim().optional(),
+    status: z.enum(PaymentStatusEnum).optional(),
+    sortDate: sortOptions,
+    sortPrice: sortOptions,
+    sortStatus: sortOptions,
+});
+export type BookingAdminSearchDtoType = z.infer<typeof BookingAdminSearchDto>;

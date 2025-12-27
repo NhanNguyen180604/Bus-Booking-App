@@ -8,9 +8,7 @@ import { RouteIcon } from "../icons/route-ic";
 import { StationIcon } from "../icons/station-ic";
 import { BusIcon } from "../icons/bus-ic";
 import { SteeringWheelIcon } from "../icons/steering-wheel";
-import { PersonIcon } from "../icons/person";
-import { ReportIcon } from "../icons/report-ic";
-import { SettingsIcon } from "../icons/settings-ic";
+import { BookingIcon } from "../icons/booking-ic";
 
 export function AdminNavBar() {
     return (
@@ -26,13 +24,7 @@ export function AdminNavBar() {
                     <NavTab name="Stations" url="/admin/stations" icon={StationIcon} />
                     <NavTab name="Buses" url="/admin/buses" icon={BusIcon} />
                     <NavTab name="Drivers" url="/admin/drivers" icon={SteeringWheelIcon} />
-                </div>
-                <div className="flex flex-col gap-2">
-                    <NavTab name="Customers" url="/admin/customers" icon={PersonIcon} />
-                    <NavTab name="Reports" url="/admin/reports" icon={ReportIcon} />
-                </div>
-                <div className="flex flex-col gap-2">
-                    <NavTab name="Settings" url="/admin/settings" icon={SettingsIcon} />
+                    <NavTab name="Bookings" url="/admin/bookings" icon={BookingIcon} />
                 </div>
             </Card>
         </>
