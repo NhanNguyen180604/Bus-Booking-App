@@ -11,7 +11,7 @@ import { VariantModal } from "@/src/components/ui/variant-modal";
 import useUser from "@/src/hooks/useUser";
 import { formatPrice } from "@/src/utils/format-price";
 import { formatVNWithAMPM } from "@/src/utils/format-time";
-import { getStatusColor } from "@/src/utils/get-status-color";
+import { getPaymentStatusColor } from "@/src/utils/get-status-color";
 import { useTRPC } from "@/src/utils/trpc";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -699,7 +699,7 @@ export default function TicketDetailsPage() {
                                     {selectedBooking.payment.status !== PaymentStatusEnum.COMPLETED ? (
                                         <p className={`
                                             inline-block px-3 py-1 rounded-full font-semibold text-lg 
-                                            bg-${getStatusColor(selectedBooking.payment.status)}/20 text-${getStatusColor(selectedBooking.payment.status)}
+                                            bg-${getPaymentStatusColor(selectedBooking.payment.status)}/20 text-${getPaymentStatusColor(selectedBooking.payment.status)}
                                             `
                                         }>
                                             {selectedBooking.payment.status}
@@ -831,7 +831,7 @@ export default function TicketDetailsPage() {
                                     <div>
                                         <p className="text-xs text-secondary-text uppercase font-semibold">Status</p>
                                         <p className={`inline-block px-3 py-1 rounded-full font-semibold text-sm mt-1 
-                                            bg-${getStatusColor(selectedBooking.payment.status)}/20 text-${getStatusColor(selectedBooking.payment.status)}
+                                            bg-${getPaymentStatusColor(selectedBooking.payment.status)}/20 text-${getPaymentStatusColor(selectedBooking.payment.status)}
                                         `}>
                                             {selectedBooking.payment.status}
                                         </p>

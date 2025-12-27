@@ -11,7 +11,7 @@ import useUser from '@/src/hooks/useUser';
 import { useRouter } from 'next/navigation';
 import Pagination from '@/src/components/ui/pagination';
 import Loading from '@/src/components/ui/loading';
-import { getStatusColor } from '@/src/utils/get-status-color';
+import { getPaymentStatusColor } from '@/src/utils/get-status-color';
 import { PaymentStatusEnum, TripStatusEnum } from '@repo/shared';
 import Link from 'next/link';
 
@@ -93,7 +93,7 @@ export default function TicketPage() {
                                                             {booking.payment.status !== PaymentStatusEnum.COMPLETED ? (
                                                                 <p className={`
                                                                 inline-block px-2 sm:px-3 py-0.5 sm:py-1 rounded-full font-semibold text-xs sm:text-sm
-                                                                bg-${getStatusColor(booking.payment.status)}/20 text-${getStatusColor(booking.payment.status)}
+                                                                bg-${getPaymentStatusColor(booking.payment.status)}/20 text-${getPaymentStatusColor(booking.payment.status)}
                                                                 `
                                                                 }>
                                                                     {booking.payment.status}

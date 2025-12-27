@@ -1,6 +1,6 @@
 import { PaymentStatusEnum } from "@repo/shared";
 
-export const getStatusColor = (status: PaymentStatusEnum) => {
+export const getPaymentStatusColor = (status: PaymentStatusEnum) => {
     switch (status) {
         case PaymentStatusEnum.COMPLETED:
             return 'success';

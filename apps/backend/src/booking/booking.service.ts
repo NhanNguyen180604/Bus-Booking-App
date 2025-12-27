@@ -11,7 +11,8 @@ import {
     PaymentProviderEnum,
     PaymentStatusEnum,
     TripStatusEnum,
-    UserRoleEnum
+    UserRoleEnum,
+    BookingAdminSearchDtoType
 } from '@repo/shared';
 import { TRPCError } from '@trpc/server';
 import { Booking } from 'src/entities/booking.entity';
@@ -511,6 +512,90 @@ export class BookingService {
             seats: booking.seats,
             token: booking.token,
             checkedIn: booking.checkedIn,
+        };
+    }
+
+    async adminSearchBookings(dto: BookingAdminSearchDtoType) {
+        const qb = this.entityManager
+            .getRepository(Booking)
+            .createQueryBuilder('booking')
+            .leftJoin('booking.trip', 'trip')
+            .leftJoin('trip.route', 'route')
+            .leftJoin('route.origin', 'origin')
+            .leftJoin('route.destination', 'destination')
+            .leftJoin('booking.payment', 'payment')
+            .leftJoin('payment.user', 'user')
+            .leftJoin('booking.seats', 'seats')
+            .select([
+                'booking',
+                'trip.id',
+                'trip.departureTime',
+                'trip.arrivalTime',
+                'route.id',
+                'origin.name',
+                'destination.name',
+                'payment',
+                'user.id',
+                'user.name',
+                'user.email',
+                'seats.id',
+                'seats.code',
+            ]);
+
+        // Filters
+        if (dto.originId) {
+            qb.andWhere('origin.id = :originId', { originId: dto.originId });
+        }
+
+        if (dto.destinationId) {
+            qb.andWhere('destination.id = :destinationId', { destinationId: dto.destinationId });
+        }
+
+        if (dto.status) {
+            qb.andWhere('payment.status = :status', { status: dto.status });
+        }
+
+        if (dto.query) {
+            qb.andWhere(
+                '(LOWER(booking.fullName) LIKE :query OR LOWER(booking.email) LIKE :query OR booking.phone LIKE :query)',
+                { query: `%${dto.query.toLowerCase()}%` }
+            );
+        }
+
+        // Sorting
+        if (dto.sortDate) {
+            qb.addOrderBy('booking.createdAt', dto.sortDate.toUpperCase() as 'ASC' | 'DESC');
+        }
+
+        if (dto.sortPrice) {
+            qb.addOrderBy('booking.totalPrice', dto.sortPrice.toUpperCase() as 'ASC' | 'DESC');
+        }
+
+        if (dto.sortStatus) {
+            qb.addOrderBy('payment.status', dto.sortStatus.toUpperCase() as 'ASC' | 'DESC');
+        }
+
+        // Default sort by date descending
+        if (!dto.sortDate && !dto.sortPrice && !dto.sortStatus) {
+            qb.addOrderBy('booking.createdAt', 'DESC');
+        }
+
+        // Pagination
+        const [bookings, count] = await qb
+            .skip((dto.page - 1) * dto.perPage)
+            .take(dto.perPage)
+            .getManyAndCount();
+
+        const perPage = Math.min(dto.perPage, count);
+        const totalPage = Math.ceil(count / perPage);
+        const page = Math.min(totalPage, dto.page);
+
+        return {
+            data: bookings,
+            page,
+            perPage,
+            total: count,
+            totalPage,
         };
     }
 }
