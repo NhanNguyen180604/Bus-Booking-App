@@ -22,12 +22,12 @@ export default function AdminRevenuePage() {
 
     const [page, setPage] = useState(1);
     const [totalPage, setTotalPage] = useState(1);
-    
+
     const [searchInput, setSearchInput] = useState<PaymentSearchDtoType>({
         page: 1,
         perPage,
     });
-    
+
     const [searchObj, setSearchObj] = useState<PaymentSearchDtoType>(searchInput);
 
     const searchPaymentsOpts = trpc.payments.search.queryOptions(searchObj);
@@ -147,10 +147,10 @@ export default function AdminRevenuePage() {
                                     id="sortBy"
                                     name="sortBy"
                                     isClearable
-                                    value={searchInput.sortBy ? { 
-                                        value: searchInput.sortBy, 
-                                        label: searchInput.sortBy === 'createdAt' ? 'Date' : 
-                                               searchInput.sortBy === 'amount' ? 'Amount' : 'Status'
+                                    value={searchInput.sortBy ? {
+                                        value: searchInput.sortBy,
+                                        label: searchInput.sortBy === 'createdAt' ? 'Date' :
+                                            searchInput.sortBy === 'amount' ? 'Amount' : 'Status'
                                     } : null}
                                     options={[
                                         { value: 'createdAt', label: 'Date' },
@@ -235,12 +235,12 @@ export default function AdminRevenuePage() {
                 </Card>
             ) : searchPaymentsQuery.data && searchPaymentsQuery.data.data.length > 0 ? (
                 <>
-                    <Card>
+                    <Card className="flex overflow-hidden">
                         <Table
                             data={searchPaymentsQuery.data.data}
                             rowKey={(payment) => `payment-${payment.id}`}
                             tableClassName="w-full"
-                            headClassName="bg-primary/50 text-secondary-text text-sm"
+                            headClassName="bg-primary dark:bg-primary text-secondary-text dark:text-secondary-text text-sm"
                             bodyClassName="text-sm"
                             columns={[
                                 {
@@ -276,11 +276,10 @@ export default function AdminRevenuePage() {
                                 {
                                     header: "Status",
                                     render: (payment) => (
-                                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                            payment.status === 'COMPLETED'
+                                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${payment.status === 'COMPLETED'
                                                 ? 'bg-success/20 text-success'
                                                 : 'bg-warning/20 text-warning'
-                                        }`}>
+                                            }`}>
                                             {payment.status}
                                         </span>
                                     ),

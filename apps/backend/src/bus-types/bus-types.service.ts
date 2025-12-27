@@ -98,4 +98,8 @@ export class BusTypesService {
             totalPage,
         }
     }
+
+    findAll() {
+        return this.busTypeRepo.find();
+    }
 }

@@ -175,4 +175,11 @@ export class RoutesService {
     findOneHelper(options: FindOneOptions<Route>) {
         return this.routeRepo.findOne(options);
     }
+
+    findAll() {
+        return this.routeRepo.find({
+            relations: { origin: true, destination: true },
+            order: { origin: { name: "ASC" } },
+        });
+    }
 }

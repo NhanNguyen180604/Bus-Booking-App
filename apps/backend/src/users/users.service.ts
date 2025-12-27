@@ -332,4 +332,12 @@ export class UsersService {
             });
         }
     }
+
+    findAllDriver() {
+        return this.userRepo.find({
+            where: {
+                role: UserRoleEnum.DRIVER
+            }
+        });
+    }
 }

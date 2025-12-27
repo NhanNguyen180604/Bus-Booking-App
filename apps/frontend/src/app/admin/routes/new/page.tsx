@@ -1,49 +1,27 @@
-"use client";
-
+"use client"
 import { Button } from "@/src/components/ui/button";
 import { Card, CardBody, CardFooter } from "@/src/components/ui/card";
 import { FormField } from "@/src/components/ui/form-field";
 import { OptionType, SelectDropdown } from "@/src/components/ui/select-dropdown";
 import { useTRPC } from "@/src/utils/trpc";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRef, useState, useEffect } from "react";
-import { type RouterOutputsType } from 'backend'
 import { useForm, Controller } from "react-hook-form";
 import { RouteCreateOneDto, RouteCreateOneDtoType } from "@repo/shared";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-
-// bro what the hell
-type Station = RouterOutputsType["stations"]["search"]['data'][number];
+import { CancelIcon } from "@/src/components/icons/cancel-ic";
+import { CheckIcon } from "@/src/components/icons/check-ic";
+import Loading from "@/src/components/ui/loading";
 
 export default function AdminCreateNewRoutePage() {
     const trpc = useTRPC();
     const router = useRouter();
     const queryClient = useQueryClient();
 
-    const perPage = 20;
-
-    // fetching stations for dropdown
-    const stationTotalPageNumber = useRef(1);
-    const [stationPage, setStationPage] = useState(1);
-    const [stations, setStations] = useState<Station[]>([]);
-
-    const searchStationQueryOpts = trpc.stations.search.queryOptions({
-        page: stationPage,
-        perPage,
+    const stationsQuery = useQuery({
+        ...trpc.stations.findAll.queryOptions(),
+        staleTime: 10 * 60 * 1000,
     });
-    const searchStationQuery = useQuery({
-        ...searchStationQueryOpts,
-        staleTime: 60 * 60 * 1000,
-    });
-
-    // appending stations whenever successfully fetch
-    useEffect(() => {
-        if (searchStationQuery.isSuccess) {
-            stationTotalPageNumber.current = searchStationQuery.data.totalPage;
-            setStations([...stations, ...searchStationQuery.data.data]);
-        }
-    }, [searchStationQuery.isSuccess]);
 
     const {
         register,
@@ -59,30 +37,24 @@ export default function AdminCreateNewRoutePage() {
     const createRouteMutationOpts = trpc.routes.createOne.mutationOptions();
     const createRouteMutation = useMutation({
         ...createRouteMutationOpts,
-        onError(error: any) {
-            if (error.data?.zodError) {
-                // Handle Zod validation errors from backend
-                const zodErrors = error.data.zodError.fieldErrors;
-                zodErrors.forEach((fieldError: any) => {
-                    setError(fieldError.path[0] as any, {
-                        message: fieldError.message,
-                    });
-                });
-            } else {
-                setError("root", {
-                    message: error.message || "Create new route failed. Please try again.",
-                });
-            }
+        onError(error) {
+            setError("root", { message: error.message });
         },
         onSuccess(data) {
             queryClient.invalidateQueries({ queryKey: trpc.routes.search.queryKey() });
             queryClient.setQueryData(trpc.routes.findOneById.queryKey({ id: data.id }), data);
-            setTimeout(() => router.push('/admin/routes'), 3000);
+            router.push('/admin/routes');
         },
     });
 
     const onSubmit = (data: RouteCreateOneDtoType) => {
         createRouteMutation.mutate(data);
+    }
+
+    const stationData = stationsQuery.data ?? [];
+
+    if (stationsQuery.isPending) {
+        return <Loading />;
     }
 
     return (
@@ -93,28 +65,17 @@ export default function AdminCreateNewRoutePage() {
             <form onSubmit={handleSubmit(onSubmit)}>
                 <Card>
                     <CardBody className="grid grid-cols-2 gap-x-6 gap-y-4">
-                        {formErrors.root && (
-                            <div className="col-span-2">
-                                <p className="text-danger dark:text-danger font-bold">{formErrors.root.message}</p>
-                            </div>
-                        )}
-
                         {/* station dropdowns */}
                         <Controller control={control}
                             name="originId"
                             render={({ field: { onChange } }) => (
                                 <SelectDropdown label="Origin" isClearable required
-                                    options={stations.map(station => ({ value: station.id, label: station.name }))}
+                                    options={stationData.map(station => ({ value: station.id, label: station.name }))}
                                     onChange={(newValue, _) => {
                                         const newVal: OptionType<string> = newValue as OptionType<string>;
                                         onChange(newVal ? newVal.value : "");
                                     }}
                                     errorMessage={formErrors.originId?.message}
-                                    onMenuScrollToBottom={(_) => {
-                                        if (stationPage < stationTotalPageNumber.current) {
-                                            setStationPage(stationPage + 1);
-                                        }
-                                    }}
                                     menuPortalTarget={document.body}
                                     menuPosition="fixed"
                                 />
@@ -124,17 +85,12 @@ export default function AdminCreateNewRoutePage() {
                             name="destinationId"
                             render={({ field: { onChange } }) => (
                                 <SelectDropdown label="Destination" isClearable required
-                                    options={stations.map(station => ({ value: station.id, label: station.name }))}
+                                    options={stationData.map(station => ({ value: station.id, label: station.name }))}
                                     onChange={(newValue, _) => {
                                         const newVal: OptionType<string> = newValue as OptionType<string>;
                                         onChange(newVal ? newVal.value : "");
                                     }}
                                     errorMessage={formErrors.destinationId?.message}
-                                    onMenuScrollToBottom={(_) => {
-                                        if (stationPage < stationTotalPageNumber.current) {
-                                            setStationPage(stationPage + 1);
-                                        }
-                                    }}
                                     menuPortalTarget={document.body}
                                     menuPosition="fixed"
                                 />
@@ -156,7 +112,7 @@ export default function AdminCreateNewRoutePage() {
                         />
                     </CardBody>
 
-                    <CardFooter>
+                    <CardFooter className="rounded-lg">
                         <Button
                             type="submit"
                             variant="accent"
@@ -168,14 +124,28 @@ export default function AdminCreateNewRoutePage() {
                         </Button>
 
                         {createRouteMutation.isSuccess && (
-                            <>
-                                <div className="col-span-2 text-success dark:text-success font-bold text-center text-xl mt-4">Create Route Successfully!</div>
-                                <div className="col-span-2 text-success dark:text-success font-bold text-center text-xl mt-4">Returning to Routes Page</div>
-                            </>
+                            <div className="col-span-2
+                                text-success dark:text-success bg-success/20 dark:bg-success/20 
+                                border border-success dark:border-success
+                                font-bold text-center p-4 rounded-lg flex gap-4 mt-8
+                            ">
+                                <CheckIcon />
+                                <span>Create Route Successfully!</span>
+                            </div>
+                        )}
+
+                        {formErrors.root && (
+                            <div className="col-span-2
+                                text-danger dark:text-danger bg-danger/20 dark:bg-danger/20 
+                                border border-danger dark:border-danger
+                                font-bold p-4 rounded-lg flex gap-4 mt-8
+                            ">
+                                <CancelIcon /> <span>{formErrors.root.message}</span>
+                            </div>
                         )}
                     </CardFooter>
                 </Card>
             </form>
         </div>
     );
-};
+}

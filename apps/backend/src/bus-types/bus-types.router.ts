@@ -44,6 +44,11 @@ export class BusTypesRouter {
                 .query(({ input }) => {
                     return this.busTypesService.search(input);
                 }),
+            findAll: this.trpcService
+                .publicProcedure()
+                .query(() => {
+                    return this.busTypesService.findAll();
+                }),
         });
     }
 }

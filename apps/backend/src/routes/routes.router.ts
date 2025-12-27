@@ -44,6 +44,11 @@ export class RoutesRouter {
                 .query(({ input }) => {
                     return this.routesService.search(input);
                 }),
+            findAll: this.trpcService
+                .publicProcedure()
+                .query(() => {
+                    return this.routesService.findAll();
+                })
         });
     }
 }

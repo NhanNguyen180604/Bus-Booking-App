@@ -1,12 +1,11 @@
-"use client";
-
+"use client";;
 import { Card, CardBody, CardHeader } from "@/src/components/ui/card";
 import { Table } from "@/src/components/ui/table";
 import { formatPrice } from "@/src/utils/format-price";
 import { useTRPC } from "@/src/utils/trpc";
 import { useQuery } from "@tanstack/react-query";
-import Image from "next/image";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { CancelIcon } from "@/src/components/icons/cancel-ic";
 
 export default function AdminReportsPage() {
     const trpc = useTRPC();
@@ -28,7 +27,13 @@ export default function AdminReportsPage() {
     if (overviewQuery.isError) {
         return (
             <div className="flex items-center justify-center min-h-[60vh]">
-                <p className="text-danger">Failed to load reports data</p>
+                <div className="
+                    text-danger dark:text-danger bg-danger/20 dark:bg-danger/20 
+                    border border-danger dark:border-danger
+                    font-bold p-4 rounded-lg flex gap-4
+                ">
+                    <CancelIcon /> <span>Failed to load reports data</span>
+                </div>
             </div>
         );
     }

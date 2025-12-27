@@ -68,6 +68,11 @@ export class BusesRouter {
                 .query(({ input }) => {
                     return this.busesService.searchBus(input);
                 }),
+            findAll: this.trpcService
+                .publicProcedure()
+                .query(() => {
+                    return this.busesService.findAll();
+                })
         });
     }
 }

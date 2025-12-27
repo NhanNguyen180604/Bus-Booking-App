@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { TrpcService } from "../trpc/trpc.service";
-import { UserRoleEnum } from "@repo/shared";
+import { TripCancelByIdDto, UserRoleEnum } from "@repo/shared";
 import { TripAdminSearchDto, TripCreateOneDto, TripDeleteOneDto, TripFindManyDto, TripFindOneByIdDto, TripUpdateOneDto, RelatedTripsDto } from "@repo/shared";
 import { TripsService } from "./trips.service";
 
@@ -66,6 +66,12 @@ export class TripsRouter {
                 .query(({ input, ctx }) => {
                     const { user: driver } = ctx;
                     return this.tripsService.driverFindOneById(input, driver!);
+                }),
+            cancelTripById: this.trpcService.procedure
+                .use(this.trpcService.roleGuardMiddleware(UserRoleEnum.ADMIN))
+                .input(TripCancelByIdDto)
+                .mutation(({ input }) => {
+                    return this.tripsService.cancelTripById(input);
                 }),
         });
     }

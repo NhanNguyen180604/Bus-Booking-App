@@ -5,17 +5,16 @@ import { SelectDropdown, OptionType } from "@/src/components/ui/select-dropdown"
 import { useTRPC } from "@/src/utils/trpc";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { BusSearchDtoType, type SortOptionsType } from '@repo/shared';
 import { Table } from "@/src/components/ui/table";
 import Pagination from "@/src/components/ui/pagination";
 import { FormField } from "@/src/components/ui/form-field";
 import { type RouterOutputsType } from 'backend';
 import Modal from "@/src/components/ui/modal";
+import { CancelIcon } from "@/src/components/icons/cancel-ic";
 
 type Bus = RouterOutputsType['buses']['getOneById'];
-type BusType = RouterOutputsType['busTypes']['getOneById'];
-type User = RouterOutputsType['users']['search']['data'][number];
 
 export default function AdminManageBusPage() {
     const router = useRouter();
@@ -24,49 +23,15 @@ export default function AdminManageBusPage() {
 
     const perPage = 20;
 
-    // fetching drivers for dropdown
-    const [drivers, setDrivers] = useState<User[]>([]);
-    const driverTotalPageNumber = useRef(1);
-    const [driverPage, setDriverPage] = useState(1);
-
-    const searchDriverQueryOpts = trpc.users.search.queryOptions({
-        role: "DRIVER",
-        page: driverPage,
-        perPage,
-    });
-    const searchDriverQuery = useQuery({
-        ...searchDriverQueryOpts,
+    const driversQuery = useQuery({
+        ...trpc.users.findAllDriver.queryOptions(),
         staleTime: 60 * 60 * 1000,
     });
-    // appending drivers whenever successfully fetch
-    useEffect(() => {
-        if (searchDriverQuery.isSuccess) {
-            driverTotalPageNumber.current = searchDriverQuery.data.totalPage;
-            setDrivers([...drivers, ...searchDriverQuery.data.data]);
-        }
-    }, [searchDriverQuery.isSuccess]);
 
-    // fetching bus types for dropdown
-    const [busTypes, setBusTypes] = useState<BusType[]>([]);
-    const busTypesTotalPageNumber = useRef(1);
-    const [busTypePage, setBusTypePage] = useState(1);
-
-    const searchBusTypeQueryOpts = trpc.busTypes.search.queryOptions({
-        page: busTypePage,
-        perPage,
-    });
-    const searchBusTypeQuery = useQuery({
-        ...searchBusTypeQueryOpts,
+    const busTypesQuery = useQuery({
+        ...trpc.busTypes.findAll.queryOptions(),
         staleTime: 60 * 60 * 1000,
     });
-    // appending bus types whenever successfully fetch
-    useEffect(() => {
-        if (searchBusTypeQuery.isSuccess) {
-            busTypesTotalPageNumber.current = searchBusTypeQuery.data.totalPage;
-            setBusTypes([...busTypes, ...searchBusTypeQuery.data.data]);
-        }
-    }, [searchBusTypeQuery.isSuccess]);
-
 
     // actually searching for bus here
     const [busPage, setBusPage] = useState(1);
@@ -124,6 +89,9 @@ export default function AdminManageBusPage() {
         setDeleteBusError(undefined);
     };
 
+    const busTypeData = busTypesQuery.data || [];
+    const driverData = driversQuery.data || [];
+
     return (
         <div className="flex flex-col">
             <h1 className="text-[2rem] text-text dark:text-text font-bold mb-8">Manage Buses</h1>
@@ -138,7 +106,7 @@ export default function AdminManageBusPage() {
                     <CardBody className="flex px-6 border-b border-border dark:border-border pb-4 gap-8">
                         <div className="flex-1">
                             <SelectDropdown label="Driver" isClearable
-                                options={drivers.map(driver => ({ value: driver.id, label: driver.name }))}
+                                options={driverData.map(driver => ({ value: driver.id, label: driver.name }))}
                                 onChange={(newValue, _) => {
                                     const newVal: OptionType<string> = newValue as OptionType<string>;
                                     setBusSearchQueryInput({
@@ -146,29 +114,19 @@ export default function AdminManageBusPage() {
                                         driverId: newVal?.value,
                                     });
                                 }}
-                                onMenuScrollToBottom={(_) => {
-                                    if (driverPage < driverTotalPageNumber.current) {
-                                        setDriverPage(driverPage + 1);
-                                    }
-                                }}
                                 menuPortalTarget={document.body}
                                 menuPosition="fixed"
                             />
                         </div>
                         <div className="flex-1">
                             <SelectDropdown label="Bus Type" isClearable
-                                options={busTypes.map(busType => ({ value: busType.id, label: busType.name }))}
+                                options={busTypeData.map(busType => ({ value: busType.id, label: busType.name }))}
                                 onChange={(newValue, _) => {
                                     const newVal: OptionType<string> = newValue as OptionType<string>;
                                     setBusSearchQueryInput({
                                         ...busSearchQueryInput,
                                         typeId: newVal?.value,
                                     });
-                                }}
-                                onMenuScrollToBottom={(_) => {
-                                    if (busTypePage < busTypesTotalPageNumber.current) {
-                                        setBusTypePage(busTypePage + 1);
-                                    }
                                 }}
                                 menuPortalTarget={document.body}
                                 menuPosition="fixed"
@@ -272,22 +230,27 @@ export default function AdminManageBusPage() {
                                     {
                                         header: "Plate Number",
                                         render: bus => bus.plateNumber,
+                                        headerClassName: "py-3",
                                     },
                                     {
                                         header: "Type",
                                         render: bus => bus.type.name,
+                                        headerClassName: "py-3",
                                     },
                                     {
                                         header: "Driver Name",
                                         render: bus => bus.driver?.name ?? "No driver",
+                                        headerClassName: "py-3",
                                     },
                                     {
                                         header: "Driver Phone",
                                         render: bus => bus.driver ? bus.driver.email ?? "No phone" : "No driver",
+                                        headerClassName: "py-3",
                                     },
                                     {
                                         header: "Driver Email",
                                         render: bus => bus.driver ? bus.driver.email ?? "No email" : "No driver",
+                                        headerClassName: "py-3",
                                     },
                                     {
                                         header: "Actions",
@@ -311,11 +274,12 @@ export default function AdminManageBusPage() {
                                             </>
                                         ),
                                         className: "flex justify-center gap-2 py-2 px-6",
+                                        headerClassName: "py-3",
                                     },
                                 ]}
                                 tableClassName="flex-1"
-                                headClassName="text-text dark:text-text font-bold"
-                                bodyClassName="bg-primary dark:bg-primary"
+                                headClassName="text-secondary-text dark:text-secondary-text bg-primary dark:bg-primary font-bold"
+                                bodyClassName="bg-secondary dark:bg-secondary"
                             />
 
                         </Card>
@@ -324,7 +288,7 @@ export default function AdminManageBusPage() {
                     )}
                 </>
             )}
-            {!searchBusTypeQuery.isError && (
+            {!busTypesQuery.isError && (
                 <div className="mt-8 flex justify-center">
                     <Pagination currentPage={busPage} totalPage={busTotalPage} loadPageFn={(newPage) => {
                         setBusPage(newPage);
@@ -339,7 +303,13 @@ export default function AdminManageBusPage() {
                             Are you sure you want to delete this bus type?
                         </h1>
                         {deleteBusError && (
-                            <div className="text-danger dark:text-danger font-bold mt-4">{deleteBusError}</div>
+                            <div className="
+                                text-danger dark:text-danger bg-danger/20 dark:bg-danger/20 
+                                border border-danger dark:border-danger
+                                font-bold mt-4 p-4 rounded-lg flex gap-4
+                            ">
+                                <CancelIcon /> <span>{deleteBusError}</span>
+                            </div>
                         )}
                     </CardHeader>
                     <CardBody className="text-text dark:text-text">

@@ -38,7 +38,7 @@ export function Table<T>({
 
             <tbody className={bodyClassName}>
                 {data.map(item => (
-                    <tr key={rowKey(item)} className="border-b border-border">
+                    <tr key={rowKey(item)} className="border-b-2 border-border">
                         {columns.map((col, i) => (
                             <td key={i} className={`${col.className ?? "py-2 text-center text-text dark:text-text"}`}>
                                 {col.render(item)}

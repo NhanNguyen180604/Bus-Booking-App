@@ -54,20 +54,8 @@ export default function CheckoutInfoComponent({ trip, selectedSeats, paymentForm
     const createBookingMutationOptions = trpc.booking.createOne.mutationOptions();
     const createBookingMutation = useMutation({
         ...createBookingMutationOptions,
-        onError(error: any) {
-            if (error.data?.zodError) {
-                // Handle Zod validation errors from backend
-                const zodErrors = error.data.zodError.fieldErrors;
-                zodErrors.forEach((fieldError: any) => {
-                    setError(fieldError.path[0] as any, {
-                        message: fieldError.message,
-                    });
-                });
-            } else {
-                setError("root", {
-                    message: error.message || "Create booking failed. Please try again.",
-                });
-            }
+        onError(error) {
+            setError("root", { message: error.message });
         },
         onSuccess(data) {
             // Redirect to payment page with booking token

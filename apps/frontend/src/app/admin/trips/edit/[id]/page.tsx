@@ -1,4 +1,6 @@
 "use client";;
+import { CancelIcon } from "@/src/components/icons/cancel-ic";
+import { CheckIcon } from "@/src/components/icons/check-ic";
 import NotFoundPage from "@/src/components/status-pages/not-found-page";
 import { Button } from "@/src/components/ui/button";
 import { Card, CardBody, CardFooter } from "@/src/components/ui/card";
@@ -7,23 +9,21 @@ import Loading from "@/src/components/ui/loading";
 import { OptionType, SelectDropdown } from "@/src/components/ui/select-dropdown";
 import { useTRPC } from "@/src/utils/trpc";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { TripCreateOneDto, TripCreateOneDtoType, TripStatusEnum, TripUpdateOneDto, TripUpdateOneDtoType } from "@repo/shared";
+import { TripStatusEnum, TripUpdateOneDto, TripUpdateOneDtoType } from "@repo/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RouterOutputsType } from "backend";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 
 type Route = RouterOutputsType['routes']['search']['data'][number];
 type Bus = RouterOutputsType['buses']['searchBus']['data'][number];
-type Trip = RouterOutputsType['trips']['findOneById'];
 
 export default function AdminEditTripPage() {
     const router = useRouter();
     const trpc = useTRPC();
     const queryClient = useQueryClient();
     const params = useParams<{ id: string }>();
-    const perPage = 20;
 
     // fetch trip and necessary infos for updating here baby
     const tripQueryOpts = trpc.trips.findOneById.queryOptions({ id: params.id });
@@ -35,50 +35,15 @@ export default function AdminEditTripPage() {
     const [selectedRoute, setSelectedRoute] = useState<Route>();
     const [selectedBus, setSelectedBus] = useState<Bus>();
 
-    // fetching bus for dropdown
-    const [buses, setBuses] = useState<Bus[]>([]);
-    const busTotalPageNumber = useRef(1);
-    const [busPage, setBusPage] = useState(1);
-
-    const searchBusQueryOpts = trpc.buses.searchBus.queryOptions({
-        page: busPage,
-        perPage,
-        driverNotNull: true,
-    });
-    const searchBusQuery = useQuery({
-        ...searchBusQueryOpts,
+    const busesQuery = useQuery({
+        ...trpc.buses.findAll.queryOptions(),
         staleTime: 60 * 60 * 1000,
     });
-    // appending buses whenever successfully fetch
-    useEffect(() => {
-        if (searchBusQuery.isSuccess) {
-            busTotalPageNumber.current = searchBusQuery.data.totalPage;
-            setBuses([...buses, ...searchBusQuery.data.data]);
-        }
-    }, [searchBusQuery.isSuccess]);
 
-
-    // fetching routes for dropdown
-    const [routes, setRoutes] = useState<Route[]>([]);
-    const routeTotalPageNumber = useRef(1);
-    const [routePage, setRoutePage] = useState(1);
-
-    const searchRouteQueryOpts = trpc.routes.search.queryOptions({
-        page: routePage,
-        perPage,
-    });
-    const searchRouteQuery = useQuery({
-        ...searchRouteQueryOpts,
+    const routesQuery = useQuery({
+        ...trpc.routes.findAll.queryOptions(),
         staleTime: 60 * 60 * 1000,
     });
-    // appending routes whenever successfully fetch
-    useEffect(() => {
-        if (searchRouteQuery.isSuccess) {
-            routeTotalPageNumber.current = searchRouteQuery.data.totalPage;
-            setRoutes([...routes, ...searchRouteQuery.data.data]);
-        }
-    }, [searchRouteQuery.isSuccess]);
-
 
     // update trip mutation here baby
     const {
@@ -86,14 +51,11 @@ export default function AdminEditTripPage() {
         handleSubmit,
         control,
         formState: { errors: formErrors, isValid },
-        watch,
         reset,
         setError,
     } = useForm<TripUpdateOneDtoType>({
         resolver: zodResolver(TripUpdateOneDto)
     });
-
-    const currentStatus = watch('status');
 
     useEffect(() => {
         const formatDateTimeLocal = (date: Date) => {
@@ -117,6 +79,7 @@ export default function AdminEditTripPage() {
                 departureTime: formatDateTimeLocal(new Date(data.departureTime)) as any,
                 arrivalTime: formatDateTimeLocal(new Date(data.arrivalTime)) as any,
                 basePrice: data.basePrice,
+                status: data.status,
             });
         }
     }, [tripQuery.isSuccess]);
@@ -124,26 +87,14 @@ export default function AdminEditTripPage() {
     const updateTripMutationOpts = trpc.trips.updateOne.mutationOptions();
     const updateTripMutation = useMutation({
         ...updateTripMutationOpts,
-        onError(error: any) {
-            if (error.data?.zodError) {
-                // Handle Zod validation errors from backend
-                const zodErrors = error.data.zodError.fieldErrors;
-                zodErrors.forEach((fieldError: any) => {
-                    setError(fieldError.path[0] as any, {
-                        message: fieldError.message,
-                    });
-                });
-            } else {
-                setError("root", {
-                    message: error.message || "Updating trip failed. Please try again.",
-                });
-            }
+        onError(error) {
+            setError("root", { message: error.message });
         },
         onSuccess(data) {
             queryClient.invalidateQueries({ queryKey: trpc.trips.search.queryKey() });
             queryClient.invalidateQueries({ queryKey: trpc.trips.adminSearch.queryKey() });
             queryClient.setQueryData(trpc.trips.findOneById.queryKey({ id: data.id }), data);
-            setTimeout(() => router.push('/admin/trips'), 3000);
+            router.push('/admin/trips');
         },
     });
 
@@ -151,7 +102,7 @@ export default function AdminEditTripPage() {
         updateTripMutation.mutate(data);
     }
 
-    if (tripQuery.isPending) {
+    if (tripQuery.isPending || routesQuery.isPending || busesQuery.isPending) {
         return <Loading />;
     }
 
@@ -167,6 +118,9 @@ export default function AdminEditTripPage() {
         );
     }
 
+    const routesData = routesQuery.data || [];
+    const busesData = busesQuery.data || [];
+
     return (
         <div className="flex flex-col">
             <h1 className="text-[32px] text-text dark:text-text font-bold mb-8">Edit Trip</h1>
@@ -176,12 +130,6 @@ export default function AdminEditTripPage() {
             <form onSubmit={handleSubmit(onSubmit)}>
                 <Card className="flex flex-col mb-8">
                     <CardBody className="flex flex-col px-6 pb-4 gap-8">
-                        {formErrors.root && (
-                            <div className="col-span-2">
-                                <p className="text-danger dark:text-danger font-bold">{formErrors.root.message}</p>
-                            </div>
-                        )}
-
                         <div className="flex-1">
                             <Controller control={control}
                                 name="routeId"
@@ -195,7 +143,7 @@ export default function AdminEditTripPage() {
                                                 label: `${selectedRoute.origin.name} - ${selectedRoute.destination.name} - ${selectedRoute.distanceKm} km - ${hours && `${hours} hour${hours > 1 && "s"}, `} ${minutes && `${minutes} minute${minutes > 1 && "s"}`}`,
                                             }
                                         }()}
-                                        options={routes.map(route => {
+                                        options={routesData.map(route => {
                                             const hours = Math.floor(route.estimatedMinutes / 60);
                                             const minutes = route.estimatedMinutes % 60;
                                             return {
@@ -206,14 +154,9 @@ export default function AdminEditTripPage() {
                                         onChange={(newValue, _) => {
                                             const newVal: OptionType<string> = newValue as OptionType<string>;
                                             onChange(newVal ? newVal.value : "");
-                                            setSelectedRoute(newVal ? routes.find(r => r.id === newVal.value)! : undefined);
+                                            setSelectedRoute(newVal ? routesData.find(r => r.id === newVal.value)! : undefined);
                                         }}
                                         errorMessage={formErrors.routeId?.message}
-                                        onMenuScrollToBottom={(_) => {
-                                            if (routePage < routeTotalPageNumber.current) {
-                                                setRoutePage(routePage + 1);
-                                            }
-                                        }}
                                         menuPortalTarget={document.body}
                                         menuPosition="fixed"
                                     />
@@ -243,23 +186,18 @@ export default function AdminEditTripPage() {
                         <div className="flex-1">
                             <Controller control={control}
                                 name="busId"
-                                render={({ field: { onChange } }) => (
+                                render={({ field }) => (
                                     <SelectDropdown label="Bus (Plate Number - Type - Type Price Multi - Driver Name - Driver Email)" isClearable required
                                         value={selectedBus && function () {
-                                            return { value: selectedBus.id, label: `${selectedBus.plateNumber} - ${selectedBus.type.name} - ${selectedBus.driver?.name} - ${selectedBus.driver?.email}` };
+                                            return { value: selectedBus.id, label: `${selectedBus.plateNumber} - ${selectedBus.type.name} - ${selectedBus.driver?.name ?? 'No driver'} ${selectedBus.driver ? `- ${selectedBus.driver.email}` : ''}` };
                                         }()}
-                                        options={buses.map(bus => ({ value: bus.id, label: `${bus.plateNumber} - ${bus.type.name} - ${bus.driver?.name} - ${bus.driver?.email}` }))}
+                                        options={busesData.map(bus => ({ value: bus.id, label: `${bus.plateNumber} - ${bus.type.name} - ${bus.driver?.name ?? 'No driver'} ${bus.driver ? `- ${bus.driver.email}` : ''}` }))}
                                         onChange={(newValue, _) => {
                                             const newVal: OptionType<string> = newValue as OptionType<string>;
-                                            onChange(newVal ? newVal.value : "");
-                                            setSelectedBus(newVal ? buses.find(b => b.id === newVal.value)! : undefined);
+                                            field.onChange(newVal ? newVal.value : "");
+                                            setSelectedBus(newVal ? busesData.find(b => b.id === newVal.value)! : undefined);
                                         }}
                                         errorMessage={formErrors.busId?.message}
-                                        onMenuScrollToBottom={(_) => {
-                                            if (busPage < busTotalPageNumber.current) {
-                                                setBusPage(busPage + 1);
-                                            }
-                                        }}
                                         menuPortalTarget={document.body}
                                         menuPosition="fixed"
                                     />
@@ -279,16 +217,16 @@ export default function AdminEditTripPage() {
                         <div className="flex-1">
                             <Controller control={control}
                                 name="status"
-                                render={({ field: { onChange } }) => (
+                                render={({ field }) => (
                                     <SelectDropdown label="Status" required
-                                        value={currentStatus ? { value: currentStatus, label: currentStatus } : { value: tripQuery.data?.status, label: tripQuery.data?.status }}
+                                        value={{ value: field.value, label: field.value }}
                                         options={Object.keys(TripStatusEnum).map(k => ({
                                             value: k,
                                             label: k,
                                         }))}
                                         onChange={(newValue, _) => {
                                             const newVal: OptionType<string> = newValue as OptionType<string>;
-                                            onChange(newVal ? newVal.value : "");
+                                            field.onChange(newVal ? newVal.value : "");
                                         }}
                                         errorMessage={formErrors.status?.message}
                                         menuPortalTarget={document.body}
@@ -299,7 +237,7 @@ export default function AdminEditTripPage() {
                         </div>
                     </CardBody>
 
-                    <CardFooter>
+                    <CardFooter className="rounded-lg">
                         <Button
                             type="submit"
                             variant="accent"
@@ -310,10 +248,27 @@ export default function AdminEditTripPage() {
                         </Button>
 
                         {updateTripMutation.isSuccess && (
-                            <>
-                                <div className="col-span-2 text-success dark:text-success font-bold text-center text-xl mt-4">Update Trip Successfully!</div>
-                                <div className="col-span-2 text-success dark:text-success font-bold text-center text-xl mt-4">Returning to Trip Page</div>
-                            </>
+                            <div className="
+                                    text-success dark:text-success bg-success/20 dark:bg-success/20 
+                                    border border-success dark:border-success
+                                    font-bold mt-8 p-4 rounded-lg flex gap-4
+                                ">
+                                <CheckIcon />
+                                <span>Update Trip Successfully!</span>
+                            </div>
+                        )}
+
+                        {formErrors.root && (
+                            <div className="col-span-2">
+                                <p className="
+                                    text-danger dark:text-danger bg-danger/20 dark:bg-danger/20 
+                                    border border-danger dark:border-danger
+                                    font-bold mt-8 p-4 rounded-lg flex gap-4
+                                ">
+                                    <CancelIcon />
+                                    <span>{formErrors.root.message}</span>
+                                </p>
+                            </div>
                         )}
                     </CardFooter>
                 </Card>

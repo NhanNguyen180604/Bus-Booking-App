@@ -5,6 +5,7 @@ export enum TripStatusEnum {
     UPCOMING = 'UPCOMING',
     DEPARTED = 'DEPARTED',
     ARRIVED = 'ARRIVED',
+    CANCELLED = 'CANCELLED',
 };
 
 export const TripCreateOneDto = z.object({
@@ -111,3 +112,8 @@ export const RelatedTripsDto = z.object({
     excludeTripId: z.uuid().optional(),
 }).extend(PaginationDto.shape);
 export type RelatedTripsDtoType = z.infer<typeof RelatedTripsDto>;
+
+export const TripCancelByIdDto = z.object({
+    id: z.uuid({ error: "ID must be an UUID string" }),
+});
+export type TripCancelByIdDtoType = z.infer<typeof TripCancelByIdDto>;
