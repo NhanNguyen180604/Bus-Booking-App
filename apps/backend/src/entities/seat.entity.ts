@@ -11,8 +11,6 @@ export const UNIQUE_BUS_SEAT_POSITION = 'unique_bus_seat_position';
 @Check('"row" >= 0')
 @Check('"col" >= 0')
 @Check('"floor" >= 0')
-// @Check('"rowSpan" >= 1')
-// @Check('"colSpan" >= 1')
 export class Seat {
     @PrimaryGeneratedColumn('uuid')
     id: string;
@@ -27,13 +25,9 @@ export class Seat {
     // seat layout
     @Column()
     row: number;
-    // @Column()
-    // rowSpan: number;
 
     @Column()
     col: number;
-    // @Column()
-    // colSpan: number;
 
     @Column()
     floor: number;

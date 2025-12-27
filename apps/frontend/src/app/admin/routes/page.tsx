@@ -59,27 +59,27 @@ export default function AdminManageRoutePage() {
     }, [searchRoutesQuery.isFetching]);
 
     // deleting route
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [deletingRoute, setDeletingRoute] = useState<Route>(null);
-    const [deleteRouteError, setDeleteRouteError] = useState<string>();
-    const deleteRouteOpts = trpc.routes.deleteOne.mutationOptions();
-    const deleteRouteMutation = useMutation({
-        ...deleteRouteOpts,
-        onError(error) {
-            setDeleteRouteError(error.message);
-        },
-        onSuccess(_, variables) {
-            onDeleteModalClose();
-            queryClient.removeQueries({ queryKey: trpc.routes.findOneById.queryKey({ id: variables.id }) });
-            queryClient.invalidateQueries({ queryKey: trpc.routes.search.queryKey() });
-        },
-    });
+    // const [showDeleteModal, setShowDeleteModal] = useState(false);
+    // const [deletingRoute, setDeletingRoute] = useState<Route>(null);
+    // const [deleteRouteError, setDeleteRouteError] = useState<string>();
+    // const deleteRouteOpts = trpc.routes.deleteOne.mutationOptions();
+    // const deleteRouteMutation = useMutation({
+    //     ...deleteRouteOpts,
+    //     onError(error) {
+    //         setDeleteRouteError(error.message);
+    //     },
+    //     onSuccess(_, variables) {
+    //         onDeleteModalClose();
+    //         queryClient.removeQueries({ queryKey: trpc.routes.findOneById.queryKey({ id: variables.id }) });
+    //         queryClient.invalidateQueries({ queryKey: trpc.routes.search.queryKey() });
+    //     },
+    // });
 
-    const onDeleteModalClose = () => {
-        setShowDeleteModal(false);
-        setDeletingRoute(null);
-        setDeleteRouteError(undefined);
-    };
+    // const onDeleteModalClose = () => {
+    //     setShowDeleteModal(false);
+    //     setDeletingRoute(null);
+    //     setDeleteRouteError(undefined);
+    // };
 
     return (
         <div className="flex flex-col">
@@ -208,14 +208,14 @@ export default function AdminManageRoutePage() {
                                         render: route => (
                                             <>
                                                 <Button className="flex-1" variant="accent" onClick={() => { router.push(`/admin/routes/edit/${route.id}`) }}>Edit</Button>
-                                                <Button className="flex-1" variant="danger"
+                                                {/* <Button className="flex-1" variant="danger"
                                                     onClick={() => {
                                                         setShowDeleteModal(true);
                                                         setDeletingRoute(route);
                                                     }}
                                                 >
                                                     Delete
-                                                </Button>
+                                                </Button> */}
                                             </>
                                         ),
                                         className: "flex justify-center gap-2 py-2 px-6",
@@ -241,7 +241,7 @@ export default function AdminManageRoutePage() {
                 </div>
             )}
 
-            <Modal open={showDeleteModal} onClose={() => onDeleteModalClose()}>
+            {/* <Modal open={showDeleteModal} onClose={() => onDeleteModalClose()}>
                 <Card onClick={(e) => e.stopPropagation()} className="max-w-lg min-w-lg">
                     <CardHeader>
                         <h1 className="text-text dark:text-text font-bold text-xl">
@@ -282,7 +282,7 @@ export default function AdminManageRoutePage() {
                         </Button>
                     </CardFooter>
                 </Card>
-            </Modal>
+            </Modal> */}
         </div>
     );
 }

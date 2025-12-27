@@ -54,27 +54,27 @@ export default function AdminManageStationPage() {
     }, [searchStationQuery.isFetching]);
 
     // deleting station
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [deletingStation, setDeletingStation] = useState<Station | null>(null);
-    const [deleteStationError, setDeleteStationError] = useState<string>();
-    const deleteStationOpts = trpc.stations.deleteOne.mutationOptions();
-    const deleteStationMutation = useMutation({
-        ...deleteStationOpts,
-        onError(error) {
-            setDeleteStationError(error.message);
-        },
-        onSuccess(_, variables) {
-            onDeleteModalClose();
-            queryClient.removeQueries({ queryKey: trpc.stations.findOne.queryKey({ id: variables.id }) });
-            queryClient.invalidateQueries({ queryKey: trpc.stations.search.queryKey() });
-        },
-    });
+    // const [showDeleteModal, setShowDeleteModal] = useState(false);
+    // const [deletingStation, setDeletingStation] = useState<Station | null>(null);
+    // const [deleteStationError, setDeleteStationError] = useState<string>();
+    // const deleteStationOpts = trpc.stations.deleteOne.mutationOptions();
+    // const deleteStationMutation = useMutation({
+    //     ...deleteStationOpts,
+    //     onError(error) {
+    //         setDeleteStationError(error.message);
+    //     },
+    //     onSuccess(_, variables) {
+    //         onDeleteModalClose();
+    //         queryClient.removeQueries({ queryKey: trpc.stations.findOne.queryKey({ id: variables.id }) });
+    //         queryClient.invalidateQueries({ queryKey: trpc.stations.search.queryKey() });
+    //     },
+    // });
 
-    const onDeleteModalClose = () => {
-        setShowDeleteModal(false);
-        setDeletingStation(null);
-        setDeleteStationError(undefined);
-    };
+    // const onDeleteModalClose = () => {
+    //     setShowDeleteModal(false);
+    //     setDeletingStation(null);
+    //     setDeleteStationError(undefined);
+    // };
 
     return (
         <div className="flex flex-col">
@@ -175,7 +175,7 @@ export default function AdminManageStationPage() {
                                                 >
                                                     Edit
                                                 </Button>
-                                                <Button className="flex-1 max-w-32"
+                                                {/* <Button className="flex-1 max-w-32"
                                                     variant="danger"
                                                     onClick={(_) => {
                                                         setShowDeleteModal(true);
@@ -183,7 +183,7 @@ export default function AdminManageStationPage() {
                                                     }}
                                                 >
                                                     Delete
-                                                </Button>
+                                                </Button> */}
                                             </>
                                         ),
                                         className: "flex justify-center gap-2 py-2 px-6",
@@ -216,7 +216,7 @@ export default function AdminManageStationPage() {
                 </div>
             )}
 
-            <Modal open={showDeleteModal} onClose={() => onDeleteModalClose()}>
+            {/* <Modal open={showDeleteModal} onClose={() => onDeleteModalClose()}>
                 <Card onClick={(e) => e.stopPropagation()} className="max-w-lg min-w-lg">
                     <CardHeader>
                         <h1 className="text-text dark:text-text font-bold text-xl">
@@ -254,7 +254,7 @@ export default function AdminManageStationPage() {
                         </Button>
                     </CardFooter>
                 </Card>
-            </Modal>
+            </Modal> */}
         </div>
     );
 }

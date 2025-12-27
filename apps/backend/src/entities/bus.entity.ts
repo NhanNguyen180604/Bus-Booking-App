@@ -22,7 +22,7 @@ export class Bus {
     @Column({ unique: true })
     plateNumber: string;
 
-    @ManyToOne(() => BusType, { onDelete: "CASCADE" })
+    @ManyToOne(() => BusType, { onDelete: "SET NULL" })
     @JoinColumn()
     type: BusType;
 

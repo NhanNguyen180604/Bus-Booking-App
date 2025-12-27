@@ -117,3 +117,8 @@ export const TripCancelByIdDto = z.object({
     id: z.uuid({ error: "ID must be an UUID string" }),
 });
 export type TripCancelByIdDtoType = z.infer<typeof TripCancelByIdDto>;
+
+export const DriverSearchTripsDto = z.object({
+    status: z.enum([TripStatusEnum.UPCOMING, TripStatusEnum.DEPARTED, TripStatusEnum.ARRIVED, TripStatusEnum.CANCELLED]).optional(),
+}).extend(PaginationDto.shape);
+export type DriverSearchTripsDtoType = z.infer<typeof DriverSearchTripsDto>;

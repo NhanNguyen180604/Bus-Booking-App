@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
-import { TripAdminSearchDtoType, TripCreateOneDtoType, TripDeleteOneDtoType, TripFindManyDtoType, TripUpdateOneDtoType, RelatedTripsDtoType, TripStatusEnum, UserRoleEnum, TripFindOneByIdDtoType, PaymentStatusEnum, TripCancelByIdDtoType } from '@repo/shared';
+import { TripAdminSearchDtoType, TripCreateOneDtoType, TripDeleteOneDtoType, TripFindManyDtoType, TripUpdateOneDtoType, RelatedTripsDtoType, TripStatusEnum, UserRoleEnum, TripFindOneByIdDtoType, PaymentStatusEnum, TripCancelByIdDtoType, DriverSearchTripsDtoType } from '@repo/shared';
 import { TRPCError } from '@trpc/server';
 import { Trip } from '../entities/trip.entity';
 import {
@@ -268,8 +268,24 @@ export class TripsService {
                 "bus",
                 "driver",
                 "busType",
-            ])
-            .skip((page - 1) * perPage)
+            ]);
+
+        // Add priority sorting for trips within 3 days
+        const threeDaysFromNow = new Date();
+        threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        threeDaysFromNow.setHours(23, 59, 59, 999);
+
+        qb.addSelect(
+            `CASE 
+                WHEN trip.departureTime >= :today AND trip.departureTime <= :threeDaysFromNow THEN 0
+                ELSE 1
+            END`,
+            "priority_sort"
+        ).setParameter("today", today).setParameter("threeDaysFromNow", threeDaysFromNow);
+
+        qb.skip((page - 1) * perPage)
             .take(perPage);
 
         // filters
@@ -322,16 +338,19 @@ export class TripsService {
             qb.andWhere(orConditions.join(" OR "), params);
         }
 
-        // sort
+        // sort - prioritize trips happening in 3 days
+        qb.addOrderBy("priority_sort", "ASC");
+
         if (sortPrice) {
             qb.addOrderBy("trip.basePrice", sortPrice.toUpperCase() as "ASC" | "DESC");
         }
 
         if (sortDepartureTime) {
             qb.addOrderBy("trip.departureTime", sortDepartureTime.toUpperCase() as "ASC" | "DESC");
+        } else {
+            // Default sort by departure time ascending if no custom sort
+            qb.addOrderBy("trip.departureTime", "ASC");
         }
-
-        qb.addOrderBy("trip.departureTime", "DESC");
 
 
         const [trips, count] = await qb.getManyAndCount();
@@ -369,8 +388,6 @@ export class TripsService {
             .skip((page - 1) * perPage)
             .take(perPage)
             .getManyAndCount();
-
-        console.log('Relatedtrips:', trips);
 
         const totalPage = Math.ceil(count / perPage);
 
@@ -478,5 +495,44 @@ export class TripsService {
             }
             await transactionalEntityManager.save(bookings.map(b => b.payment));
         });
+    }
+
+    async driverSearchTrips(driver: User, dto: DriverSearchTripsDtoType) {
+        const page = dto.page || 1;
+        const driverId = driver.id;
+
+        const where: FindOptionsWhere<Trip> = {
+            bus: { driver: { id: driverId } },
+        };
+
+        // Filter by status if provided
+        if (dto.status) {
+            where.status = dto.status;
+        } else {
+            // Default: exclude cancelled trips
+            where.status = Not(TripStatusEnum.CANCELLED);
+        }
+
+        const [trips, count] = await this.tripRepo.findAndCount({
+            where,
+            relations: {
+                route: { origin: true, destination: true },
+                bus: { type: true, driver: true },
+            },
+            order: { departureTime: "ASC" },
+            skip: (page - 1) * dto.perPage,
+            take: dto.perPage,
+        });
+
+        const perPage = Math.min(dto.perPage, count);
+        const totalPage = Math.ceil(count / perPage);
+
+        return {
+            data: trips,
+            page: Math.min(page, totalPage),
+            perPage: perPage,
+            total: count,
+            totalPage,
+        };
     }
 }
