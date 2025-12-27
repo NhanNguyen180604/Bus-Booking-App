@@ -95,6 +95,8 @@ export default function AdminManageTripPage() {
         return <Loading />
     }
 
+    console.log(tripSearchQuery.data)
+
     return (
         <div className="flex flex-col">
             <h1 className="text-[32px] text-text dark:text-text font-bold mb-8">Manage Trips</h1>
@@ -454,9 +456,12 @@ export default function AdminManageTripPage() {
             <Modal open={showCancelModal} onClose={() => onCancelTripModalClose()}>
                 <Card onClick={(e) => e.stopPropagation()} className="max-w-lg min-w-lg">
                     <CardHeader>
-                        <h1 className="text-text dark:text-text font-bold text-xl">
+                        <div className="text-text dark:text-text font-bold text-xl">
                             Are you sure you want to cancel this trip?
-                        </h1>
+                        </div>
+                        <div className="text-secondary-text dark:text-secondary-text mt-2 font-semibold">
+                            All bookings associated with this trip will be fully refunded.
+                        </div>
                         {cancelTripError && (
                             <div className="
                             text-danger dark:text-danger bg-danger/20 dark:bg-danger/20 
@@ -466,7 +471,6 @@ export default function AdminManageTripPage() {
                                 <CancelIcon /> <span>{cancelTripError}</span>
                             </div>
                         )}
-
                     </CardHeader>
                     <CardBody className="text-text dark:text-text">
                         <div>ID: {cancellingTrip?.id}</div>

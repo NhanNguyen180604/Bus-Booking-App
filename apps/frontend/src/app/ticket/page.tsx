@@ -127,7 +127,7 @@ export default function TicketPage() {
                                                     <div className="flex flex-col justify-between md:items-end gap-3 md:gap-2 pt-3 md:pt-0 border-t md:border-t-0 border-border">
                                                         <p className="text-xl sm:text-2xl font-bold text-accent self-end">{formatPrice(booking.totalPrice)}</p>
                                                         <Button variant="accent" size="sm" className="">
-                                                            View →
+                                                            View
                                                         </Button>
                                                     </div>
                                                 </div>

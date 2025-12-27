@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams as useNextSearchParams } from "next/navigation";
@@ -19,6 +19,7 @@ export default function Home() {
   const nextSearchParams = useNextSearchParams();
   const [searchParams, setSearchParams] = useState<TripFindManyDtoType | null>(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const perPage = 10;
 
   // Restore state from URL on mount
   useEffect(() => {
@@ -39,7 +40,7 @@ export default function Home() {
         destination,
         passengers: passengers ? parseInt(passengers) : 1,
         page: page ? parseInt(page) : 1,
-        perPage: 10,
+        perPage,
       };
 
       if (departureTime) params.departureTime = new Date(departureTime);
@@ -78,7 +79,6 @@ export default function Home() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const perPage = 10;
   const handleSearch = (params: Omit<TripFindManyDtoType, 'page' | 'perPage'>) => {
     setSearchParams({ ...params, page: 1, perPage });
   };

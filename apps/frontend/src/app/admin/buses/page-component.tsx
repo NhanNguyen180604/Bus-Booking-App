@@ -66,28 +66,28 @@ export default function AdminManageBusPage() {
     }, [busSearchQuery.isFetching]);
 
     // deleting bus
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [deletingBus, setDeletingBus] = useState<Bus | null>(null);
-    const [deleteBusError, setDeleteBusError] = useState<string>();
-    const deleteBusOpts = trpc.buses.deleteOne.mutationOptions();
-    const deleteBusMutation = useMutation({
-        ...deleteBusOpts,
-        onError(error) {
-            setDeleteBusError(error.message);
-        },
-        onSuccess(_, variables) {
-            onDeleteModalClose();
-            queryClient.removeQueries({ queryKey: trpc.buses.getOneById.queryKey({ id: variables.id }) });
-            queryClient.invalidateQueries({ queryKey: trpc.buses.searchBus.queryKey() });
-            queryClient.invalidateQueries({ queryKey: trpc.users.search.queryKey() });
-        },
-    });
+    // const [showDeleteModal, setShowDeleteModal] = useState(false);
+    // const [deletingBus, setDeletingBus] = useState<Bus | null>(null);
+    // const [deleteBusError, setDeleteBusError] = useState<string>();
+    // const deleteBusOpts = trpc.buses.deleteOne.mutationOptions();
+    // const deleteBusMutation = useMutation({
+    //     ...deleteBusOpts,
+    //     onError(error) {
+    //         setDeleteBusError(error.message);
+    //     },
+    //     onSuccess(_, variables) {
+    //         onDeleteModalClose();
+    //         queryClient.removeQueries({ queryKey: trpc.buses.getOneById.queryKey({ id: variables.id }) });
+    //         queryClient.invalidateQueries({ queryKey: trpc.buses.searchBus.queryKey() });
+    //         queryClient.invalidateQueries({ queryKey: trpc.users.search.queryKey() });
+    //     },
+    // });
 
-    const onDeleteModalClose = () => {
-        setShowDeleteModal(false);
-        setDeletingBus(null);
-        setDeleteBusError(undefined);
-    };
+    // const onDeleteModalClose = () => {
+    //     setShowDeleteModal(false);
+    //     setDeletingBus(null);
+    //     setDeleteBusError(undefined);
+    // };
 
     const busTypeData = busTypesQuery.data || [];
     const driverData = driversQuery.data || [];
@@ -262,7 +262,7 @@ export default function AdminManageBusPage() {
                                                 >
                                                     Edit
                                                 </Button>
-                                                <Button className="flex-1 max-w-32"
+                                                {/* <Button className="flex-1 max-w-32"
                                                     variant="danger"
                                                     onClick={(_) => {
                                                         setShowDeleteModal(true);
@@ -270,7 +270,7 @@ export default function AdminManageBusPage() {
                                                     }}
                                                 >
                                                     Delete
-                                                </Button>
+                                                </Button> */}
                                             </>
                                         ),
                                         className: "flex justify-center gap-2 py-2 px-6",
@@ -296,11 +296,11 @@ export default function AdminManageBusPage() {
                 </div>
             )}
 
-            <Modal open={showDeleteModal} onClose={() => onDeleteModalClose()}>
+            {/* <Modal open={showDeleteModal} onClose={() => onDeleteModalClose()}>
                 <Card onClick={(e) => e.stopPropagation()} className="max-w-lg min-w-lg">
                     <CardHeader>
                         <h1 className="text-text dark:text-text font-bold text-xl">
-                            Are you sure you want to delete this bus type?
+                            Are you sure you want to delete this bus?
                         </h1>
                         {deleteBusError && (
                             <div className="
@@ -343,7 +343,7 @@ export default function AdminManageBusPage() {
                         </Button>
                     </CardFooter>
                 </Card>
-            </Modal>
+            </Modal> */}
         </div>
     );
 }
