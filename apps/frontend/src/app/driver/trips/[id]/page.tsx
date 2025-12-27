@@ -57,7 +57,7 @@ export default function DriverTripDetailsPage() {
             setStatusUpdateSuccess(true);
             setStatusUpdateError(false);
         },
-        onError(data) {
+        onError() {
             setStatusUpdateSuccess(false);
             setStatusUpdateError(true);
         },
@@ -91,7 +91,7 @@ export default function DriverTripDetailsPage() {
                 queryClient.setQueryData(trpc.trips.driverFindOneTripById.queryKey({ id: tripId }), updatedData);
             }
         },
-        onError(error, { bookingId }, oldData, context) {
+        onError(error, _, oldData, context) {
             console.error(error.message);
             if (oldData) {
                 context.client.setQueryData(trpc.trips.driverFindOneTripById.queryKey({ id: tripId }), oldData);
@@ -115,7 +115,7 @@ export default function DriverTripDetailsPage() {
         return <UnauthorizedPage />
     }
     if (!driverId || driverId !== userId) {
-        return <ForbiddenPage message="This trip is not assigned to you"/>
+        return <ForbiddenPage message="This trip is not assigned to you" />
     }
 
     const onCheckInChange = (e: ChangeEvent<HTMLInputElement>, bookingId: string) => {
@@ -135,29 +135,41 @@ export default function DriverTripDetailsPage() {
         debounceTimersRef.current.set(bookingId, timer);
     }
 
+    const trip = tripQuery.data.trip;
+    const users = tripQuery.data.users;
+
     return (
         <div className="h-full flex flex-col">
             <h1 className="text-[2rem] text-text dark:text-text font-bold mb-8 text-center">Manage Trip</h1>
+            <button
+                onClick={() => {
+                    if (window.history.length > 1) router.back();
+                    else router.push('/driver');
+                }}
+                className="text-accent dark:text-accent mb-8 hover:underline w-fit hover:cursor-pointer"
+            >
+                Go back
+            </button>
             <div className="flex-1 flex flex-col justify-between">
                 <Card>
                     <CardBody>
-                        <div className='text-secondary-text dark:text-secondary-text text-sm col-span-6'>From</div>
-                        <div className='text-text dark:text-text font-semibold col-span-12 mb-2'>
-                            {tripQuery.data.trip.route.origin.name}
-                        </div>
-                        <div className='text-secondary-text dark:text-secondary-text text-sm col-span-6'>To</div>
-                        <div className='text-text dark:text-text font-semibold col-span-12 mb-2'>
-                            {tripQuery.data.trip.route.destination.name}
-                        </div>
-
-                        <div className='text-secondary-text dark:text-secondary-text text-sm col-span-6'>Departure Time</div>
-                        <div className='text-text dark:text-text font-semibold col-span-6 mb-2'>
-                            {formatVNWithAMPM(new Date(tripQuery.data.trip.departureTime ?? Date.now()))}
-                        </div>
-
-                        <div className='text-secondary-text dark:text-secondary-text text-sm col-span-6'>Distance (km)</div>
-                        <div className='text-text dark:text-text font-semibold col-span-6 mb-2'>
-                            {tripQuery.data.trip.route.distanceKm} km
+                        <div className="flex-1 grid sm:grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-4">
+                            <div className="grid grid-rows-subgrid gap-2 row-span-3 text-text dark:text-text font-semibold">
+                                <div className="text-secondary-text dark:text-secondary-text text-sm">From</div>
+                                <div className="">{trip.route.origin.name}</div>
+                            </div>
+                            <div className="grid grid-rows-subgrid gap-2 row-span-3 text-text dark:text-text font-semibold">
+                                <div className="text-secondary-text dark:text-secondary-text text-sm">To</div>
+                                <div className="">{trip.route.destination.name}</div>
+                            </div>
+                            <div className="grid grid-rows-subgrid gap-2 row-span-3 text-text dark:text-text font-semibold">
+                                <div className="text-secondary-text dark:text-secondary-text text-sm">Departure Time</div>
+                                <div className="">{formatVNWithAMPM(new Date(trip.departureTime))}</div>
+                            </div>
+                            <div className="grid grid-rows-subgrid gap-2 row-span-3 text-text dark:text-text font-semibold">
+                                <div className="text-secondary-text dark:text-secondary-text text-sm">Arrival Time</div>
+                                <div className="">{formatVNWithAMPM(new Date(trip.arrivalTime))}</div>
+                            </div>
                         </div>
                     </CardBody>
                 </Card>
@@ -192,7 +204,7 @@ export default function DriverTripDetailsPage() {
                                     status: tripStatus,
                                 });
                             }}
-                            disabled={tripStatus === tripQuery.data.trip.status}
+                            disabled={tripStatus === trip.status}
                         >
                             Update Trip Status
                         </Button>
@@ -232,12 +244,12 @@ export default function DriverTripDetailsPage() {
                 <div className="bg-secondary h-[80vh] w-[80vw] p-4 rounded-xl flex flex-col justify-between"
                     onClick={(e) => e.stopPropagation()}
                 >
-                    <div className={`text-text dark:text-text text-center font-semibold ${tripQuery.data.trip.status === TripStatusEnum.UPCOMING && 'mb-4'}`}>Check In Customer</div>
-                    {tripQuery.data.trip.status !== TripStatusEnum.UPCOMING && (
-                        <div className="text-secondary-text dark:text-secondary-text mb-4 text-center">Trip {tripQuery.data.trip.status.toLowerCase()}, can no longer check in</div>
+                    <div className={`text-text dark:text-text text-center font-semibold ${trip.status === TripStatusEnum.UPCOMING && 'mb-4'}`}>Check In Customer</div>
+                    {trip.status !== TripStatusEnum.UPCOMING && (
+                        <div className="text-secondary-text dark:text-secondary-text mb-4 text-center">Trip {trip.status.toLowerCase()}, can no longer check in</div>
                     )}
                     <div className="flex-1 flex flex-col gap-4 overflow-y-auto">
-                        {tripQuery.data.users.filter(u => {
+                        {users.filter(u => {
                             const q = searchCustomerQuery.toLowerCase().trim();
                             return u.name.toLowerCase().includes(q);
                         }).map(user => (
@@ -261,7 +273,7 @@ export default function DriverTripDetailsPage() {
                                 <div className="mt-2">
                                     <Checkbox title={`${user.checkedIn ? 'Checked In' : 'Check In'}`}
                                         id={`checked-in-${user.bookingId}`}
-                                        disabled={tripQuery.data.trip.status !== TripStatusEnum.UPCOMING}
+                                        disabled={trip.status !== TripStatusEnum.UPCOMING}
                                         onChange={(e) => {
                                             onCheckInChange(e, user.bookingId);
                                         }}

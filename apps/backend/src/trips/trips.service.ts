@@ -513,6 +513,8 @@ export class TripsService {
             where.status = Not(TripStatusEnum.CANCELLED);
         }
 
+        where.arrivalTime = MoreThan(new Date());
+
         const [trips, count] = await this.tripRepo.findAndCount({
             where,
             relations: {
