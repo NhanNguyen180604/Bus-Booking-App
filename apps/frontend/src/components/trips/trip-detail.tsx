@@ -1,5 +1,4 @@
-"use client";
-
+"use client";;
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardBody, CardHeader } from "../ui/card";
@@ -9,8 +8,8 @@ import Image from "next/image";
 import { generateSeatCode, SeatTypeEnum } from "@repo/shared";
 import { useTRPC } from "@/src/utils/trpc";
 import { useQuery } from "@tanstack/react-query";
-import { formatPrice } from "@/src/utils/format-price";
 import React from "react";
+import { BusIcon2 } from "../icons/bus2-ic";
 
 type Trip = RouterOutputsType["trips"]["findOneById"];
 type Seat = RouterOutputsType["buses"]["getSeatsByBus"][0];
@@ -114,9 +113,15 @@ export function TripDetail({ trip, onSelectSeat, selectedSeats, seatList, classN
                 <Card>
                     <CardBody>
                         <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-4">
-                                <div className="text-center">
-                                    <div className="text-2xl font-bold text-text">
+                            <div className="
+                                flex-1 grid 
+                                grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]
+                                md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_minmax(0,1fr)]
+                                lg:grid-cols-[minmax(0,2fr)_minmax(0,2fr)_minmax(0,2fr)_minmax(0,3fr)] 
+                                gap-2 lg:gap-4
+                            ">
+                                <div className="grid grid-rows-subgrid gap-2 row-span-2">
+                                    <div className="text-xl md:text-2xl font-bold text-text">
                                         {formatTime(trip!.departureTime)}
                                     </div>
                                     <div className="text-sm text-secondary-text">
@@ -124,31 +129,13 @@ export function TripDetail({ trip, onSelectSeat, selectedSeats, seatList, classN
                                     </div>
                                 </div>
 
-                                <div className="flex flex-col items-center">
+                                <div className="flex flex-col items-center row-span-2">
                                     <div className="text-sm text-secondary-text mb-3">
                                         {calculateDuration(trip!.departureTime, trip!.arrivalTime)}
                                     </div>
-                                    <div className="w-69 h-px bg-border relative">
+                                    <div className="w-full h-px bg-border relative">
                                         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-secondary px-2">
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                width="20"
-                                                height="20"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                strokeWidth="2"
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                className="text-accent"
-                                            >
-                                                <path d="M8 6v6" />
-                                                <path d="M15 6v6" />
-                                                <path d="M2 12h19.6" />
-                                                <path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3" />
-                                                <circle cx="7" cy="18" r="2" />
-                                                <circle cx="17" cy="18" r="2" />
-                                            </svg>
+                                            <BusIcon2 />
                                         </div>
                                     </div>
                                     <div className="text-sm text-secondary-text mt-3">
@@ -156,36 +143,43 @@ export function TripDetail({ trip, onSelectSeat, selectedSeats, seatList, classN
                                     </div>
                                 </div>
 
-                                <div className="text-center">
-                                    <div className="text-2xl font-bold text-text">
+                                <div className="grid grid-rows-subgrid gap-2 row-span-2 text-end">
+                                    <div className="text-xl md:text-2xl font-bold text-text">
                                         {formatTime(trip!.arrivalTime)}
                                     </div>
                                     <div className="text-sm text-secondary-text">
                                         {trip!.route.destination.name}
                                     </div>
                                 </div>
-                            </div>
 
-                            <div className="text-right">
-                                <div className="text-sm text-secondary-text">
-                                    {formatDate(trip!.departureTime)}
-                                </div>
-                                <div className="text-sm font-medium text-text">
-                                    {trip!.bus.type.name}
+                                <div className="hidden md:grid grid-rows-subgrid gap-2 row-span-2 text-end">
+                                    <div className="text-sm text-secondary-text">
+                                        {formatDate(trip!.departureTime)}
+                                    </div>
+                                    <div className="text-sm font-medium text-text">
+                                        {trip!.bus.type.name}
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-4 text-sm text-secondary-text border-t border-border pt-4">
+                        <div className="md:hidden flex justify-between mb-4 border-t border-border pt-4">
+                            <div className="text-sm text-secondary-text">
+                                {formatDate(trip!.departureTime)}
+                            </div>
+                            <div className="text-sm font-medium text-text">
+                                {trip!.bus.type.name}
+                            </div>
+                        </div>
+
+                        <div className="flex flex-wrap md:flex-nowrap items-center gap-4 text-sm text-secondary-text border-t border-border pt-4">
                             <div className="flex items-center gap-1.5">
                                 <Image src={"/icons/plate-ic.svg"} alt={`plate icon`} width={24} height={24} />
                                 Plate: {trip!.bus.plateNumber}
                             </div>
-                            <div>•</div>
                             <div className="flex items-center gap-1.5">
                                 <Image src={"/icons/seat-ic.svg"} alt={`seat icon`} width={24} height={24} />
                                 {totalSeats} seats</div>
-                            <div>•</div>
                             <div className="flex items-center">
                                 <Image src={"/icons/floor-ic.svg"} alt={`floor icon`} width={24} height={24} />
                                 {trip!.bus.floors} floor{trip!.bus.floors > 1 ? "s" : ""}</div>
@@ -223,7 +217,7 @@ export function TripDetail({ trip, onSelectSeat, selectedSeats, seatList, classN
                             Select Your Seats
                         </h3>
                     </CardHeader>
-                    <CardBody>
+                    <CardBody className="px-2 lg:px-6 py-4">
                         {/* Legend */}
                         <div className="flex flex-wrap items-center gap-4 mb-6 pb-4 border-b border-border">
                             <div className="flex items-center gap-2">
@@ -252,27 +246,9 @@ export function TripDetail({ trip, onSelectSeat, selectedSeats, seatList, classN
 
                         {/* Seat Grid */}
                         <div className="flex justify-center">
-                            <div className="inline-block bg-linear-to-b from-secondary/40 to-secondary/20 p-8 rounded-2xl border-2 border-border shadow-inner">
+                            <div className="inline-block bg-linear-to-b from-secondary/40 to-secondary/20 p-4 lg:p-8 rounded-2xl border-2 border-border shadow-inner">
                                 <div className="text-center text-sm text-text font-semibold mb-6 flex items-center justify-center gap-2 bg-primary/50 py-2 px-4 rounded-lg">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="16"
-                                        height="16"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        className="text-accent"
-                                    >
-                                        <path d="M8 6v6" />
-                                        <path d="M15 6v6" />
-                                        <path d="M2 12h19.6" />
-                                        <path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3" />
-                                        <circle cx="7" cy="18" r="2" />
-                                        <circle cx="17" cy="18" r="2" />
-                                    </svg>
+                                    <BusIcon2 />
                                     FRONT OF BUS
                                 </div>
 

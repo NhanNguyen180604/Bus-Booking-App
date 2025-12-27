@@ -193,7 +193,7 @@ export function PaymentPage() {
     };
 
     return (
-        <div className="min-h-screen bg-background py-8 px-4">
+        <div className="min-h-screen bg-background py-8 lg:px-4">
             <button
                 onClick={() => {
                     if (window.history.state && window.history.state.idx > 0) {
@@ -312,9 +312,9 @@ export function PaymentPage() {
                                     {isProcessing ? (
                                         'Processing...'
                                     ) : isExpired ? (
-                                        'Payment Expired'
+                                        'Expired'
                                     ) : (
-                                        'Complete Payment'
+                                        'Pay'
                                     )}
                                 </Button>
                             </div>

@@ -57,7 +57,6 @@ export default function TicketDetailsPage() {
         refetchIntervalInBackground: false, // Only refetch when tab is active
     });
     const selectedBooking = bookingQuery.data;
-    console.log(selectedBooking);
 
     // Check for existing review
     const checkReviewQuery = useQuery({
@@ -694,8 +693,8 @@ export default function TicketDetailsPage() {
                     </div>
                     <Card>
                         <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <div className='flex gap-2'>
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div className='flex gap-4 justify-between'>
                                     <h2 className="text-2xl font-bold text-text">Ticket Details</h2>
                                     {selectedBooking.payment.status !== PaymentStatusEnum.COMPLETED ? (
                                         <p className={`
@@ -715,7 +714,7 @@ export default function TicketDetailsPage() {
                                     )}
 
                                 </div>
-                                <div className="flex gap-2">
+                                <div className="flex gap-4 justify-between">
                                     {selectedBooking.trip.status === TripStatusEnum.UPCOMING && selectedBooking.cancelToken && selectedBooking.payment.status === PaymentStatusEnum.COMPLETED && (
                                         <>
                                             <Button

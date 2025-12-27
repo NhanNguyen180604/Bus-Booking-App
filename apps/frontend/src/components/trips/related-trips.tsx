@@ -9,6 +9,8 @@ import { useQuery } from "@tanstack/react-query";
 import Pagination from "../ui/pagination";
 import Image from "next/image";
 import { formatPrice } from "@/src/utils/format-price";
+import { BusIcon2 } from "../icons/bus2-ic";
+import Link from "next/link";
 
 interface RelatedTripsProps {
     routeId: string;
@@ -20,7 +22,7 @@ export function RelatedTrips({ routeId, excludeTripId, className = "" }: Related
     const router = useRouter();
     const trpc = useTRPC();
     const [currentPage, setCurrentPage] = useState(1);
-    
+
     const relatedTripsQuery = useQuery({
         ...trpc.trips.relatedTrips.queryOptions({
             routeId,
@@ -99,92 +101,96 @@ export function RelatedTrips({ routeId, excludeTripId, className = "" }: Related
                     Other upcoming trips on this route
                 </p>
             </CardHeader>
-            <CardBody className="space-y-4">
+            <CardBody className="flex flex-col gap-4">
                 {trips.map((trip) => (
-                    <div
-                        key={trip.id}
-                        className="border border-border rounded-lg p-4 hover:shadow-md hover:border-accent transition-all cursor-pointer"
-                        onClick={() => router.push(`/trips/${trip.id}`)}
-                    >
-                        <div className="flex justify-between items-center gap-4">
+                    <Link href={`/trips/${trip.id}`} key={trip.id}>
+                        <div
+                            className="
+                                border border-border rounded-lg p-4
+                                hover:shadow-md hover:border-accent transition-all cursor-pointer
+                                flex flex-col justify-between gap-4
+                            "
+                            key={trip.id}
+                        >
                             {/* Trip Info */}
-                            <div className="flex-1">
-                                <div className="flex items-center gap-6 mb-3">
-                                    {/* Departure */}
-                                    <div className="text-center min-w-16">
-                                        <div className="text-2xl font-semibold text-text">
-                                            {getTime(trip.departureTime)}
-                                        </div>
-                                        <div className="text-xs text-secondary-text mt-1">
-                                            {trip.route.origin.name}
-                                        </div>
+                            <div className="
+                                flex-1 grid 
+                                grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,2fr)]
+                                md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_minmax(0,1fr)]
+                                lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] 
+                                gap-2 lg:gap-4
+                            ">
+                                {/* Departure */}
+                                <div className="grid grid-rows-subgrid gap-2 row-span-2 text-text dark:text-text font-semibold">
+                                    <div className="text-xl md:text-2xl font-semibold text-text">
+                                        {getTime(trip.departureTime)}
                                     </div>
+                                    <div className="text-xs text-secondary-text mt-1">
+                                        {trip.route.origin.name}
+                                    </div>
+                                </div>
 
-                                    {/* Duration */}
-                                    <div className="flex-1 flex flex-col items-center">
-                                        <div className="text-xs text-secondary-text mb-1">
+                                {/* Duration */}
+                                <div className="row-span-2 self-center">
+                                    <div className="flex-1 flex flex-col items-center justify-center">
+                                        <div className="text-sm text-secondary-text mb-3">
                                             {calculateDuration(trip.departureTime, trip.arrivalTime)}
                                         </div>
-                                        <div className="w-full h-px bg-border relative">
-                                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-secondary px-1">
-                                                <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    width="16"
-                                                    height="16"
-                                                    viewBox="0 0 24 24"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    strokeWidth="2"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    className="text-accent"
-                                                >
-                                                    <path d="M8 6v6" />
-                                                    <path d="M15 6v6" />
-                                                    <path d="M2 12h19.6" />
-                                                    <path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3" />
-                                                    <circle cx="7" cy="18" r="2" />
-                                                    <circle cx="17" cy="18" r="2" />
-                                                </svg>
+                                        <div className="w-full relative">
+                                            <div className="h-px bg-border"></div>
+                                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 px-2">
+                                                <BusIcon2 />
                                             </div>
                                         </div>
-                                    </div>
-
-                                    {/* Arrival */}
-                                    <div className="text-center min-w-16">
-                                        <div className="text-2xl font-semibold text-text">
-                                            {getTime(trip.arrivalTime)}
-                                        </div>
-                                        <div className="text-xs text-secondary-text mt-1">
-                                            {trip.route.destination.name}
+                                        <div className="text-sm text-secondary-text mt-3">
+                                            {trip.route.distanceKm} km
                                         </div>
                                     </div>
                                 </div>
 
+                                {/* Arrival */}
+                                <div className="grid grid-rows-subgrid gap-2 row-span-2 text-end text-text dark:text-text font-semibold">
+                                    <div className="text-xl md:text-2xl font-semibold text-text">
+                                        {getTime(trip.arrivalTime)}
+                                    </div>
+                                    <div className="text-xs text-secondary-text mt-1">
+                                        {trip.route.destination.name}
+                                    </div>
+                                </div>
+
                                 {/* Date and Bus Details */}
-                                <div className="flex items-center gap-4 text-sm">
+                                <div className="hidden md:grid grid-rows-subgrid gap-2 row-span-2 text-end text-sm">
                                     <div className="text-secondary-text">
                                         {getDate(trip.departureTime)}
                                     </div>
-                                    <div className="text-secondary-text">•</div>
-                                    <div className="flex items-center gap-1.5 text-secondary-text">
+                                    <div className="flex items-center gap-1.5 text-secondary-text justify-end">
                                         <Image src={"/icons/bus-ic.svg"} alt="bus icon" width={20} height={20} />
                                         <span className="font-medium text-text">{trip.bus.type.name}</span>
                                     </div>
                                 </div>
                             </div>
 
+                            <div className="md:hidden flex justify-between text-sm">
+                                <div className="text-secondary-text">
+                                    {getDate(trip.departureTime)}
+                                </div>
+                                <div className="flex items-center gap-1.5 text-secondary-text justify-end">
+                                    <Image src={"/icons/bus-ic.svg"} alt="bus icon" width={20} height={20} />
+                                    <span className="font-medium text-text">{trip.bus.type.name}</span>
+                                </div>
+                            </div>
+
                             {/* Price and Button */}
-                            <div className="text-right">
-                                <div className="text-2xl font-bold text-accent mb-2">
+                            <div className="flex flex-col md:flex-row justify-end md:gap-16 mt-2">
+                                <div className="text-2xl font-bold text-accent mb-2 text-end">
                                     {formatPrice(trip.basePrice)}
                                 </div>
-                                <Button variant="accent" size="sm">
+                                <Button variant="accent" size="sm" className="md:flex-1">
                                     View Details
                                 </Button>
                             </div>
                         </div>
-                    </div>
+                    </Link>
                 ))}
 
                 {relatedTripsQuery.data.totalPage > 1 && (

@@ -37,7 +37,7 @@ export function BusSearchForm({ onSearch, isLoading, initialValues }: BusSearchF
     control,
     getValues,
     reset,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm<BusSearchFormType>({
     resolver: zodResolver(TripFindManyDto.omit({ page: true, perPage: true, departureTime: true }).extend({
       departureTime: z.string().optional(),
@@ -90,7 +90,7 @@ export function BusSearchForm({ onSearch, isLoading, initialValues }: BusSearchF
           {/* Main search inputs */}
           <div className="flex flex-col lg:flex-row gap-4">
             {/* Origin and Destination */}
-            <div className="flex flex-3 gap-2 relative z-10">
+            <div className="flex flex-col md:flex-row flex-3 gap-2 relative z-10">
               <div className="flex-1">
                 <Controller
                   name="origin"
@@ -118,7 +118,7 @@ export function BusSearchForm({ onSearch, isLoading, initialValues }: BusSearchF
               <button
                 type="button"
                 onClick={handleSwap}
-                className="self-center mb-0 p-3 text-text hover:cursor-pointer hover:text-text/50 dark:text-text dark:hover:text-text transition-colors"
+                className="self-center mb-0 p-3 md:self-end lg:self-center text-text hover:cursor-pointer hover:text-text/50 dark:text-text dark:hover:text-text transition-colors"
                 aria-label="Swap origin and destination"
               >
                 <svg
@@ -131,7 +131,7 @@ export function BusSearchForm({ onSearch, isLoading, initialValues }: BusSearchF
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="rotate-90"
+                  className="md:rotate-90"
                 >
                   <path d="M7 16V4M7 4L3 8M7 4l4 4" />
                   <path d="M17 8v12m0 0l4-4m-4 4l-4-4" />
@@ -199,7 +199,7 @@ export function BusSearchForm({ onSearch, isLoading, initialValues }: BusSearchF
                 variant="accent"
                 size="lg"
                 className="w-full lg:w-auto"
-                disabled={isLoading}
+                disabled={isLoading || !isValid}
               >
                 {isLoading ? (
                   <>

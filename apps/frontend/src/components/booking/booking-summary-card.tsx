@@ -30,21 +30,23 @@ export default function BookingSummaryCard({ trip, selectedSeats, className = ""
                     <div className='space-y-4'>
                         {/* Trip Info */}
                         <div className='grid grid-cols-12'>
-                            <div className='text-secondary-text dark:text-secondary-text text-sm col-span-6'>From</div>
-                            <div className='text-secondary-text dark:text-secondary-text text-sm col-span-6 text-end'>To</div>
-                            <div className='text-text dark:text-text font-semibold col-span-6 mb-2'>
+                            <div className='text-secondary-text dark:text-secondary-text text-sm col-span-12 md:col-span-6'>From</div>
+                            <div className='text-secondary-text dark:text-secondary-text text-sm col-span-6 text-end hidden md:block'>To</div>
+                            <div className='text-text dark:text-text font-semibold col-span-12 md:col-span-6 mb-2'>
                                 {trip.route.origin.name}
                             </div>
-                            <div className='text-text dark:text-text font-semibold col-span-6 mb-2 text-end'>
+                            <div className='text-secondary-text dark:text-secondary-text text-sm col-span-12 block md:hidden'>To</div>
+                            <div className='text-text dark:text-text font-semibold col-span-12 md:col-span-6 mb-2 md:text-end'>
                                 {trip.route.destination.name}
                             </div>
 
-                            <div className='text-secondary-text dark:text-secondary-text text-sm col-span-6'>Departure Time</div>
-                            <div className='text-secondary-text dark:text-secondary-text text-sm col-span-6 text-end'>Distance (km)</div>
-                            <div className='text-text dark:text-text font-semibold col-span-6 mb-2'>
+                            <div className='text-secondary-text dark:text-secondary-text text-sm col-span-12 md:col-span-6'>Departure Time</div>
+                            <div className='text-secondary-text dark:text-secondary-text text-sm col-span-6 text-end hidden md:block'>Distance (km)</div>
+                            <div className='text-text dark:text-text font-semibold col-span-12 md:col-span-6 mb-2'>
                                 {formatVNWithAMPM(new Date(trip.departureTime ?? Date.now()))}
                             </div>
-                            <div className='text-text dark:text-text font-semibold col-span-6 mb-2 text-end'>
+                            <div className='text-secondary-text dark:text-secondary-text text-sm col-span-6 md:hidden'>Distance (km)</div>
+                            <div className='text-text dark:text-text font-semibold col-span-12 md:col-span-6 mb-2 md:text-end'>
                                 {trip.route.distanceKm} km
                             </div>
                         </div>
@@ -67,7 +69,7 @@ export default function BookingSummaryCard({ trip, selectedSeats, className = ""
 
                         <div className="border-t border-border pt-4 space-y-3">
                             {/* Price per seat */}
-                            <div className="flex justify-between text-sm">
+                            <div className="flex justify-between md:text-sm">
                                 <span className="text-secondary-text">Price per seat</span>
                                 <span className="font-medium text-text">
                                     {formatPrice(trip.basePrice)}
@@ -75,7 +77,7 @@ export default function BookingSummaryCard({ trip, selectedSeats, className = ""
                             </div>
 
                             {/* Number of seats */}
-                            <div className="flex justify-between text-sm">
+                            <div className="flex justify-between md:text-sm">
                                 <span className="text-secondary-text">
                                     Number of seats
                                 </span>
