@@ -11,31 +11,31 @@ import { SteeringWheelIcon } from "../icons/steering-wheel";
 import { PersonIcon } from "../icons/person";
 import { ReportIcon } from "../icons/report-ic";
 import { SettingsIcon } from "../icons/settings-ic";
-import { BookingIcon } from "../icons/booking-ic";
-import { PaymentIcon } from "../icons/payment-ic";
 
 export function AdminNavBar() {
     return (
-        <Card className="w-72 flex flex-col gap-8 p-4 sticky top-20 h-[calc(100vh-6rem)] overflow-y-auto">
-            <div className="flex flex-col gap-2">
-                <NavTab name="Dashboard" url="/admin" icon={DashboardIcon} />
-                <NavTab name="Revenue" url="/admin/revenue" icon={FinanceIcon} />
-            </div>
-            <div className="flex flex-col gap-2">
-                <NavTab name="Trips" url="/admin/trips" icon={TripIcon} />
-                <NavTab name="Routes" url="/admin/routes" icon={RouteIcon} />
-                <NavTab name="Stations" url="/admin/stations" icon={StationIcon} />
-                <NavTab name="Buses" url="/admin/buses" icon={BusIcon} />
-                <NavTab name="Drivers" url="/admin/drivers" icon={SteeringWheelIcon} />
-            </div>
-            <div className="flex flex-col gap-2">
-                <NavTab name="Customers" url="/admin/customers" icon={PersonIcon} />
-                <NavTab name="Reports" url="/admin/reports" icon={ReportIcon} />
-            </div>
-            <div className="flex flex-col gap-2">
-                <NavTab name="Settings" url="/admin/settings" icon={SettingsIcon} />
-            </div>
-        </Card>
+        <>
+            <Card className="w-72 flex flex-col gap-8 p-4 sticky top-20 h-[calc(100vh-6rem)] overflow-y-auto">
+                <div className="flex flex-col gap-2">
+                    <NavTab name="Dashboard" url="/admin" icon={DashboardIcon} />
+                    <NavTab name="Revenue" url="/admin/revenue" icon={FinanceIcon} />
+                </div>
+                <div className="flex flex-col gap-2">
+                    <NavTab name="Trips" url="/admin/trips" icon={TripIcon} />
+                    <NavTab name="Routes" url="/admin/routes" icon={RouteIcon} />
+                    <NavTab name="Stations" url="/admin/stations" icon={StationIcon} />
+                    <NavTab name="Buses" url="/admin/buses" icon={BusIcon} />
+                    <NavTab name="Drivers" url="/admin/drivers" icon={SteeringWheelIcon} />
+                </div>
+                <div className="flex flex-col gap-2">
+                    <NavTab name="Customers" url="/admin/customers" icon={PersonIcon} />
+                    <NavTab name="Reports" url="/admin/reports" icon={ReportIcon} />
+                </div>
+                <div className="flex flex-col gap-2">
+                    <NavTab name="Settings" url="/admin/settings" icon={SettingsIcon} />
+                </div>
+            </Card>
+        </>
     );
 }
 
@@ -47,7 +47,12 @@ interface NavTabProps {
 
 function NavTab({ name, icon: Icon, url }: NavTabProps) {
     const pathName = usePathname();
-    const selected = pathName === url;
+    let selected = false;
+    if (url === "/admin") {
+        selected = pathName === "/admin";
+    } else {
+        selected = pathName === url || pathName.startsWith(url + "/");
+    }
     return (
         <Link href={url}
             className={`flex gap-4 px-9 py-2 rounded-md text-base hover:bg-primary
