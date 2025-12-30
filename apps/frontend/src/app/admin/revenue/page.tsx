@@ -17,9 +17,6 @@ export default function AdminRevenuePage() {
     const trpc = useTRPC();
     const perPage = 20;
 
-    const [page, setPage] = useState(1);
-    const [totalPage, setTotalPage] = useState(1);
-
     const [searchInput, setSearchInput] = useState<PaymentSearchDtoType>({
         page: 1,
         perPage,
@@ -36,7 +33,6 @@ export default function AdminRevenuePage() {
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         setSearchObj({ ...searchInput, page: 1 });
-        setPage(1);
     };
 
     return (
@@ -287,7 +283,6 @@ export default function AdminRevenuePage() {
                             totalPage={searchPaymentsQuery.data.totalPage}
                             loadPageFn={(newPage) => {
                                 setSearchObj({ ...searchObj, page: newPage });
-                                setPage(newPage);
                             }}
                         />
                     </div>

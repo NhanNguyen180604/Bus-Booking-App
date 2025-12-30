@@ -32,8 +32,8 @@ export default function Pagination({ currentPage, totalPage, loadPageFn }: Pagin
         else {
             pages.push(1);
 
-            let start = Math.max(2, page - 2);
-            let end = Math.min(totalPage - 1, page + 2);
+            const start = Math.max(2, page - 2);
+            const end = Math.min(totalPage - 1, page + 2);
 
             if (start > 2) pages.push(-1); // left ellipsis
 

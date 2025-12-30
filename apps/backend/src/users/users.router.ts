@@ -47,10 +47,10 @@ export class UsersRouter {
                         });
                     }
                     let redirectUrl: string;
-                    if (!verified) redirectUrl = `/users/verify`;
-                    if (user.role === UserRoleEnum.ADMIN) redirectUrl = `/admin`;
-                    else if (user.role === UserRoleEnum.DRIVER) redirectUrl = `/driver`;
-                    else redirectUrl = `/`;
+                    if (!verified) redirectUrl = `${this.config.frontend_url}/users/verify`;
+                    if (user.role === UserRoleEnum.ADMIN) redirectUrl = `${this.config.frontend_url}/admin`;
+                    else if (user.role === UserRoleEnum.DRIVER) redirectUrl = `${this.config.frontend_url}/driver`;
+                    else redirectUrl = `${this.config.frontend_url}/`;
 
                     return { verified, redirectUrl };
                 }),

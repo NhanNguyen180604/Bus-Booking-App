@@ -36,15 +36,6 @@ export function PaymentPage() {
     const phoneNumber = searchParams.get('phoneNumber');
     const clientSecret = searchParams.get('client_secret');
 
-    if (!bookingLookUpCode || !bookingLookUpCode.trim().length ||
-        !phoneNumber || !phoneNumber.trim().length ||
-        !clientSecret || !clientSecret.trim().length
-    ) {
-        return (
-            <UnauthorizedPage />
-        );
-    }
-
     const [confirmError, setConfirmError] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [paymentSuccess, setPaymentSuccess] = useState(false);
@@ -143,6 +134,15 @@ export function PaymentPage() {
                     </CardBody>
                 </Card>
             </div>
+        );
+    }
+
+    if (!bookingLookUpCode || !bookingLookUpCode.trim().length ||
+        !phoneNumber || !phoneNumber.trim().length ||
+        !clientSecret || !clientSecret.trim().length
+    ) {
+        return (
+            <UnauthorizedPage />
         );
     }
 

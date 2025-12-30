@@ -43,20 +43,8 @@ export default function RegisterPage() {
     onSuccess: () => {
       router.push("/users/verify?register=true");
     },
-    onError: (error: any) => {
-      if (error.data?.zodError) {
-        // Handle Zod validation errors from backend
-        const zodErrors = error.data.zodError.fieldErrors;
-        zodErrors.forEach((fieldError: any) => {
-          setError(fieldError.path[0] as any, {
-            message: fieldError.message,
-          });
-        });
-      } else {
-        setError("root", {
-          message: error.message || "Registration failed. Please try again.",
-        });
-      }
+    onError: (error) => {
+      setError("root", { message: error.message });
     },
   });
 

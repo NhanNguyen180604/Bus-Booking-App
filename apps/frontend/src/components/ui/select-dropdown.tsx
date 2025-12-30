@@ -20,7 +20,7 @@ const classNamesStyles: ClassNamesConfig = {
     `,
     placeholder: ({ }) => `text-secondary-text dark:text-secondary-text`,
     singleValue: ({ }) => `text-text dark:text-text`,
-    dropdownIndicator(props) {
+    dropdownIndicator() {
         return `
             text-accent dark:text-accent
         `;

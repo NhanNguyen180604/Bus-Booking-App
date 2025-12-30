@@ -44,7 +44,7 @@ export default function LoginPage() {
     onSuccess: (data) => {
       router.push(data.redirectUrl);
     },
-    onError: (error: any) => {
+    onError: (error) => {
       setError("root", {
         message: error.message || "Login failed. Please try again.",
       });

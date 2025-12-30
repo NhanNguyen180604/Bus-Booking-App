@@ -14,19 +14,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 export default function UserVerifyEmailPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const token = searchParams.get("token");
+    const token = searchParams.get("token") || '';
     const trpc = useTRPC();
     const user = useUser();
 
-    if (!token) {
-        return <UnauthorizedPage
-            header="No token"
-            message="Invalid token to verify your email"
-            routerGoBack={true}
-        />
-    }
-
-    const verifyEmailQueryOpts = trpc.users.verifyEmail.queryOptions({ token });
+    const verifyEmailQueryOpts = trpc.users.verifyEmail.queryOptions({ token }, { enabled: token.length > 0 });
     const verifyEmailQuery = useQuery({
         ...verifyEmailQueryOpts,
         staleTime: 60 * 60 * 1000,
@@ -44,6 +36,14 @@ export default function UserVerifyEmailPage() {
     if (user.data && user.data.verified) {
         return <ForbiddenPage
             message="Your account is already verified"
+        />
+    }
+
+    if (!token.length) {
+        return <UnauthorizedPage
+            header="No token"
+            message="Invalid token to verify your email"
+            routerGoBack={true}
         />
     }
 

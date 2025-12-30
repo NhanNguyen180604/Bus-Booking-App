@@ -210,7 +210,7 @@ export default function AdminManageTripPage() {
                                         setMinPriceInput(val);
                                     }}
                                     onBlur={() => {
-                                        let maxPrice = tripSearchQueryInput.maxPrice ?? 0;
+                                        const maxPrice = tripSearchQueryInput.maxPrice ?? 0;
                                         const newMinPrice = Math.max(Math.min(minPriceInput, maxPrice), 0);
                                         const newMaxPrice = Math.min(Math.max(minPriceInput, maxPrice), 1000000);
                                         setTripSearchQueryInput({
@@ -231,7 +231,7 @@ export default function AdminManageTripPage() {
                                         setMaxPriceInput(val);
                                     }}
                                     onBlur={() => {
-                                        let minPrice = tripSearchQueryInput.minPrice ?? 0;
+                                        const minPrice = tripSearchQueryInput.minPrice ?? 0;
                                         const newMinPrice = Math.max(Math.min(maxPriceInput, minPrice), 0);
                                         const newMaxPrice = Math.min(Math.max(maxPriceInput, minPrice), 1000000);
                                         setTripSearchQueryInput({

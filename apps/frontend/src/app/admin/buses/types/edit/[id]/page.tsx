@@ -27,12 +27,6 @@ export default function AdminEditRoutePage() {
         staleTime: 60 * 60 * 1000,
     });
 
-    useEffect(() => {
-        if (busTypeQuery.isSuccess) {
-            reset(busTypeQuery.data);
-        }
-    }, [busTypeQuery.isSuccess]);
-
     const {
         register,
         handleSubmit,
@@ -43,6 +37,12 @@ export default function AdminEditRoutePage() {
         resolver: zodResolver(BusTypeUpdateOneDto),
         mode: "all",
     });
+
+    useEffect(() => {
+        if (busTypeQuery.isSuccess) {
+            reset(busTypeQuery.data);
+        }
+    }, [busTypeQuery.isSuccess]);
 
     const updateBusTypeMutationOpts = trpc.busTypes.updateOne.mutationOptions();
     const updateBusTypeMutation = useMutation({

@@ -1,12 +1,8 @@
-"use client";
-
+"use client";;
 import { Card, CardBody } from "../ui/card";
 import { Button } from "../ui/button";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { type RouterOutputsType } from "backend";
 import Pagination from "../ui/pagination";
-import Image from "next/image";
 import { formatPrice } from "@/src/utils/format-price";
 import { SeatTypeEnum } from "@repo/shared";
 import Link from "next/link";
@@ -26,8 +22,6 @@ export function SearchResults({
   isLoading,
   onPageChange,
 }: SearchResultsProps) {
-  const router = useRouter();
-
   if (isLoading) {
     return (
       <div className="w-full">
@@ -77,14 +71,6 @@ export function SearchResults({
       hour: "2-digit",
       minute: "2-digit",
       hour12: true,
-    });
-  };
-
-  const getDate = (date: string) => {
-    return new Date(date).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
     });
   };
 

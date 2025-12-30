@@ -23,9 +23,6 @@ interface CheckoutInfoProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export default function CheckoutInfoComponent({ trip, selectedSeats, paymentFormRef, className = "" }: CheckoutInfoProps) {
-    if (!trip)
-        return null;
-
     const trpc = useTRPC();
     const router = useRouter();
     const paymentMethodsCardRef = useRef<HTMLDivElement>(null);
@@ -40,7 +37,7 @@ export default function CheckoutInfoComponent({ trip, selectedSeats, paymentForm
     } = useForm<BookingCreateOneDtoType>({
         resolver: zodResolver(BookingCreateOneDto),
         defaultValues: {
-            tripId: trip.id,
+            tripId: trip?.id ?? '',
             seatIds: selectedSeats.map(s => s.id),
             paymentProvider: PaymentProviderEnum.STRIPE,
         },
@@ -59,6 +56,7 @@ export default function CheckoutInfoComponent({ trip, selectedSeats, paymentForm
         },
         onSuccess(data) {
             // Redirect to payment page with booking token
+            if (!trip) return;
             const { booking, client_secret } = data;
             queryClient.setQueryData(trpc.booking.lookUpBooking.queryKey({ bookingCode: booking.lookupCode, phone: booking.phone }), booking);
             const oldBookedSeats = queryClient.getQueryData(trpc.booking.getBookingSeatsByTrip.queryKey({ tripId: trip.id }));
@@ -83,6 +81,9 @@ export default function CheckoutInfoComponent({ trip, selectedSeats, paymentForm
             paymentProvider,
         });
     };
+
+    if (!trip)
+        return null;
 
     return (
         <div className={`${className} gap-x-4`} ref={paymentFormRef}>

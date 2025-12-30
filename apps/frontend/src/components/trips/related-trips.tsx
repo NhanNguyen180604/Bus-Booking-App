@@ -1,9 +1,7 @@
-"use client";
-
+"use client";;
 import { useState } from "react";
 import { Card, CardBody, CardHeader } from "../ui/card";
 import { Button } from "../ui/button";
-import { useRouter } from "next/navigation";
 import { useTRPC } from "@/src/utils/trpc";
 import { useQuery } from "@tanstack/react-query";
 import Pagination from "../ui/pagination";
@@ -19,7 +17,6 @@ interface RelatedTripsProps {
 }
 
 export function RelatedTrips({ routeId, excludeTripId, className = "" }: RelatedTripsProps) {
-    const router = useRouter();
     const trpc = useTRPC();
     const [currentPage, setCurrentPage] = useState(1);
 

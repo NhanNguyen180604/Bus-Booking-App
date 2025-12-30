@@ -71,7 +71,7 @@ export default function AdminCreateNewRoutePage() {
                             render={({ field: { onChange } }) => (
                                 <SelectDropdown label="Origin" isClearable required
                                     options={stationData.map(station => ({ value: station.id, label: station.name }))}
-                                    onChange={(newValue, _) => {
+                                    onChange={(newValue) => {
                                         const newVal: OptionType<string> = newValue as OptionType<string>;
                                         onChange(newVal ? newVal.value : "");
                                     }}
@@ -86,7 +86,7 @@ export default function AdminCreateNewRoutePage() {
                             render={({ field: { onChange } }) => (
                                 <SelectDropdown label="Destination" isClearable required
                                     options={stationData.map(station => ({ value: station.id, label: station.name }))}
-                                    onChange={(newValue, _) => {
+                                    onChange={(newValue) => {
                                         const newVal: OptionType<string> = newValue as OptionType<string>;
                                         onChange(newVal ? newVal.value : "");
                                     }}

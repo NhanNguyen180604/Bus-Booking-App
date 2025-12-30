@@ -1,6 +1,5 @@
 "use client";;
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Card, CardBody, CardHeader } from "../ui/card";
 import { Button } from "../ui/button";
 import { RouterOutputsType } from "backend";
@@ -30,7 +29,6 @@ export function TripDetail({ trip, onSelectSeat, selectedSeats, seatList, classN
         staleTime: 10 * 60 * 1000, // 10 minutes
     });
 
-    const router = useRouter();
     const [selectedFloor, setSelectedFloor] = useState(0);
 
     const formatTime = (date: string) => {
@@ -57,7 +55,6 @@ export function TripDetail({ trip, onSelectSeat, selectedSeats, seatList, classN
         return `${hours}h ${minutes}m`;
     };
 
-    const totalPrice = trip!.basePrice;
     const totalSeats = seatList.length;
 
     // Generate seat layout
