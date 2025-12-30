@@ -435,10 +435,10 @@ export default function AdminManageTripPage() {
                     ) : (
                         <div className="flex justify-center">
                             <div className="
-                            text-danger dark:text-danger bg-danger/20 dark:bg-danger/20 
-                            border border-danger dark:border-danger
-                            font-bold p-4 rounded-lg flex gap-4
-                        ">
+                                text-danger dark:text-danger bg-danger/20 dark:bg-danger/20 
+                                border border-danger dark:border-danger
+                                font-bold p-4 rounded-lg flex gap-4
+                            ">
                                 <CancelIcon /> <span>ERROR LOADING TRIP</span>
                             </div>
                         </div>

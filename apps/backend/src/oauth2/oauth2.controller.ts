@@ -66,7 +66,10 @@ export class Oauth2Controller {
             maxAge: this.config.cookie.refresh_token_max_age,
         });
         if (req.user.role === UserRoleEnum.ADMIN) {
-            return res.redirect(`${this.config.frontend_url}/admin`);
+            return res.redirect(`/admin`);
+        }
+        else if (req.user.role === UserRoleEnum.DRIVER){
+            return res.redirect(`/driver`);
         }
         else return res.redirect(this.config.frontend_url);
     }

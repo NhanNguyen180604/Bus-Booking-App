@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import { useTRPC } from "../../../utils/trpc";
 import { useMutation } from "@tanstack/react-query";
@@ -15,10 +15,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { type UserLoginDtoType, UserLoginDto } from "@repo/shared";
 import { AppShell } from "../../../components/layout/app-shell";
 import Checkbox from "@/src/components/ui/checkbox";
+import useUser from "@/src/hooks/useUser";
+import { CancelIcon } from "@/src/components/icons/cancel-ic";
 
 export default function LoginPage() {
   const router = useRouter();
   const trpc = useTRPC();
+
+  const userQuery = useUser();
 
   const {
     register,
@@ -38,7 +42,7 @@ export default function LoginPage() {
   const loginMutation = useMutation({
     ...loginMutationOptions,
     onSuccess: (data) => {
-      router.push(data.verified ? "/" : "/users/verify");
+      router.push(data.redirectUrl);
     },
     onError: (error: any) => {
       setError("root", {
@@ -55,6 +59,11 @@ export default function LoginPage() {
     });
   };
 
+  if (userQuery.data) {
+    router.push("/");
+    return null;
+  }
+
   return (
     <AppShell hideNav>
       <div className="flex h-full items-center justify-center bg-background dark:bg-background px-4">
@@ -69,8 +78,12 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit(onSubmit)}>
               <CardBody className="space-y-4">
                 {errors.root && (
-                  <div className="rounded-md p-4">
-                    <p className="text-sm text-danger dark:text-danger">{errors.root.message}</p>
+                  <div className="
+                      text-danger dark:text-danger bg-danger/20 dark:bg-danger/20 
+                      border border-danger dark:border-danger
+                      font-bold p-4 rounded-lg flex gap-4
+                  ">
+                    <CancelIcon /> <span>{errors.root.message}</span>
                   </div>
                 )}
 

@@ -60,6 +60,7 @@ export class UsersService {
         return {
             ...newTokens,
             verified,
+            user: foundUser,
         };
     }
 

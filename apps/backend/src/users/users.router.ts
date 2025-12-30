@@ -35,7 +35,7 @@ export class UsersRouter {
                 .mutation(async ({ input, ctx }) => {
                     const req: Request = ctx.req;
                     const res: Response = ctx.res;
-                    const { access_token, refresh_token, verified } = await this.usersService.loginLocal(input, req);
+                    const { access_token, refresh_token, verified, user } = await this.usersService.loginLocal(input, req);
                     res.cookie('access_token', access_token, {
                         ...this.cookieOptions,
                         maxAge: this.config.cookie.access_token_max_age,
@@ -46,10 +46,13 @@ export class UsersRouter {
                             maxAge: this.config.cookie.refresh_token_max_age,
                         });
                     }
-                    return {
-                        message: "Login Success",
-                        verified,
-                    };
+                    let redirectUrl: string;
+                    if (!verified) redirectUrl = `/users/verify`;
+                    if (user.role === UserRoleEnum.ADMIN) redirectUrl = `/admin`;
+                    else if (user.role === UserRoleEnum.DRIVER) redirectUrl = `/driver`;
+                    else redirectUrl = `/`;
+
+                    return { verified, redirectUrl };
                 }),
             postRegisterLocal: this.trpcService
                 .publicProcedure()
