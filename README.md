@@ -6,6 +6,26 @@
 - At the root directory, run ```pnpm install```.
 - The turbo documentation highly recommendeds installing turbo globally.
 
+# Database Seeding
+
+To populate your database with sample data (users, stations, routes, buses, trips, etc.):
+
+```bash
+# From root directory
+pnpm --filter backend seed
+
+# Or from apps/backend
+cd apps/backend
+pnpm seed
+```
+
+For detailed information about seeding, see [SEEDING.md](SEEDING.md).
+
+**Test credentials after seeding:**
+- Admin: `admin@busapp.com` / `Password123!`
+- User: `user@busapp.com` / `Password123!`
+- Driver: `driver1@busapp.com` / `Password123!`
+
 # Stripe Integration
 - Sign up for a Stripe account and access your dashboard.
 - Get the secret and put it inside the backend's ```.env```

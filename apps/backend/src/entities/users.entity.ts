@@ -30,8 +30,8 @@ export class User {
     })
     provider: LoginProviderEnum[];  // i wont change the name to plural, I DONT WANT TO DEAL WITH THIS ANYMORE AAGJHSD
 
-    @Column({ nullable: true })
-    providerId: string;  // null if provider is local
+    @Column({ nullable: true, type: 'varchar' })
+    providerId: string | null;  // null if provider is local
 
     @Column({ nullable: false })
     name: string;

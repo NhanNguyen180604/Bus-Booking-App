@@ -8,7 +8,7 @@ export const createContext = async (
     return {
         req: opts.req,
         res: opts.res,
-        user: opts.req.user,
+        user: opts.req.user as User | undefined,
     };
 }
 

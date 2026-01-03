@@ -41,6 +41,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { ResetPasswordToken } from './entities/reset-password-token.entity';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { DatabaseInitService } from './database/database-init.service';
+import { SeedService } from './database/seed.service';
 
 @Module({
   imports: [
@@ -92,7 +93,7 @@ import { DatabaseInitService } from './database/database-init.service';
     CloudinaryModule,
   ],
   controllers: [AppController],
-  providers: [AppService, AppRouter, JwtMiddleware, DatabaseInitService],
+  providers: [AppService, AppRouter, JwtMiddleware, DatabaseInitService, SeedService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

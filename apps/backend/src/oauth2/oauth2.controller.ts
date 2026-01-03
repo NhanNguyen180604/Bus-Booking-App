@@ -6,6 +6,7 @@ import { UserRoleEnum } from '@repo/shared';
 import { GoogleAuthGuard } from '../guards/google-auth.guard';
 import { FacebookAuthGuard } from '../guards/facebook-auth.guard';
 import { GitHubAuthGuard } from '../guards/github-auth.guard';
+import { User } from '../entities/users.entity';
 
 @Controller('oauth2')
 export class Oauth2Controller {
@@ -56,7 +57,8 @@ export class Oauth2Controller {
         if (!req.user) {
             throw new UnauthorizedException('No Facebook user');
         }
-        const { access_token, refresh_token } = await this.oauth2Service.oauth2Login(req.user);
+        const user = req.user as User;
+        const { access_token, refresh_token } = await this.oauth2Service.oauth2Login(user);
         res.cookie('access_token', access_token, {
             ...this.cookieOptions,
             maxAge: this.config.cookie.access_token_max_age,
@@ -65,10 +67,10 @@ export class Oauth2Controller {
             ...this.cookieOptions,
             maxAge: this.config.cookie.refresh_token_max_age,
         });
-        if (req.user.role === UserRoleEnum.ADMIN) {
+        if (user.role === UserRoleEnum.ADMIN) {
             return res.redirect(`${this.config.frontend_url}/admin`);
         }
-        else if (req.user.role === UserRoleEnum.DRIVER){
+        else if (user.role === UserRoleEnum.DRIVER){
             return res.redirect(`${this.config.frontend_url}/driver`);
         }
         else return res.redirect(this.config.frontend_url);
