@@ -40,6 +40,7 @@ import { ReviewModule } from './reviews/reviews.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ResetPasswordToken } from './entities/reset-password-token.entity';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { DatabaseInitService } from './database/database-init.service';
 
 @Module({
   imports: [
@@ -91,7 +92,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
     CloudinaryModule,
   ],
   controllers: [AppController],
-  providers: [AppService, AppRouter, JwtMiddleware],
+  providers: [AppService, AppRouter, JwtMiddleware, DatabaseInitService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
