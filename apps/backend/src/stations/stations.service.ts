@@ -69,17 +69,74 @@ export class StationsService {
     }
 
     async search(dto: StationSearchDtoType) {
-        let where: FindOptionsWhere<Station> = {};
-        if (dto.nameQuery) {
-            where = { name: ILike(`%${dto.nameQuery}%`) };
+        // If no search query, return all stations with simple sorting
+        if (!dto.nameQuery) {
+            const [stations, count] = await this.stationRepo.findAndCount({
+                order: { name: dto.sortName ?? "asc" },
+                skip: (dto.page - 1) * dto.perPage,
+                take: dto.perPage,
+            });
+
+            const totalPage = Math.ceil(count / dto.perPage);
+
+            return {
+                data: stations,
+                page: Math.min(dto.page, totalPage),
+                perPage: Math.min(dto.perPage, count),
+                total: count,
+                totalPage,
+            };
         }
 
-        const [stations, count] = await this.stationRepo.findAndCount({
-            where,
-            order: { name: dto.sortName ?? "asc" },
-            skip: (dto.page - 1) * dto.perPage,
-            take: dto.perPage,
-        });
+        const searchTerm = dto.nameQuery.trim();
+
+        // Use PostgreSQL full-text search for better relevance ranking
+        // to_tsquery with prefix matching for partial word matches
+        const searchQuery = searchTerm
+            .split(/\s+/)
+            .filter(word => word.length > 0)
+            .map(word => `${word}:*`)
+            .join(' & ');
+
+        // Combined query: Full-text search + Trigram fuzzy matching
+        // This handles both exact/prefix matches AND typo tolerance
+        const queryBuilder = this.stationRepo
+            .createQueryBuilder('station')
+            .where(
+                `to_tsvector('english', station.name) @@ to_tsquery('english', :query) OR similarity(station.name, :searchTerm) > 0.1`,
+                { query: searchQuery, searchTerm }
+            )
+            .addSelect(
+                `GREATEST(
+                    ts_rank(to_tsvector('english', station.name), to_tsquery('english', :query)),
+                    similarity(station.name, :searchTerm)
+                )`,
+                'relevance'
+            )
+            .orderBy('relevance', 'DESC')
+            .addOrderBy('station.name', 'ASC');
+
+        const results = await queryBuilder.getRawAndEntities();
+        
+        let stations: Station[];
+        let count: number;
+
+        if (results.entities.length > 0) {
+            // Already sorted by relevance from query
+            const offset = (dto.page - 1) * dto.perPage;
+            stations = results.entities.slice(offset, offset + dto.perPage);
+            count = results.entities.length;
+        } else {
+            // Fallback to ILIKE pattern matching if no matches at all
+            const [fallbackStations, fallbackCount] = await this.stationRepo.findAndCount({
+                where: { name: ILike(`%${searchTerm}%`) },
+                order: { name: dto.sortName ?? "asc" },
+                skip: (dto.page - 1) * dto.perPage,
+                take: dto.perPage,
+            });
+            stations = fallbackStations;
+            count = fallbackCount;
+        }
 
         const totalPage = Math.ceil(count / dto.perPage);
 
@@ -89,7 +146,7 @@ export class StationsService {
             perPage: Math.min(dto.perPage, count),
             total: count,
             totalPage,
-        }
+        };
     }
 
     findOneBy(where: FindOptionsWhere<Station> | FindOptionsWhere<Station>[]) {
