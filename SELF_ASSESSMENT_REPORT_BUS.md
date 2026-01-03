@@ -56,7 +56,7 @@ Students must input minus points to every uncompleted feature in the SE column.
 |  | Booking and payment |  |  |  |  |
 |  | › Guest checkout | \-0.25 | -0 |  | Allow booking without account registration |
 |  | › Input passenger details | \-0.25 | -0 |  | Passenger name, phone, email, ID number |
-|  | › Select pickup/dropoff points | \-0.25 |  |  | Choose pickup and dropoff locations along the route |
+|  | › Select pickup/dropoff points | \-0.25 | -0.25 |  | Choose pickup and dropoff locations along the route |
 |  | › View booking summary | \-0.25 | -0 |  | Booking confirmation with trip details, seats, total price |
 |  | › Process payment | \-0.25 | -0 |  | Payment gateway integration |
 |  | › Receive e-ticket | \-0.25 | -0 |  | E-ticket generation and delivery via email |
@@ -67,7 +67,7 @@ Students must input minus points to every uncompleted feature in the SE column.
 |  | › Real-time seat locking | \-0.5 | -0 |  | Concurrent booking handling with seat locking mechanism |
 |  | › Real-time updates | \-0.5 | -0 |  | Socket.IO or polling updates for real-time: seat availability, booking confirmations, trip status notifications |
 |  | Payment system integration | \-0.5 | -0 |  | Payment gateway integration (Stripe, PayOS, VNPay, MoMo, etc.) |
-|  | Fulltext search | \-0.25 | -0.25 |  | Fulltext search for route/station search |
+|  | Fulltext search | \-0.25 | -0 |  | Fulltext search for route/station search |
 |  | E-ticket with QR code | \-0.25 | -0 |  | Generate e-tickets with QR code for check-in |
 |  | Email notifications | \-0.25 | -0 |  | Email notifications for booking confirmations and reminders |
 | **3** | **Authentication and authorization** |  |  |  |  |
@@ -113,7 +113,7 @@ Students must input minus points to every uncompleted feature in the SE column.
 |  | Booking Management |  |  |  |  |
 |  | › View list of bookings | \-0.25 | -0 |  | Booking list sorted by creation time |
 |  | › Filter bookings by status, date | \-0.25 | -0 |  | Filter: Pending, Confirmed, Cancelled, Completed |
-|  | › View booking details | \-0.25 |  |  | Full booking details with passenger info, payment status |
+|  | › View booking details | \-0.25 | -0 |  | Full booking details with passenger info, payment status |
 |  | › Update booking status | \-0.25 | -0 |  | Confirm or cancel bookings |
 |  | › Process refunds | \-0.25 | -0 |  | Handle refund requests |
 |  | Reports |  |  |  |  |
@@ -125,12 +125,12 @@ Students must input minus points to every uncompleted feature in the SE column.
 |  | › Check-in passengers | \-0.25 | -0 |  | Mark passengers as boarded |
 |  | › Update trip status (operations) | \-0.25 | -0 |  | Mark trip as departed, arrived |
 | **6** | **Advanced features** |  |  |  |  |
-|  | Use memory cache to boost performance | 0.25 |  |  | Redis for trip caching and session management |
-|  | Dockerize your project | 0.25 |  |  | Docker containers for backend, frontend, database |
-|  | CI/CD | 0.25 |  |  | Automated testing and deployment pipeline (GitHub Actions, GitLab CI, Jenkins, etc.) |
-|  | Microservices architecture | 0.5 |  |  | Separate services for auth, booking, payment, notifications |
-|  | Saga pattern for transactions | 0.25 |  |  | Distributed transaction handling for booking flow |
-|  | Test coverage >70% | 0.25 |  |  | Unit and integration tests with >70% coverage |
+|  | Use memory cache to boost performance | 0.25 | 0 |  | Redis for trip caching and session management |
+|  | Dockerize your project | 0.25 | 0 |  | Docker containers for backend, frontend, database |
+|  | CI/CD | 0.25 | 0 |  | Automated testing and deployment pipeline (GitHub Actions, GitLab CI, Jenkins, etc.) |
+|  | Microservices architecture | 0.5 | 0 |  | Separate services for auth, booking, payment, notifications |
+|  | Saga pattern for transactions | 0.25 | 0.25 |  | Distributed transaction handling for booking flow |
+|  | Test coverage >70% | 0.25 | 0 |  | Unit and integration tests with >70% coverage |
 
 # **GIT HISTORY**
 
