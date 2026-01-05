@@ -27,12 +27,12 @@ Students must input minus points to every uncompleted feature in the SE column.
 | **1** | **Overall requirements** |  |  |  |  |
 |  | User-centered design | \-5 | -0 |  | Built with user experience in mind. Focus on solving real booking problems: seamless trip search, interactive seat selection, efficient booking flow, and convenient payment options |
 |  | Database design | \-1 | -0 |  | Database with tables: users, routes, buses, trips, seats, bookings, booking_details, payments, ratings, notifications |
-|  | Database mock data | \-1 |  |  | Sample routes, buses, trips, seats, and test bookings |
+|  | Database mock data | \-1 | -0 |  | Sample routes, buses, trips, seats, and test bookings |
 |  | Website layout | \-2 | -0 |  | Two layouts: Customer booking interface and Admin dashboard |
 |  | Website architect | \-3 | -0 |  | Based on MVC architecture. Clear separation of concerns with controllers, services, repositories. Client-side validation, Input validation, Business rule validation |
 |  | Website stability and compatibility | \-4 | -0 |  | Responsive design, tested on Chrome, Safari, Firefox, and Edge |
-|  | Document | \-2 |  |  | Clear documentation for developers and users: setup guide, API endpoints (Swagger/OpenAPI), database design, system architecture, user guide |
-|  | Demo video | \-5 |  |  | Video demonstrating all features: user signup, trip search, seat selection, booking, payment, e-ticket, admin management |
+|  | Document | \-2 | -0 |  | Clear documentation for developers and users: setup guide, API endpoints (Swagger/OpenAPI), database design, system architecture, user guide |
+|  | Demo video | \-5 | -0 |  | Video demonstrating all features: user signup, trip search, seat selection, booking, payment, e-ticket, admin management |
 |  | Publish to public hosts | \-1 | -0 |  | Deployed to a public hosting service (AWS/GCP/Azure) with accessible URL |
 |  | Development progress is recorded in Github | \-7 | -0 |  | Git history with meaningful commits, branches for features, pull requests |
 | **2** | **Guest features (Trip Search & Booking)** |  |  |  |  |

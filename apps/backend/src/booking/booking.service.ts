@@ -305,7 +305,15 @@ export class BookingService {
             });
         }
 
-        if (booking.payment.user.id !== user.id && user.role !== UserRoleEnum.ADMIN) {
+        if (booking.payment.user === null && user.role !== UserRoleEnum.ADMIN) {
+            throw new TRPCError({
+                code: "FORBIDDEN",
+                message: `You are not allowed to delete this booking`,
+                cause: "Not owner of the booking",
+            });
+        }
+
+        if (booking.payment.user && booking.payment.user.id !== user.id && user.role !== UserRoleEnum.ADMIN) {
             throw new TRPCError({
                 code: "FORBIDDEN",
                 message: `You are not allowed to delete this booking`,
