@@ -121,9 +121,9 @@ function DefaultHeader({ hideHeaderNav = false, isCollapsed, onToggleNav }: Defa
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border dark:border-border bg-secondary">
-      <div className="flex h-16 items-center px-3 sm:px-6 justify-between gap-2">
+      <div className="relative flex h-16 items-center px-3 sm:px-6 justify-center gap-2">
         {/* Left: Logo */}
-        <div className="flex gap-2 sm:gap-4 items-center">
+        <div className="absolute left-3 sm:left-6 flex gap-2 sm:gap-4 items-center">
           {/* Mobile: Hamburger toggle (<xl) */}
           <button
             type="button"
@@ -203,7 +203,7 @@ function DefaultHeader({ hideHeaderNav = false, isCollapsed, onToggleNav }: Defa
         )}
 
         {/* Right: Auth buttons */}
-        <nav className="flex items-center justify-end space-x-1 sm:space-x-2">
+        <nav className="absolute right-3 sm:right-6 flex items-center justify-end space-x-1 sm:space-x-2">
           {userQuery.isPending ? (
             <span className="text-xs sm:text-sm font-medium text-secondary-text dark:text-secondary-text">Loading...</span>
           ) : (
