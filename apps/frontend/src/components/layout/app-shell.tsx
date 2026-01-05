@@ -113,10 +113,10 @@ function DefaultHeader({ hideHeaderNav = false, isCollapsed, onToggleNav }: Defa
 
   const navItems = [
     { href: "/", label: "Home", },
-    // { href: "/trips", label: "Trips", },
-    // { href: "/routes", label: "Routes", },
+    { href: "/trips", label: "Trips", },
+    { href: "/routes", label: "Routes", },
     { href: "/ticket", label: "View Ticket", },
-    // { href: "/about", label: "About", },
+    { href: "/about", label: "About", },
   ];
 
   return (

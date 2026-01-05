@@ -168,6 +168,7 @@ export function BusSearchForm({ onSearch, isLoading, initialValues }: BusSearchF
               <FormField
                 label="Date"
                 type="date"
+                min={new Date().toISOString().split('T')[0]}
                 error={errors.departureTime?.message}
                 {...register("departureTime")}
               />
